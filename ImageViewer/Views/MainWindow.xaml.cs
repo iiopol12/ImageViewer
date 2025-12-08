@@ -14,65 +14,91 @@ namespace ImageViewer.Views
 {
     public partial class MainWindow : Window
     {
-        private MainViewModel ViewModel => (MainViewModel)DataContext;
-        private Point _lastMousePosition;
-        private bool _isDragging;
-        private WindowState _previousWindowState;
-        private WindowStyle _previousWindowStyle;
-        private ResizeMode _previousResizeMode;
-        private bool _previousShowStatusBar;
-        private bool _previousShowSidebar;
 
+        // ViewModel 快捷访问属性
+        private MainViewModel ViewModel => (MainViewModel)DataContext;
+
+        // 鼠标拖拽相关字段
+        private Point _lastMousePosition;   // 上次鼠标位置
+        private bool _isDragging;           // 是否正在拖拽图片
+
+        // 全屏模式前的窗口状态保存
+        private WindowState _previousWindowState; // 之前的窗口状态（最大化/正常）
+        private WindowStyle _previousWindowStyle; // 之前的窗口样式
+        private ResizeMode _previousResizeMode;   // 之前的调整大小模式
+        private bool _previousShowStatusBar;      // 之前是否显示状态栏
+        private bool _previousShowSidebar;        // 之前是否显示侧边栏
+
+
+        // 窗口位置恢复标志
         private bool _hasRestoredWindowPlacement;
 
         // 全局快捷键管理器
         private HotKeyManager _hotKeyManager;
-        private readonly DispatcherTimer _cursorHideTimer;
-        private bool _isCursorHidden;
+
+        // 鼠标光标自动隐藏相关
+        private readonly DispatcherTimer _cursorHideTimer;// 光标隐藏计时器
+        private bool _isCursorHidden;                     // 光标是否已隐藏
         private readonly TimeSpan _cursorHideDelay = TimeSpan.FromSeconds(3);
+
 
         public MainWindow()
         {
             InitializeComponent();
+
+            // 订阅 ViewModel 属性变化事件
             ViewModel.PropertyChanged += ViewModel_PropertyChanged;
-
-            // 初始化快捷键管理器
+            // 初始化全局快捷键管理器
             _hotKeyManager = new HotKeyManager(this);
-
-            // 初始化鼠标隐藏计时器（用于幻灯片模式）
+            // 初始化光标自动隐藏计时器
             _cursorHideTimer = new DispatcherTimer
             {
                 Interval = _cursorHideDelay
             };
             _cursorHideTimer.Tick += CursorHideTimer_Tick;
 
-            // Restore window position and size
-            Loaded += async (s, e) =>
+            // 使用 ContentRendered 代替 Loaded，确保内容已渲染完成
+            ContentRendered += async (s, e) =>
             {
                 // 注册全局快捷键
                 RegisterGlobalHotKeys();
 
-                FadeInWindow();
-
-                // Load startup file if provided
+                Opacity = 1;
+                // 如果有启动参数传入的文件，则加载该文件
                 if (Application.Current.Properties["StartupFile"] is string filePath)
                 {
                     await ViewModel.LoadImageFromPath(filePath);
                 }
+              
             };
         }
 
+
+        /// <summary>
+        /// 窗口源初始化完成时触发 - 这是窗口句柄创建后的最早时机
+        /// 用于恢复窗口位置和显示窗口
+        /// </summary>
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
-
+            // 防止重复恢复窗口位置
             if (_hasRestoredWindowPlacement)
                 return;
-
+            // 恢复上次保存的窗口位置和大小
             RestoreWindowPlacement();
             _hasRestoredWindowPlacement = true;
+
+
+            // 使用淡入动画显示窗口，而不是直接设置 Opacity = 1
+            //FadeInWindow();
+
+
         }
 
+
+        /// <summary>
+        /// 恢复窗口位置和大小 - 从设置中读取上次保存的窗口状态
+        /// </summary>
         private void RestoreWindowPlacement()
         {
             if (!ViewModel.Settings.RememberWindowPosition)
@@ -84,23 +110,30 @@ namespace ImageViewer.Views
                 Height = ViewModel.Settings.WindowHeight;
             if (ViewModel.Settings.WindowLeft >= 0)
                 Left = ViewModel.Settings.WindowLeft;
+
+            // 恢复窗口顶部位置
             if (ViewModel.Settings.WindowTop >= 0)
                 Top = ViewModel.Settings.WindowTop;
+            // 恢复窗口最大化状态
             if (ViewModel.Settings.IsMaximized)
                 WindowState = WindowState.Maximized;
         }
 
+
+        /// <summary>
+        /// 窗口淡入动画 - 使窗口平滑显示，避免突兀的白屏
+        /// </summary>
         private void FadeInWindow()
         {
-            const double durationMs = 140;
-
+            const double durationMs = 120;
+            // 清除之前的动画
             BeginAnimation(OpacityProperty, null);
             var animation = new DoubleAnimation
             {
-                From = Opacity,
-                To = 1,
+                From = 0, // 从完全透明开始，避免显示初始化白屏
+                To = 1,  // 到完全不透明结束
                 Duration = TimeSpan.FromMilliseconds(durationMs),
-                EasingFunction = new QuadraticEase()
+                EasingFunction = new QuadraticEase() // 使用二次缓动函数，使动画更平滑
             };
             BeginAnimation(OpacityProperty, animation);
         }
@@ -209,27 +242,34 @@ namespace ImageViewer.Views
 
         #endregion
 
-        #region Window Chrome Events
-
+        #region 窗口标题栏事件处理
+        /// <summary>
+        /// 标题栏鼠标左键按下事件 - 处理拖动和双击最大化
+        /// </summary>
         private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ClickCount == 2)
-            {
+            {// 双击标题栏 - 切换最大化/还原
                 MaximizeButton_Click(sender, e);
             }
             else
-            {
+            { // 单击拖动 - 移动窗口
                 DragMove();
             }
         }
-
+        /// <summary>
+        /// 最小化按钮点击事件
+        /// </summary>
         private void MinimizeButton_Click(object sender, RoutedEventArgs e)
         {
             WindowState = WindowState.Minimized;
         }
-
+        /// <summary>
+        /// 最大化/还原按钮点击事件
+        /// </summary>
         private void MaximizeButton_Click(object sender, RoutedEventArgs e)
         {
+            // 切换窗口状态
             if (WindowState == WindowState.Maximized)
             {
                 WindowState = WindowState.Normal;
@@ -242,6 +282,10 @@ namespace ImageViewer.Views
             }
         }
 
+
+        /// <summary>
+        /// 关闭按钮点击事件
+        /// </summary>
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             Close();
@@ -249,13 +293,14 @@ namespace ImageViewer.Views
 
         #endregion
 
-        #region Window Events
+        #region  窗口事件处理
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             // Additional initialization
             ScheduleFitToWindowUpdate();
         }
+
 
         private void OpenSettingsMenuItem_Click(object sender, RoutedEventArgs e)
         {
@@ -265,7 +310,9 @@ namespace ImageViewer.Views
             };
             settingsWindow.ShowDialog();
         }
-
+        /// <summary>
+        /// 窗口关闭事件 - 保存设置和清理资源
+        /// </summary>
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             if (ViewModel.IsFullScreen)
@@ -276,16 +323,16 @@ namespace ImageViewer.Views
             // 注销所有快捷键
             _hotKeyManager?.Dispose();
 
-            // Save window state
+            // 保存当前窗口位置和大小
             if (ViewModel.Settings.RememberWindowPosition)
-            {
+            {// 如果窗口不是最大化状态，保存实际位置和大小
                 ViewModel.Settings.WindowWidth = Width;
                 ViewModel.Settings.WindowHeight = Height;
                 ViewModel.Settings.WindowLeft = Left;
                 ViewModel.Settings.WindowTop = Top;
                 ViewModel.Settings.IsMaximized = WindowState == WindowState.Maximized;
             }
-
+            // 保存设置到文件
             ViewModel.SaveSettings();
             ViewModel.Dispose();
         }
@@ -325,18 +372,28 @@ namespace ImageViewer.Views
             }
         }
 
+        /// <summary>
+        /// 窗口激活事件 - 窗口获得焦点时触发
+        /// </summary>
         private void Window_Activated(object sender, EventArgs e)
         {
             // 窗口激活时重新注册快捷键，避免在后台抢占其它软件按键
             RegisterGlobalHotKeys();
         }
 
+
+        /// <summary>
+        /// 窗口失活（失去焦点）
+        /// </summary>
         private void Window_Deactivated(object sender, EventArgs e)
         {
             // 窗口失焦时释放全局热键
             _hotKeyManager?.UnregisterAll();
         }
 
+        /// <summary>
+        /// 鼠标移动事件 - 用于自动隐藏光标
+        /// </summary>
         private void Window_MouseMove(object sender, MouseEventArgs e)
         {
             // 移动鼠标时立即显示，并在幻灯片模式下重启隐藏计时器
@@ -351,7 +408,9 @@ namespace ImageViewer.Views
                 _cursorHideTimer.Stop();
             }
         }
-
+        /// <summary>
+        /// 鼠标滚轮预览事件
+        /// </summary>
         private void Window_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
             // 在隧道路由阶段优先处理 Ctrl + 滚轮缩放，防止 ScrollViewer 抢占事件
@@ -369,7 +428,9 @@ namespace ImageViewer.Views
 
             e.Handled = true;
         }
-
+        /// <summary>
+        /// 光标隐藏计时器触发事件 - 在全屏模式下自动隐藏光标
+        /// </summary>
         private void CursorHideTimer_Tick(object? sender, EventArgs e)
         {
             if (!ViewModel.IsSlideShowActive)
@@ -405,9 +466,13 @@ namespace ImageViewer.Views
             Mouse.OverrideCursor = null;
             _isCursorHidden = false;
         }
-
+        /// <summary>
+        /// 鼠标滚轮事件 - 处理缩放或翻页
+        /// </summary>
         private void Window_MouseWheel(object sender, MouseWheelEventArgs e)
         {
+
+            // 判断是否按下 Ctrl 键
             bool ctrlPressed = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
             bool forceZoom = ctrlPressed || ViewModel.Settings.ScrollWheelBehavior == ScrollWheelBehavior.Zoom;
 
@@ -564,30 +629,38 @@ namespace ImageViewer.Views
 
         #endregion
 
-        #region Full Screen
-
+        #region  ViewModel 属性变化处理
+        /// <summary>
+        /// ViewModel 属性变化事件处理
+        /// </summary>
         private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             switch (e.PropertyName)
             {
                 case nameof(MainViewModel.IsFullScreen):
+                    // 处理全屏模式切换
                     HandleFullScreenChange();
                     break;
                 case nameof(MainViewModel.DisplayImage):
                 case nameof(MainViewModel.SecondDisplayImage):
+                    // 图片加载完成后，触发淡入动画
                     StartImageFadeIn();
                     goto case nameof(MainViewModel.FitToWindow);
                 case nameof(MainViewModel.CurrentViewMode):
                 case nameof(MainViewModel.FitToWindow):
                 case nameof(MainViewModel.ZoomLevel):
+                    // 查看模式改变时，重新计算缩放
                     ScheduleFitToWindowUpdate();
                     break;
                 case nameof(MainViewModel.IsSlideShowActive):
+                    // 适应窗口选项改变时，重新计算缩放
                     HandleSlideShowChange();
                     break;
             }
         }
 
+
+        // 处理全屏模式切换
         private void HandleFullScreenChange()
         {
             if (ViewModel.IsFullScreen)
@@ -599,12 +672,15 @@ namespace ImageViewer.Views
                 ExitFullScreen();
             }
         }
-
+        /// <summary>
+        /// 切换全屏模式（快捷方法）
+        /// </summary>
         private void ToggleFullScreen()
         {
             ViewModel.IsFullScreen = !ViewModel.IsFullScreen;
         }
 
+        // 适应窗口选项改变时，重新计算缩放
         private void HandleSlideShowChange()
         {
             if (ViewModel.IsSlideShowActive)
@@ -619,6 +695,10 @@ namespace ImageViewer.Views
             }
         }
 
+
+        /// <summary>
+        /// 进入全屏模式
+        /// </summary>
         private void EnterFullScreen()
         {
             // 保存当前窗口状态
@@ -640,6 +720,10 @@ namespace ImageViewer.Views
             ViewModel.Settings.ShowSidebar = false;
         }
 
+
+        /// <summary>
+        /// 退出全屏模式
+        /// </summary>
         private void ExitFullScreen()
         {
             // 恢复窗口状态
@@ -654,49 +738,62 @@ namespace ImageViewer.Views
 
         #endregion
 
-        #region Image Interaction
-
+        #region  图片交互处理
+        /// <summary>
+        /// 图片容器鼠标左键按下事件 - 开始拖拽或双击全屏
+        /// </summary>
         private void ImageContainer_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ClickCount == 2)
             {
+                // 双击图片 - 切换全屏
                 ToggleFullScreen();
                 return;
             }
-
+            // 开始拖拽图片
             _isDragging = true;
             _lastMousePosition = e.GetPosition(ImageScrollViewer);
             ImageContainer.CaptureMouse();
         }
-
+        /// <summary>
+        /// 图片容器鼠标左键释放事件 - 结束拖拽
+        /// </summary>
         private void ImageContainer_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             _isDragging = false;
             ImageContainer.ReleaseMouseCapture();
         }
-
+        /// <summary>
+        /// 图片容器鼠标移动事件 - 处理图片拖拽
+        /// </summary>
         private void ImageContainer_MouseMove(object sender, MouseEventArgs e)
         {
+            // 只有在拖拽状态下才处理移动
             if (_isDragging && e.LeftButton == MouseButtonState.Pressed)
             {
                 var currentPosition = e.GetPosition(ImageScrollViewer);
                 var delta = currentPosition - _lastMousePosition;
-
+                // 滚动 ScrollViewer 以移动图片
                 ImageScrollViewer.ScrollToHorizontalOffset(ImageScrollViewer.HorizontalOffset - delta.X);
                 ImageScrollViewer.ScrollToVerticalOffset(ImageScrollViewer.VerticalOffset - delta.Y);
-
+                // 更新上次鼠标位置
                 _lastMousePosition = currentPosition;
             }
         }
-
+        /// <summary>
+        /// 上一张区域点击事件 - 点击图片左侧区域切换到上一张
+        /// </summary>
         private void PreviousZone_Click(object sender, MouseButtonEventArgs e)
         {
+            // 只有在非拖拽状态下才切换图片
             if (!_isDragging)
             {
                 ViewModel.GoPreviousCommand.Execute(null);
             }
         }
-
+        /// <summary>
+        /// 下一张区域点击事件 - 点击图片右侧区域切换到下一张
+        /// </summary>
         private void NextZone_Click(object sender, MouseButtonEventArgs e)
         {
             if (!_isDragging)
@@ -707,35 +804,45 @@ namespace ImageViewer.Views
 
         #endregion
 
-        #region Zoom & Fit
-
+        #region  缩放和适应窗口 Zoom & Fit
+        /// <summary>
+        /// 图片滚动视图大小改变事件 - 窗口大小改变时重新计算适应窗口的缩放
+        /// </summary>
         private void ImageScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             ScheduleFitToWindowUpdate();
         }
 
+        /// <summary>
+        /// 延迟更新适应窗口缩放 - 避免频繁计算
+        /// </summary>
         private void ScheduleFitToWindowUpdate()
-        {
+        {// 使用 Dispatcher 在后台优先级执行，避免阻塞 UI
             Dispatcher.BeginInvoke(new Action(UpdateFitToWindowZoom), DispatcherPriority.Background);
         }
 
+
+        /// <summary>
+        /// 更新适应窗口的缩放级别
+        /// </summary>
         private void UpdateFitToWindowZoom()
         {
+            // 漫画模式不需要自动适应窗口
             if (ViewModel.IsMangaMode)
                 return;
-
+            // 如果未启用适应窗口或没有图片，则不处理
             if (!ViewModel.FitToWindow || ViewModel.DisplayImage == null)
                 return;
-
+            // 获取视口大小
             var viewportWidth = ImageScrollViewer.ViewportWidth;
             var viewportHeight = ImageScrollViewer.ViewportHeight;
 
             if (viewportWidth <= 0 || viewportHeight <= 0)
                 return;
-
+            // 获取图片实际大小
             double imageWidth = ViewModel.DisplayImage.PixelWidth;
             double imageHeight = ViewModel.DisplayImage.PixelHeight;
-
+            // 如果是双页模式，需要考虑第二张图片
             if (ViewModel.IsDoublePage && ViewModel.SecondDisplayImage != null)
             {
                 imageWidth += ViewModel.SecondDisplayImage.PixelWidth + 8; // include gap between pages
@@ -744,23 +851,26 @@ namespace ImageViewer.Views
 
             if (imageWidth <= 0 || imageHeight <= 0)
                 return;
-
+            // 计算适应窗口的缩放比例（取宽度和高度缩放比例的较小值）
             var scale = Math.Min(viewportWidth / imageWidth, viewportHeight / imageHeight);
-
+            // 设置缩放级别
             if (double.IsFinite(scale) && scale > 0)
             {
                 ViewModel.ZoomLevel = scale;
             }
         }
-
+        /// <summary>
+        /// 开始图片淡入动画 - 使图片切换更平滑
+        /// </summary>
         private void StartImageFadeIn()
         {
+            // 如果没有图片，则不执行动画
             if (ViewModel.DisplayImage == null && ViewModel.SecondDisplayImage == null)
                 return;
 
-            const double startOpacity = 1.0; // start at full opacity to avoid black flash
-            const double durationMs = 140;
-
+            const double startOpacity = 1.0;// 从完全不透明开始，避免黑色闪烁
+            const double durationMs = 140;// 动画持续时间
+            // 淡入动画辅助方法
             void Fade(UIElement element)
             {
                 if (element == null) return;
@@ -775,15 +885,17 @@ namespace ImageViewer.Views
                 };
                 element.BeginAnimation(UIElement.OpacityProperty, animation);
             }
-
+            // 对主图片和第二张图片应用淡入效果
             Fade(MainImage);
             Fade(SecondImageControl);
         }
 
         #endregion
 
-        #region Thumbnail List
-
+        #region 缩略图列表Thumbnail List
+        /// <summary>
+        /// 缩略图列表选择改变事件 - 切换到选中的图片
+        /// </summary>
         private void ThumbnailList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var listBox = sender as ListBox;
@@ -812,8 +924,10 @@ namespace ImageViewer.Views
 
         #endregion
 
-        #region Manga Mode
-
+        #region 漫画模式Manga Mode
+        /// <summary>
+        /// 漫画滚动视图鼠标左键按下事件（冒泡阶段）
+        /// </summary>
         private void MangaScrollViewer_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             // 冒泡阶段的双击处理
@@ -823,7 +937,9 @@ namespace ImageViewer.Views
                 e.Handled = true;
             }
         }
-
+        /// <summary>
+        /// 漫画滚动视图鼠标左键按下预览事件（隧道阶段）
+        /// </summary>
         private void MangaScrollViewer_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             // 隧道阶段也处理双击，确保漫画模式下双击能够进入/退出全屏
@@ -833,21 +949,24 @@ namespace ImageViewer.Views
                 e.Handled = true;
             }
         }
-
+        /// <summary>
+        /// 漫画滚动视图滚动改变事件 - 更新当前滚动位置
+        /// </summary>
         private void MangaScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
+            // 只在漫画模式下处理
             if (!ViewModel.IsMangaMode || ViewModel.Images.Count == 0)
                 return;
 
-            // Find the image that's most visible in the viewport
+            // 查找在视口中最可见的图片
             var scrollViewer = sender as ScrollViewer;
             if (scrollViewer == null) return;
-
+            // 计算视口范围
             var viewportTop = scrollViewer.VerticalOffset;
             var viewportBottom = viewportTop + scrollViewer.ViewportHeight;
             var viewportCenter = viewportTop + scrollViewer.ViewportHeight / 2;
 
-            // Update scroll offset for ViewModel
+            // 更新 ViewModel 的滚动偏移量
             ViewModel.ScrollOffset = viewportTop;
         }
 

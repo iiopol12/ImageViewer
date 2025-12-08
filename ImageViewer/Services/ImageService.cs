@@ -188,7 +188,7 @@ namespace ImageViewer.Services
                 _ = LoadImageAsync(image, null, cancellationToken);
             }
         }
-        
+        /// <summary>Ðý×ª90¶ÈÃüÁî</summary>
         public BitmapSource RotateImage(BitmapSource source, double angle)
         {
             var transform = new System.Windows.Media.RotateTransform(angle);

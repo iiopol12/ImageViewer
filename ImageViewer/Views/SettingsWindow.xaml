@@ -120,9 +120,9 @@
                                    VerticalAlignment="Center" Margin="12,0,0,0"/>
                     </StackPanel>
 
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="漫画解码宽度(px)" 
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="漫画解码宽度(px)"  Visibility="Hidden"
                                Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
-                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
+                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0"  Visibility="Hidden">
                         <Slider x:Name="MangaDecodeSlider" Width="150" Minimum="800" Maximum="4000"
                                 Value="1600" TickFrequency="200" IsSnapToTickEnabled="True"/>
                         <TextBlock x:Name="MangaDecodeText" Text="1600" Foreground="{StaticResource ForegroundBrush}"
