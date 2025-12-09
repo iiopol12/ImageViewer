@@ -42,6 +42,10 @@ namespace ImageViewer.Views
         private bool _isCursorHidden;                     // 光标是否已隐藏
         private readonly TimeSpan _cursorHideDelay = TimeSpan.FromSeconds(3);
 
+        // 非客户区命中测试常量
+        private const int WM_NCHITTEST = 0x0084;
+        private const int HTLEFT = 10, HTRIGHT = 11, HTTOP = 12, HTTOPLEFT = 13, HTTOPRIGHT = 14, HTBOTTOM = 15, HTBOTTOMLEFT = 16, HTBOTTOMRIGHT = 17;
+
 
         public MainWindow()
         {
@@ -82,11 +86,8 @@ namespace ImageViewer.Views
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
-            // 注册窗口消息钩子，处理自定义命中测试
-            if (PresentationSource.FromVisual(this) is HwndSource source)
-            {
-                source.AddHook(WndProc);
-            }
+           
+      
             // 防止重复恢复窗口位置
             if (_hasRestoredWindowPlacement)
                 return;
@@ -94,13 +95,67 @@ namespace ImageViewer.Views
             RestoreWindowPlacement();
             _hasRestoredWindowPlacement = true;
 
-
             // 使用淡入动画显示窗口，而不是直接设置 Opacity = 1
             //FadeInWindow();
-
+            // 处理非客户区命中，确保上下边框可缩放
+            // 注册窗口消息钩子，处理自定义命中测试
+            if (PresentationSource.FromVisual(this) is HwndSource source)
+            {
+                source.AddHook(WindowProc);
+            }
 
         }
+        #region 非客户区命中测试
+        /// <summary>
+        /// 自定义命中测试，保证上下边缘也能触发窗口缩放
+        /// </summary>
+        private IntPtr WindowProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            if (msg == WM_NCHITTEST)
+            {
+                var hitResult = HitTestResize(lParam);
+                if (hitResult != IntPtr.Zero)
+                {
+                    handled = true;
+                    return hitResult;
+                }
+            }
+            return IntPtr.Zero;
+        }
 
+        private IntPtr HitTestResize(IntPtr lParam)
+        {
+            // lParam 打包了屏幕坐标（低位 X，高位 Y）
+            var mousePos = GetMousePosition(lParam);
+            var pos = PointFromScreen(mousePos);
+            double border = SystemParameters.WindowResizeBorderThickness.Left;
+            double width = ActualWidth;
+            double height = ActualHeight;
+
+            bool onLeft = pos.X >= 0 && pos.X <= border;
+            bool onRight = pos.X >= width - border && pos.X <= width;
+            bool onTop = pos.Y >= 0 && pos.Y <= border;
+            bool onBottom = pos.Y >= height - border && pos.Y <= height;
+
+            if (onLeft && onTop) return new IntPtr(HTTOPLEFT);
+            if (onRight && onTop) return new IntPtr(HTTOPRIGHT);
+            if (onLeft && onBottom) return new IntPtr(HTBOTTOMLEFT);
+            if (onRight && onBottom) return new IntPtr(HTBOTTOMRIGHT);
+            if (onLeft) return new IntPtr(HTLEFT);
+            if (onRight) return new IntPtr(HTRIGHT);
+            if (onTop) return new IntPtr(HTTOP);
+            if (onBottom) return new IntPtr(HTBOTTOM);
+
+            return IntPtr.Zero;
+        }
+
+        private static Point GetMousePosition(IntPtr lParam)
+        {
+            int x = unchecked((short)((long)lParam & 0xFFFF));
+            int y = unchecked((short)(((long)lParam >> 16) & 0xFFFF));
+            return new Point(x, y);
+        }
+        #endregion
 
         /// <summary>
         /// 恢复窗口位置和大小 - 从设置中读取上次保存的窗口状态
@@ -978,74 +1033,6 @@ namespace ImageViewer.Views
 
         #endregion
 
-        #region 窗口命中测试
-
-        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-        {
-            if (msg == WM_NCHITTEST)
-            {
-                var hitResult = HitTestResizeBorder(lParam);
-                if (hitResult != IntPtr.Zero)
-                {
-                    handled = true;
-                    return hitResult;
-                }
-            }
-
-            return IntPtr.Zero;
-        }
-
-        private IntPtr HitTestResizeBorder(IntPtr lParam)
-        {
-            if (WindowState == WindowState.Maximized)
-                return IntPtr.Zero;
-
-            if (ResizeMode != ResizeMode.CanResize && ResizeMode != ResizeMode.CanResizeWithGrip)
-                return IntPtr.Zero;
-
-            var mousePosition = GetMousePosition(lParam);
-            var resizeBorder = SystemParameters.WindowResizeBorderThickness;
-
-            var width = ActualWidth;
-            var height = ActualHeight;
-
-            if (width <= 0 || height <= 0)
-                return IntPtr.Zero;
-
-            bool onLeft = mousePosition.X >= 0 && mousePosition.X <= resizeBorder.Left;
-            bool onRight = mousePosition.X >= width - resizeBorder.Right && mousePosition.X <= width;
-            bool onTop = mousePosition.Y >= 0 && mousePosition.Y <= resizeBorder.Top;
-            bool onBottom = mousePosition.Y >= height - resizeBorder.Bottom && mousePosition.Y <= height;
-
-            if (onTop && onLeft) return (IntPtr)HTTOPLEFT;
-            if (onTop && onRight) return (IntPtr)HTTOPRIGHT;
-            if (onBottom && onLeft) return (IntPtr)HTBOTTOMLEFT;
-            if (onBottom && onRight) return (IntPtr)HTBOTTOMRIGHT;
-            if (onTop) return (IntPtr)HTTOP;
-            if (onBottom) return (IntPtr)HTBOTTOM;
-            if (onLeft) return (IntPtr)HTLEFT;
-            if (onRight) return (IntPtr)HTRIGHT;
-
-            return IntPtr.Zero;
-        }
-
-        private Point GetMousePosition(IntPtr lParam)
-        {
-            int x = (short)((uint)lParam & 0xFFFF);
-            int y = (short)(((uint)lParam >> 16) & 0xFFFF);
-            return PointFromScreen(new Point(x, y));
-        }
-
-        private const int WM_NCHITTEST = 0x0084;
-        private const int HTLEFT = 10;
-        private const int HTRIGHT = 11;
-        private const int HTTOP = 12;
-        private const int HTTOPLEFT = 13;
-        private const int HTTOPRIGHT = 14;
-        private const int HTBOTTOM = 15;
-        private const int HTBOTTOMLEFT = 16;
-        private const int HTBOTTOMRIGHT = 17;
-
-        #endregion
+       
     }
 }
