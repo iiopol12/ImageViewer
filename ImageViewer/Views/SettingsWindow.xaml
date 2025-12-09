@@ -39,6 +39,7 @@
                         <ComboBoxItem Content="单图模式" Tag="{x:Static models:ViewMode.Single}"/>
                         <ComboBoxItem Content="漫画模式" Tag="{x:Static models:ViewMode.Manga}"/>
                         <ComboBoxItem Content="双页模式" Tag="{x:Static models:ViewMode.DoublePage}"/>
+                        <ComboBoxItem Content="瀑布流模式" Tag="{x:Static models:ViewMode.Masonry}"/>
                     </ComboBox>
                     
                     <TextBlock Grid.Row="1" Grid.Column="0" Text="阅读方向" 

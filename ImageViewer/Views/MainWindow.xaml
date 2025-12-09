@@ -8,12 +8,9 @@
         xmlns:models="clr-namespace:ImageViewer.Models"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         mc:Ignorable="d"
-        Title="图片查看器" 
+        Title="ImageViewer" 
         Height="800" Width="1200"
         MinHeight="400" MinWidth="600"
-       Opacity="0"
-       
-    
         WindowStyle="None"
         AllowsTransparency="False"
         ResizeMode="CanResize"
@@ -29,7 +26,7 @@
         Activated="Window_Activated"
         Deactivated="Window_Deactivated"
         Closing="Window_Closing"
-    
+        Background="{StaticResource BackgroundMediumBrush}"
         StateChanged="Window_StateChanged">
 
     <Window.DataContext>
@@ -43,6 +40,35 @@
                             CornerRadius="0"
                             UseAeroCaptionButtons="False"/>
     </WindowChrome.WindowChrome>
+
+    <Window.ContextMenu>
+        <ContextMenu>
+            <MenuItem Header="打开文件 (Ctrl+O)" Command="{Binding OpenFileCommand}"/>
+            <MenuItem Header="打开文件�?(Ctrl+F)" Command="{Binding OpenFolderCommand}"/>
+            <Separator/>
+            <MenuItem Header="上一�?(�?" Command="{Binding GoPreviousCommand}"/>
+            <MenuItem Header="下一�?(�?" Command="{Binding GoNextCommand}"/>
+            <Separator/>
+            <MenuItem Header="放大 (+)" Command="{Binding ZoomInCommand}"/>
+            <MenuItem Header="缩小 (-)" Command="{Binding ZoomOutCommand}"/>
+            <MenuItem Header="适应窗口" Command="{Binding ZoomToFitCommand}"/>
+            <MenuItem Header="原始尺寸" Command="{Binding ZoomToActualCommand}"/>
+            <Separator/>
+            <MenuItem Header="旋转90°" Command="{Binding Rotate90Command}"/>
+            <MenuItem Header="添加/移除书签 (B)" Command="{Binding ToggleBookmarkCommand}"/>
+            <Separator/>
+            <MenuItem Header="复制到剪贴板 (Ctrl+C)" Command="{Binding CopyToClipboardCommand}"/>
+            <MenuItem Header="在资源管理器中显示" Command="{Binding OpenInExplorerCommand}"/>
+            <MenuItem Header="删除 (Delete)" Command="{Binding DeleteImageCommand}"/>
+            <Separator/>
+            <MenuItem Header="全屏 (F11)" Command="{Binding ToggleFullScreenCommand}"/>
+            <MenuItem Header="幻灯�?(S)" Command="{Binding ToggleSlideShowCommand}"/>
+            <Separator/>
+            <MenuItem Header="切换模式 (M)" Command="{Binding ToggleViewModeCommand}"/>
+            <Separator/>
+            <MenuItem Header="设置" Click="OpenSettingsMenuItem_Click"/>
+        </ContextMenu>
+    </Window.ContextMenu>
 
     <Grid   >
         <Grid.RowDefinitions>
@@ -80,13 +106,13 @@
             </StackPanel>
 
             <StackPanel Grid.Column="2" Orientation="Horizontal">
-                <Button x:Name="MinimizeButton" Content="─" Style="{StaticResource IconButtonStyle}" 
+                <Button x:Name="MinimizeButton" Content="-" Style="{StaticResource IconButtonStyle}" 
                         Click="MinimizeButton_Click" Width="46" Height="32" FontSize="12" FontFamily="Segoe UI"
                         shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
-                <Button x:Name="MaximizeButton" Content="☐" Style="{StaticResource IconButtonStyle}" 
+                <Button x:Name="MaximizeButton" Content="[]" Style="{StaticResource IconButtonStyle}" 
                         Click="MaximizeButton_Click" Width="46" Height="32" FontSize="14" FontFamily="Segoe UI"
                         shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
-                <Button x:Name="CloseButton" Content="✕" Click="CloseButton_Click" Width="46" Height="32" FontSize="12" FontFamily="Segoe UI"
+                <Button x:Name="CloseButton" Content="X" Click="CloseButton_Click" Width="46" Height="32" FontSize="12" FontFamily="Segoe UI"
                         Background="Transparent" Foreground="{StaticResource ForegroundBrush}" BorderThickness="0" Cursor="Hand"
                         shell:WindowChrome.IsHitTestVisibleInChrome="True">
                     <Button.Style>
@@ -117,7 +143,7 @@
                 <Style TargetType="Border">
                     <Setter Property="Visibility" Value="Visible"/>
                     <Style.Triggers>
-                        <!-- 全屏时隐藏 -->
+                        <!-- 全屏时隐�?-->
                         <DataTrigger Binding="{Binding IsFullScreen}" Value="True">
                             <Setter Property="Visibility" Value="Collapsed"/>
                         </DataTrigger>
@@ -141,20 +167,20 @@
                     </Button>
                     <Button Style="{StaticResource IconButtonStyle}" 
         Command="{Binding OpenFolderCommand}" 
-        ToolTip="打开文件夹 (Ctrl+F)">
-                        <!-- Data说明：后背板 + 前盖板，形成开口效果 -->
+        ToolTip="打开文件�?(Ctrl+F)">
+                        <!-- Data说明：后背板 + 前盖板，形成开口效�?-->
                         <Path Data="M4 4 L10 4 L12 6 L20 6 L20 10 M2 10 L22 10 L20 20 L4 20 L2 10" 
           Stroke="White" StrokeThickness="2" Width="18" Height="18" Stretch="Uniform"/>
                     </Button>
                     <Rectangle Width="1" Fill="{StaticResource BackgroundLightBrush}" Margin="8,4"/>
 
-                    <Button Style="{StaticResource IconButtonStyle}" Content="⏮" FontFamily="Segoe UI Symbol"
+                    <Button Style="{StaticResource IconButtonStyle}" Content="|&lt;" FontFamily="Segoe UI Symbol"
                             Command="{Binding GoToFirstCommand}" ToolTip="首页 (Home)" IsEnabled="{Binding HasImages}"/>
-                    <Button Style="{StaticResource IconButtonStyle}" Content="◀" FontFamily="Segoe UI Symbol"
-                            Command="{Binding GoPreviousCommand}" ToolTip="上一张 (←/A)" IsEnabled="{Binding CanGoPrevious}"/>
-                    <Button Style="{StaticResource IconButtonStyle}" Content="▶" FontFamily="Segoe UI Symbol"
-                            Command="{Binding GoNextCommand}" ToolTip="下一张 (→/D)" IsEnabled="{Binding CanGoNext}"/>
-                    <Button Style="{StaticResource IconButtonStyle}" Content="⏭" FontFamily="Segoe UI Symbol"
+                    <Button Style="{StaticResource IconButtonStyle}" Content="&lt;" FontFamily="Segoe UI Symbol"
+                            Command="{Binding GoPreviousCommand}" ToolTip="上一�?(�?A)" IsEnabled="{Binding CanGoPrevious}"/>
+                    <Button Style="{StaticResource IconButtonStyle}" Content="&gt;" FontFamily="Segoe UI Symbol"
+                            Command="{Binding GoNextCommand}" ToolTip="下一�?(�?D)" IsEnabled="{Binding CanGoNext}"/>
+                    <Button Style="{StaticResource IconButtonStyle}" Content="&gt;|" FontFamily="Segoe UI Symbol"
                             Command="{Binding GoToLastCommand}" ToolTip="末页 (End)" IsEnabled="{Binding HasImages}"/>
 
                     <Rectangle Width="1" Fill="{StaticResource BackgroundLightBrush}" Margin="8,4"/>
@@ -187,11 +213,11 @@
                             <Style TargetType="Button" BasedOn="{StaticResource IconButtonStyle}">
                                 <!-- 默认样式继承IconButtonStyle -->
                                 <Style.Triggers>
-                                    <!-- 当FitToWindow为True时，显示"适应窗口"图标和提示 -->
+                                    <!-- 当FitToWindow为True时，显示"适应窗口"图标和提�?-->
                                     <DataTrigger Binding="{Binding FitToWindow}" Value="True">
-                                        <Setter Property="ToolTip" Value="切换到原始尺寸 (Ctrl+0)"/>
+                                        <Setter Property="ToolTip" Value="切换到原始尺�?(Ctrl+0)"/>
                                     </DataTrigger>
-                                    <!-- 当FitToWindow为False时，显示"原始尺寸"图标和提示 -->
+                                    <!-- 当FitToWindow为False时，显示"原始尺寸"图标和提�?-->
                                     <DataTrigger Binding="{Binding FitToWindow}" Value="False">
                                         <Setter Property="ToolTip" Value="切换到适应窗口 (Ctrl+0)"/>
                                     </DataTrigger>
@@ -201,7 +227,7 @@
 
                         <!-- 根据FitToWindow状态显示不同的图标 -->
                         <Grid>
-                            <!-- 适应窗口图标 - 当FitToWindow为True时显示 -->
+                            <!-- 适应窗口图标 - 当FitToWindow为True时显�?-->
                             <Path Data="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" 
                           Stroke="White" 
                           StrokeThickness="2"
@@ -210,7 +236,7 @@
                           Stretch="Uniform"
                           Visibility="{Binding FitToWindow, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
-                            <!-- 原始尺寸图标 - 当FitToWindow为False时显示 -->
+                            <!-- 原始尺寸图标 - 当FitToWindow为False时显�?-->
                             <Path Data="M3 3h18v18H3z M8 8h8v8H8z" 
                               Stroke="White" 
                               StrokeThickness="2"
@@ -240,7 +266,7 @@
                         IsEnabled="{Binding HasImages}"
                         Command="{Binding SetViewModeCommand}" 
                         CommandParameter="{x:Static models:ViewMode.Manga}">
-                        <!-- 长方形内部有横线，表示连续阅读 -->
+                        <!-- 长方形内部有横线，表示连续阅�?-->
                         <Path Data="M6 3 H18 V21 H6 Z M6 9 H18 M6 15 H18" 
                           Stroke="White" StrokeThickness="2" Width="18" Height="18" Stretch="Uniform"/>
                     </Button>
@@ -280,7 +306,7 @@
 
 
                     <Button Style="{StaticResource IconButtonStyle}" FontFamily="Segoe UI Symbol"
-                            Command="{Binding ToggleSlideShowCommand}" ToolTip="幻灯片 (S)" IsEnabled="{Binding HasImages}">
+                            Command="{Binding ToggleSlideShowCommand}" ToolTip="幻灯�?(S)" IsEnabled="{Binding HasImages}">
                         <Path x:Name="PlayIcon"
                                  Data="M5 3l14 9-14 9V3" 
                                  Stroke="White" 
@@ -303,10 +329,17 @@
 
                     <Button Style="{StaticResource IconButtonStyle}" 
                         Command="{Binding ToggleSidebarCommand}" 
-                        ToolTip="切换侧边栏">
-                        <!-- 外框 + 左侧分割线 -->
+                        ToolTip="切换侧边栏"
+                        IsEnabled="{Binding CanToggleSidebar}">
+                        <!-- 外框 + 左侧分割�?-->
                         <Path Data="M4 4 H20 V20 H4 Z M9 4 V20" 
                           Stroke="White" StrokeThickness="2" Width="18" Height="18" Stretch="Uniform"/>
+                    </Button>
+                    <Button Style="{StaticResource IconButtonStyle}"
+                            Command="{Binding ToggleMasonryModeCommand}"
+                            ToolTip="切换瀑布流">
+                        <Path Data="M4 4 H9 V20 H4 Z M11 4 H16 V14 H11 Z M18 4 H22 V12 H18 Z"
+                              Stroke="White" StrokeThickness="2" Width="18" Height="18" Stretch="Uniform"/>
                     </Button>
                 </StackPanel>
             </Grid>
@@ -372,11 +405,11 @@
 
                                             <Border Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}"
                                                     Background="#80000000">
-                                                <TextBlock Text="❌" FontSize="24"
+                                                <TextBlock Text="!" FontSize="24"
                                                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Border>
 
-                                            <TextBlock Text="★" FontSize="16" Foreground="#FFD700"
+                                            <TextBlock Text="*" FontSize="16" Foreground="#FFD700"
                                                        HorizontalAlignment="Right" VerticalAlignment="Top"
                                                        Margin="0,4,4,0"
                                                        Visibility="{Binding IsBookmarked, Converter={StaticResource BoolToVisibilityConverter}}"/>
@@ -401,6 +434,9 @@
 
             <!-- Image Display Area -->
             <Grid Grid.Column="1" Background="{Binding Settings.BackgroundColor, Converter={StaticResource BackgroundColorToBrushConverter}}">
+
+                <Grid x:Name="NormalViewHost"
+                      Visibility="{Binding IsMasonryMode, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
 
                 <!-- Single/Double Page Mode -->
                 <Grid Visibility="{Binding IsMangaMode, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
@@ -467,7 +503,7 @@
                         <Border Grid.Column="0" Background="Transparent" Cursor="Hand"
             MouseLeftButtonUp="PreviousZone_Click"
             x:Name="PreviousZone">
-                            <!-- 左箭头提示 -->
+                            <!-- 左箭头提�?-->
                             <Path Data="M15 18l-6-6 6-6" 
               Stroke="White" 
               StrokeThickness="3"
@@ -487,7 +523,7 @@
                                 <Path.Style>
                                     <Style TargetType="Path">
                                         <Style.Triggers>
-                                            <!-- 鼠标悬停时显示 -->
+                                            <!-- 鼠标悬停时显�?-->
                                             <DataTrigger Binding="{Binding IsMouseOver, ElementName=PreviousZone}" Value="True">
                                                 <DataTrigger.EnterActions>
                                                     <BeginStoryboard>
@@ -516,7 +552,7 @@
                         <Border Grid.Column="2" Background="Transparent" Cursor="Hand"
             MouseLeftButtonUp="NextZone_Click"
             x:Name="NextZone">
-                            <!-- 右箭头提示 -->
+                            <!-- 右箭头提�?-->
                             <Path Data="M9 18l6-6-6-6" 
               Stroke="White" 
               StrokeThickness="3"
@@ -536,7 +572,7 @@
                                 <Path.Style>
                                     <Style TargetType="Path">
                                         <Style.Triggers>
-                                            <!-- 鼠标悬停时显示 -->
+                                            <!-- 鼠标悬停时显�?-->
                                             <DataTrigger Binding="{Binding IsMouseOver, ElementName=NextZone}" Value="True">
                                                 <DataTrigger.EnterActions>
                                                     <BeginStoryboard>
@@ -577,7 +613,8 @@
                                             ScaleY="{Binding MangaZoomLevel}"/>
                         </Grid.LayoutTransform>
 
-                        <ItemsControl ItemsSource="{Binding Images}">
+                        <ItemsControl x:Name="MangaItemsControl"
+                                      ItemsSource="{Binding Images}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <VirtualizingStackPanel Orientation="Vertical"/>
@@ -594,6 +631,15 @@
                                                     <DataTrigger Binding="{Binding IsCurrent}" Value="True">
                                                         <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
                                                     </DataTrigger>
+                                                    <!-- 幻灯片播放时隐藏当前页的描边 -->
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding IsCurrent}" Value="True"/>
+                                                            <Condition Binding="{Binding DataContext.IsSlideShowActive, RelativeSource={RelativeSource AncestorType=Window}}" Value="True"/>
+                                                        </MultiDataTrigger.Conditions>
+                                                        <Setter Property="BorderBrush" Value="Transparent"/>
+                                                        <Setter Property="BorderThickness" Value="0"/>
+                                                    </MultiDataTrigger>
                                                 </Style.Triggers>
                                             </Style>
                                         </Border.Style>
@@ -612,7 +658,7 @@
                 <!-- Empty State -->
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
                             Visibility="{Binding ShowEmptyState, Converter={StaticResource BoolToVisibilityConverter}}">
-                    <TextBlock Text="🖼" FontSize="72" HorizontalAlignment="Center" Opacity="0.3"/>
+                    <TextBlock Text=":)" FontSize="72" HorizontalAlignment="Center" Opacity="0.3"/>
                     <TextBlock Text="拖拽图片或文件夹到此处" 
                                Foreground="{StaticResource ForegroundDimBrush}"
                                FontSize="18" HorizontalAlignment="Center" Margin="0,16,0,0"/>
@@ -659,7 +705,7 @@
                                 <TextBlock Grid.Row="3" Grid.Column="2" Text="放大/缩小" Foreground="{StaticResource ForegroundBrush}" FontSize="12" Margin="0,4,0,0"/>
 
                                 <TextBlock Grid.Row="4" Grid.Column="0" Text="ESC" Foreground="{StaticResource ForegroundDimBrush}" FontSize="12" Margin="0,4,0,0"/>
-                                <TextBlock Grid.Row="4" Grid.Column="2" Text="退出全屏/关闭" Foreground="{StaticResource ForegroundBrush}" FontSize="12" Margin="0,4,0,0"/>
+                                <TextBlock Grid.Row="4" Grid.Column="2" Text="退出全�?关闭" Foreground="{StaticResource ForegroundBrush}" FontSize="12" Margin="0,4,0,0"/>
                             </Grid>
                         </StackPanel>
                     </Border>
@@ -669,7 +715,7 @@
                 <Border Background="#80000000" 
                         Visibility="{Binding IsBusyLoading, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock Text="⟳" FontSize="48" Foreground="{StaticResource PrimaryBrush}"
+                        <TextBlock Text="*" FontSize="48" Foreground="{StaticResource PrimaryBrush}"
                                    HorizontalAlignment="Center">
                             <TextBlock.RenderTransform>
                                 <RotateTransform x:Name="LoadingRotation"/>
@@ -686,9 +732,20 @@
                                 </EventTrigger>
                             </TextBlock.Triggers>
                         </TextBlock>
-                        <TextBlock Text="加载中..." Foreground="White" FontSize="14" Margin="0,12,0,0"/>
+                        <TextBlock Text="加载�?.." Foreground="White" FontSize="14" Margin="0,12,0,0"/>
                     </StackPanel>
                 </Border>
+            </Grid>
+            <Grid x:Name="MasonryView"
+                  Visibility="{Binding IsMasonryMode, Converter={StaticResource BoolToVisibilityConverter}}">
+                <ScrollViewer x:Name="MasonryScrollViewer"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              ScrollChanged="MasonryScrollViewer_ScrollChanged"
+                              SizeChanged="MasonryScrollViewer_SizeChanged">
+                    <Canvas x:Name="MasonryCanvas"
+                            Background="Transparent"/>
+                </ScrollViewer>
             </Grid>
         </Grid>
 
@@ -721,32 +778,5 @@
 
     </Grid>
 
-    <Window.ContextMenu>
-        <ContextMenu>
-            <MenuItem Header="打开文件 (Ctrl+O)" Command="{Binding OpenFileCommand}"/>
-            <MenuItem Header="打开文件夹 (Ctrl+F)" Command="{Binding OpenFolderCommand}"/>
-            <Separator/>
-            <MenuItem Header="上一张 (←)" Command="{Binding GoPreviousCommand}"/>
-            <MenuItem Header="下一张 (→)" Command="{Binding GoNextCommand}"/>
-            <Separator/>
-            <MenuItem Header="放大 (+)" Command="{Binding ZoomInCommand}"/>
-            <MenuItem Header="缩小 (-)" Command="{Binding ZoomOutCommand}"/>
-            <MenuItem Header="适应窗口" Command="{Binding ZoomToFitCommand}"/>
-            <MenuItem Header="原始尺寸" Command="{Binding ZoomToActualCommand}"/>
-            <Separator/>
-            <MenuItem Header="旋转90°" Command="{Binding Rotate90Command}"/>
-            <MenuItem Header="添加/移除书签 (B)" Command="{Binding ToggleBookmarkCommand}"/>
-            <Separator/>
-            <MenuItem Header="复制到剪贴板 (Ctrl+C)" Command="{Binding CopyToClipboardCommand}"/>
-            <MenuItem Header="在资源管理器中显示" Command="{Binding OpenInExplorerCommand}"/>
-            <MenuItem Header="删除 (Delete)" Command="{Binding DeleteImageCommand}"/>
-            <Separator/>
-            <MenuItem Header="全屏 (F11)" Command="{Binding ToggleFullScreenCommand}"/>
-            <MenuItem Header="幻灯片 (S)" Command="{Binding ToggleSlideShowCommand}"/>
-            <Separator/>
-            <MenuItem Header="切换模式 (M)" Command="{Binding ToggleViewModeCommand}"/>
-            <Separator/>
-            <MenuItem Header="设置" Click="OpenSettingsMenuItem_Click"/>
-        </ContextMenu>
-    </Window.ContextMenu>
 </Window>
+

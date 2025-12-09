@@ -10,7 +10,8 @@ namespace ImageViewer.Models
     {
         Single,
         Manga,
-        DoublePage
+        DoublePage,
+        Masonry
     }
     
     public enum ReadingDirection
