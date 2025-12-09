@@ -539,20 +539,31 @@ namespace ImageViewer.ViewModels
         /// 从瀑布流选择图片并切换到单图模式
         /// </summary>
         [RelayCommand]
-        private void SelectFromWaterfall(int index)
+        private async Task SelectFromWaterfall(int index)
         {
-            if (index >= 0 && index < Images.Count)
+            if (index < 0 || index >= Images.Count)
+                return;
+
+            // 手动设置索引并避免触发重复加载
+            try
             {
+                _suppressIndexChangeHandling = true;
                 CurrentIndex = index;
-                // 切换到单图模式
-                CurrentViewMode = ViewMode.Single;
-                OnPropertyChanged(nameof(IsDoublePage));
-                OnPropertyChanged(nameof(IsMangaMode));
-                OnPropertyChanged(nameof(IsSingleMode));
-                // 关闭瀑布流
-                ShowWaterfallView = false;
-                _ = LoadCurrentImage();
             }
+            finally
+            {
+                _suppressIndexChangeHandling = false;
+            }
+
+            // 切回单图模式
+            CurrentViewMode = ViewMode.Single;
+            OnPropertyChanged(nameof(IsDoublePage));
+            OnPropertyChanged(nameof(IsMangaMode));
+            OnPropertyChanged(nameof(IsSingleMode));
+
+            // 先把目标图片加载好，再关闭瀑布流，避免先显示上一张的闪烁
+            await LoadCurrentImage();
+            ShowWaterfallView = false;
         }
 
         [RelayCommand]
