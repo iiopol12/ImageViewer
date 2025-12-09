@@ -136,14 +136,9 @@ namespace ImageViewer.ViewModels
         /// <summary>是否漫画模式</summary>
         public bool IsMangaMode => CurrentViewMode == ViewMode.Manga;
 
-        /// <summary>是否瀑布流模式</summary>
-        public bool IsMasonryMode => CurrentViewMode == ViewMode.Masonry;
 
         /// <summary>是否单图模式</summary>
         public bool IsSingleMode => CurrentViewMode == ViewMode.Single;
-
-        /// <summary>瀑布流模式下禁止切换侧边栏</summary>
-        public bool CanToggleSidebar => CurrentViewMode != ViewMode.Masonry;
 
         /// <summary>当前激活的缩放级别</summary>
         public double ActiveZoomLevel => IsMangaMode ? MangaZoomLevel : ZoomLevel;
@@ -163,17 +158,7 @@ namespace ImageViewer.ViewModels
         /// <summary>当前查看模式变化时触发</summary>
         partial void OnCurrentViewModeChanged(ViewMode value)
         {
-            OnPropertyChanged(nameof(IsDoublePage));
-            OnPropertyChanged(nameof(IsMangaMode));
-            OnPropertyChanged(nameof(IsSingleMode));
-            OnPropertyChanged(nameof(IsMasonryMode));
-            OnPropertyChanged(nameof(CanToggleSidebar));
             OnPropertyChanged(nameof(ActiveZoomLevel));
-
-            if (value == ViewMode.Masonry)
-            {
-                Settings.ShowSidebar = false;
-            }
         }
         /// <summary>当前索引变化时触发 - 加载对应图片</summary>
         partial void OnCurrentIndexChanged(int value)
@@ -415,7 +400,6 @@ namespace ImageViewer.ViewModels
                 ViewMode.Single => "单图模式",
                 ViewMode.Manga => "漫画模式",
                 ViewMode.DoublePage => "双页模式",
-                ViewMode.Masonry => "瀑布流模式",
                 _ => "未知模式"
             }}";
         }
@@ -427,16 +411,10 @@ namespace ImageViewer.ViewModels
             OnPropertyChanged(nameof(IsDoublePage));
             OnPropertyChanged(nameof(IsMangaMode));
             OnPropertyChanged(nameof(IsSingleMode));
-            OnPropertyChanged(nameof(IsMasonryMode));
-            OnPropertyChanged(nameof(CanToggleSidebar));
 
             if (CurrentViewMode == ViewMode.Manga)
             {
                 _ = LoadMangaImagesAsync(CancellationToken.None);
-            }
-            else if (CurrentViewMode == ViewMode.Masonry)
-            {
-                Settings.ShowSidebar = false;
             }
 
             _ = LoadCurrentImage();
@@ -535,11 +513,6 @@ namespace ImageViewer.ViewModels
         [RelayCommand]
         private void ToggleSidebar()
         {
-            if (IsMasonryMode)
-            {
-                // 退出瀑布流后再切换侧边栏
-                CurrentViewMode = ViewMode.Single;
-            }
             Settings.ShowSidebar = !Settings.ShowSidebar;
         }
 
@@ -553,28 +526,6 @@ namespace ImageViewer.ViewModels
         private void ToggleStatusBar()
         {
             Settings.ShowStatusBar = !Settings.ShowStatusBar;
-        }
-
-        /// <summary>切换瀑布流模式命令</summary>
-        [RelayCommand]
-        private void ToggleMasonryMode()
-        {
-            if (CurrentViewMode == ViewMode.Masonry)
-            {
-                CurrentViewMode = ViewMode.Single;
-            }
-            else
-            {
-                CurrentViewMode = ViewMode.Masonry;
-                Settings.ShowSidebar = false;
-            }
-
-            if (CurrentViewMode == ViewMode.Manga)
-            {
-                _ = LoadMangaImagesAsync(CancellationToken.None);
-            }
-
-            _ = LoadCurrentImage();
         }
 
 
@@ -690,11 +641,11 @@ namespace ImageViewer.ViewModels
         {
             if (!Directory.Exists(folderPath)) return;
 
-          
+
             try
             {
 
-               
+
                 IsBusyLoading = true;
                 StatusMessage = "正在扫描文件夹...";
 
@@ -712,7 +663,7 @@ namespace ImageViewer.ViewModels
                 SecondDisplayImage = null;
                 CurrentIndex = -1;
 
-               
+
 
                 // ✓ 批量添加图片，减少 UI 线程切换
                 var imageList = new List<ImageInfo>();
@@ -863,13 +814,13 @@ namespace ImageViewer.ViewModels
         {
             if (CurrentIndex < 0 || CurrentIndex >= Images.Count)
                 return;
-     
+
             try
             {
 
-   
+
                 IsImageLoading = true;
-               
+
                 // 取消之前的加载
                 _preloadCts?.Cancel();
                 _preloadCts = new CancellationTokenSource();
@@ -1015,7 +966,7 @@ namespace ImageViewer.ViewModels
 
             foreach (var image in Images)
             {
-              
+
                 if (cancellationToken.IsCancellationRequested) break;
                 if (image.FullImage != null) continue;
                 // 异步加载所有图片
@@ -1258,27 +1209,6 @@ namespace ImageViewer.ViewModels
 
             // 保存设置
             Settings.Save();
-        }
-
-        #endregion
-
-        #region 鼠标侧键处理
-
-        /// <summary>
-        /// 处理鼠标侧键 - 前进/后退
-        /// </summary>
-        public void HandleMouseSideButton(bool isForward)
-        {
-            if (isForward)
-            {
-                // 前进键（通常为下一页/下一张）
-                GoNextCommand.Execute(null);
-            }
-            else
-            {
-                // 后退键（通常为上一页/上一张）
-                GoPreviousCommand.Execute(null);
-            }
         }
 
         #endregion

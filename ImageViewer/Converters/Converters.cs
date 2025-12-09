@@ -100,7 +100,7 @@ namespace ImageViewer.Converters
                     ViewMode.Single => "单图模式",
                     ViewMode.Manga => "漫画模式",
                     ViewMode.DoublePage => "双页模式",
-                    ViewMode.Masonry => "瀑布流模式",
+                  
                     _ => "单图模式"
                 };
             }
