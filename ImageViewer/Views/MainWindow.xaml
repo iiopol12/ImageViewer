@@ -306,6 +306,14 @@
                         <Path Data="M4 4 H20 V20 H4 Z M9 4 V20" 
                           Stroke="White" StrokeThickness="2" Width="18" Height="18" Stretch="Uniform"/>
                     </Button>
+                    <Button Style="{StaticResource IconButtonStyle}" 
+                        Command="{Binding ToggleWaterfallViewCommand}" 
+                        ToolTip="切换瀑布流视图"
+                        IsEnabled="{Binding HasImages}">
+                        <!-- 瀑布流网格图标 -->
+                        <Path Data="M3 3 H9 V9 H3 Z M11 3 H17 V7 H11 Z M19 3 H21 V11 H19 Z M3 11 H9 V15 H3 Z M11 9 H17 V15 H11 Z M19 13 H21 V21 H19 Z M3 17 H9 V21 H3 Z M11 17 H17 V21 H11 Z" 
+                          Stroke="White" StrokeThickness="1.2" Width="18" Height="18" Stretch="Uniform"/>
+                    </Button>
                 </StackPanel>
             </Grid>
         </Border>
@@ -401,7 +409,22 @@
             <Grid Grid.Column="1" Background="{Binding Settings.BackgroundColor, Converter={StaticResource BackgroundColorToBrushConverter}}">
 
                 <!-- Single/Double Page Mode -->
-                <Grid Visibility="{Binding IsMangaMode, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
+                <Grid>
+                    <Grid.Style>
+                        <Style TargetType="Grid">
+                            <Setter Property="Visibility" Value="Visible"/>
+                            <Style.Triggers>
+                                <!-- 漫画模式时隐藏 -->
+                                <DataTrigger Binding="{Binding IsMangaMode}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                                <!-- 瀑布流显示时隐藏 -->
+                                <DataTrigger Binding="{Binding ShowWaterfallView}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Grid.Style>
                     <ScrollViewer x:Name="ImageScrollViewer"
                                   HorizontalScrollBarVisibility="Auto"
                                   VerticalScrollBarVisibility="Auto"
@@ -563,12 +586,26 @@
 
                 <!-- Manga Mode -->
                 <ScrollViewer x:Name="MangaScrollViewer"
-                              Visibility="{Binding IsMangaMode, Converter={StaticResource BoolToVisibilityConverter}}"
                               HorizontalScrollBarVisibility="Disabled"
                               VerticalScrollBarVisibility="Auto"
                               PreviewMouseLeftButtonDown="MangaScrollViewer_PreviewMouseLeftButtonDown"
                               ScrollChanged="MangaScrollViewer_ScrollChanged"
                               MouseLeftButtonDown="MangaScrollViewer_MouseLeftButtonDown">
+                    <ScrollViewer.Style>
+                        <Style TargetType="ScrollViewer">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <!-- 仅在漫画模式且非瀑布流时显示 -->
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsMangaMode}" Value="True"/>
+                                        <Condition Binding="{Binding ShowWaterfallView}" Value="False"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ScrollViewer.Style>
                     <Grid>
                         <Grid.LayoutTransform>
                             <ScaleTransform ScaleX="{Binding MangaZoomLevel}"
@@ -615,6 +652,77 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </Grid>
+                </ScrollViewer>
+
+                <!-- Waterfall View (瀑布流视图) -->
+                <ScrollViewer x:Name="WaterfallScrollViewer"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              Background="{Binding Settings.BackgroundColor, Converter={StaticResource BackgroundColorToBrushConverter}}"
+                              Visibility="{Binding ShowWaterfallView, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <ItemsControl ItemsSource="{Binding Images}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="4" Background="{StaticResource BackgroundDarkBrush}" 
+                                        CornerRadius="4" Cursor="Hand"
+                                        MouseLeftButtonUp="WaterfallItem_Click"
+                                        Tag="{Binding}">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="BorderThickness" Value="2"/>
+                                            <Setter Property="BorderBrush" Value="Transparent"/>
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                                                </Trigger>
+                                                <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                                    <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Grid Width="180" Height="140">
+                                        <Image Source="{Binding Thumbnail}" Stretch="Uniform" 
+                                               RenderOptions.BitmapScalingMode="HighQuality"
+                                               Margin="4"/>
+                                        
+                                        <!-- Loading indicator -->
+                                        <Border Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                Background="#80000000">
+                                            <TextBlock Text="..." Foreground="White" FontSize="20"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        
+                                        <!-- Error indicator -->
+                                        <Border Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                Background="#80000000">
+                                            <TextBlock Text="❌" FontSize="24"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        
+                                        <!-- Bookmark indicator -->
+                                        <TextBlock Text="★" FontSize="16" Foreground="#FFD700"
+                                                   HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                   Margin="0,4,4,0"
+                                                   Visibility="{Binding IsBookmarked, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                        
+                                        <!-- File name overlay -->
+                                        <Border VerticalAlignment="Bottom" Background="#AA000000" Padding="4,2">
+                                            <TextBlock Text="{Binding FileName}" 
+                                                       Foreground="White"
+                                                       FontSize="10" TextTrimming="CharacterEllipsis"
+                                                       TextAlignment="Center"/>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </ScrollViewer>
 
                 <!-- Empty State -->

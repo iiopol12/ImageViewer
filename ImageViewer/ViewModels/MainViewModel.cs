@@ -119,6 +119,9 @@ namespace ImageViewer.ViewModels
         // === 是否显示空状态 ===
         [ObservableProperty]
         private bool _showEmptyState = true;
+        // === 是否显示瀑布流视图 ===
+        [ObservableProperty]
+        private bool _showWaterfallView = false;
         /// <summary>位置文本 - 显示当前图片位置</summary>
         public string PositionText => Images.Count > 0 && CurrentIndex >= 0
             ? $"第 {CurrentIndex + 1}/{Images.Count} 张"
@@ -514,6 +517,42 @@ namespace ImageViewer.ViewModels
         private void ToggleSidebar()
         {
             Settings.ShowSidebar = !Settings.ShowSidebar;
+            // 侧边栏和瀑布流互斥
+            if (Settings.ShowSidebar)
+            {
+                ShowWaterfallView = false;
+            }
+        }
+
+        [RelayCommand]
+        private void ToggleWaterfallView()
+        {
+            ShowWaterfallView = !ShowWaterfallView;
+            // 瀑布流和侧边栏互斥
+            if (ShowWaterfallView)
+            {
+                Settings.ShowSidebar = false;
+            }
+        }
+
+        /// <summary>
+        /// 从瀑布流选择图片并切换到单图模式
+        /// </summary>
+        [RelayCommand]
+        private void SelectFromWaterfall(int index)
+        {
+            if (index >= 0 && index < Images.Count)
+            {
+                CurrentIndex = index;
+                // 切换到单图模式
+                CurrentViewMode = ViewMode.Single;
+                OnPropertyChanged(nameof(IsDoublePage));
+                OnPropertyChanged(nameof(IsMangaMode));
+                OnPropertyChanged(nameof(IsSingleMode));
+                // 关闭瀑布流
+                ShowWaterfallView = false;
+                _ = LoadCurrentImage();
+            }
         }
 
         [RelayCommand]

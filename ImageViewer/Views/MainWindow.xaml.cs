@@ -74,7 +74,7 @@ namespace ImageViewer.Views
                 {
                     await ViewModel.LoadImageFromPath(filePath);
                 }
-              
+
             };
         }
 
@@ -86,8 +86,8 @@ namespace ImageViewer.Views
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
-           
-      
+
+
             // 防止重复恢复窗口位置
             if (_hasRestoredWindowPlacement)
                 return;
@@ -985,6 +985,25 @@ namespace ImageViewer.Views
 
         #endregion
 
+        #region 瀑布流视图 Waterfall View
+        /// <summary>
+        /// 瀑布流项点击事件 - 选择图片并切换到单图模式
+        /// </summary>
+        private void WaterfallItem_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is FrameworkElement element && element.Tag is ImageInfo imageInfo)
+            {
+                // 找到图片在集合中的索引
+                var index = ViewModel.Images.IndexOf(imageInfo);
+                if (index >= 0)
+                {
+                    // 使用ViewModel命令来选择图片并切换模式
+                    ViewModel.SelectFromWaterfallCommand.Execute(index);
+                }
+            }
+        }
+        #endregion
+
         #region 漫画模式Manga Mode
         /// <summary>
         /// 漫画滚动视图鼠标左键按下事件（冒泡阶段）
@@ -1033,6 +1052,6 @@ namespace ImageViewer.Views
 
         #endregion
 
-       
+
     }
 }
