@@ -35,6 +35,8 @@ namespace ImageViewer.Models
         Navigate
     }
 
+  
+
     public partial class AppSettings : ObservableObject
     {
         private static readonly string SettingsPath = Path.Combine(
@@ -97,6 +99,11 @@ namespace ImageViewer.Models
 
         [ObservableProperty]
         private int _mangaDecodeWidth = 1600;
+
+
+
+        [ObservableProperty]
+        private string _localSendPath = string.Empty;
 
         public List<Bookmark> Bookmarks { get; set; } = new();
         public Dictionary<string, int> ReadingPositions { get; set; } = new();

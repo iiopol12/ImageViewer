@@ -1,15 +1,16 @@
+using ImageViewer.Helpers;
+using ImageViewer.Models;
+using ImageViewer.ViewModels;
 using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media.Animation;
 using System.Windows.Interop;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Threading;
-using ImageViewer.Models;
-using ImageViewer.ViewModels;
-using ImageViewer.Helpers;
 
 namespace ImageViewer.Views
 {
@@ -330,16 +331,19 @@ namespace ImageViewer.Views
         /// </summary>
         private void MaximizeButton_Click(object sender, RoutedEventArgs e)
         {
-            // 切换窗口状态
             if (WindowState == WindowState.Maximized)
             {
                 WindowState = WindowState.Normal;
-                MaximizeButton.Content = "☐";
+
+                MaximizeIcon_Normal.Visibility = Visibility.Visible;
+                MaximizeIcon_Restore.Visibility = Visibility.Collapsed;
             }
             else
             {
                 WindowState = WindowState.Maximized;
-                MaximizeButton.Content = "❐";
+
+                MaximizeIcon_Normal.Visibility = Visibility.Collapsed;
+               MaximizeIcon_Restore.Visibility = Visibility.Visible;
             }
         }
 
@@ -402,12 +406,19 @@ namespace ImageViewer.Views
         {
             if (WindowState == WindowState.Maximized)
             {
-                MaximizeButton.Content = "❐";
+               
+
+                MaximizeIcon_Normal.Visibility = Visibility.Visible;
+                MaximizeIcon_Restore.Visibility = Visibility.Collapsed;
             }
             else
             {
-                MaximizeButton.Content = "☐";
+              
+
+                MaximizeIcon_Normal.Visibility = Visibility.Collapsed;
+                MaximizeIcon_Restore.Visibility = Visibility.Visible;
             }
+          
         }
 
         private void Window_KeyDown(object sender, KeyEventArgs e)

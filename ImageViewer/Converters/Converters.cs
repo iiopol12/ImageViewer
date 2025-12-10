@@ -115,10 +115,26 @@ namespace ImageViewer.Converters
 
     public class BoolToBookmarkIconConverter : IValueConverter
     {
+        // 填充星星路径
+        private const string FilledStarData =
+            "M8,0 L9.76,5.17 L15.3,5.64 L10.8,9.02 " +
+            "L12.24,14.36 L8,11.4 L3.76,14.36 " +
+            "L5.2,9.02 L0.7,5.64 L6.24,5.17 Z";
+
+        // 空心星星路径（简单版本，可以跟填充一样，看你需求）
+        private const string EmptyStarData =
+            "M8,0 L9.76,5.17 L15.3,5.64 L10.8,9.02 " +
+            "L12.24,14.36 L8,11.4 L3.76,14.36 " +
+            "L5.2,9.02 L0.7,5.64 L6.24,5.17 Z";
+
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             bool isBookmarked = value is bool b && b;
-            return isBookmarked ? "★" : "☆";
+
+            string data = isBookmarked ? FilledStarData : EmptyStarData;
+
+            // 返回 Geometry，Path.Data 直接用
+            return Geometry.Parse(data);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -126,7 +142,6 @@ namespace ImageViewer.Converters
             throw new NotImplementedException();
         }
     }
-
     public class MultiBoolToVisibilityConverter : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)

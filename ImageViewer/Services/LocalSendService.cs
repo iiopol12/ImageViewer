@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ImageViewer.Models;
 
 namespace ImageViewer.Services
 {
@@ -13,6 +14,12 @@ namespace ImageViewer.Services
         public record ShareResult(bool Success, string? ErrorMessage, int SentCount, int SkippedMissing);
 
         private string? _cachedCliPath;
+        private readonly AppSettings? _settings;
+
+        public LocalSendService(AppSettings? settings = null)
+        {
+            _settings = settings;
+        }
 
         /// <summary>
         /// 通过 LocalSend 发送文件列表（支持多文件）。优先使用 CLI，未找到时返回错误提示。
@@ -32,41 +39,42 @@ namespace ImageViewer.Services
                 return new ShareResult(false, "没有可发送的文件", 0, skippedMissing);
             }
 
-            var cliPath = FindLocalSendCli();
-            if (cliPath != null)
-            {
-                var cliResult = await SendViaCliAsync(cliPath, existingFiles, skippedMissing, cancellationToken);
-                return cliResult;
-            }
+          
+            var preferredPath = _settings?.LocalSendPath;
 
-            // CLI 不可用时，尝试协议唤起 LocalSend GUI
-            if (TrySendViaProtocol(existingFiles))
+            // GUI
+            var guiPath = ResolveGuiPath(preferredPath);
+            if (!string.IsNullOrWhiteSpace(guiPath) && TrySendViaGui(guiPath, existingFiles))
             {
                 return new ShareResult(true, null, existingFiles.Count, skippedMissing);
             }
 
-            // 再次尝试直接启动 LocalSend.exe（仅若找到 GUI 路径）
-            if (TrySendViaGui(existingFiles))
-            {
-                return new ShareResult(true, null, existingFiles.Count, skippedMissing);
-            }
-
-            return new ShareResult(false, "未找到 LocalSend CLI，且协议/应用启动失败，请确认已安装 LocalSend。", 0, skippedMissing);
+            return new ShareResult(false, "未找到 LocalSend GUI/协议，可在设置中指定路径或安装 LocalSend。", 0, skippedMissing);
         }
 
-        /// <summary>
-        /// 尝试寻找 LocalSend CLI 的路径，结果会缓存。
-        /// </summary>
-        private string? FindLocalSendCli()
+        private static bool IsCliExecutable(string path)
         {
+            var file = Path.GetFileName(path);
+            return file.Equals("localsend.exe", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private string? ResolveCliPath(string? preferredPath)
+        {
+            if (!string.IsNullOrWhiteSpace(preferredPath) && File.Exists(preferredPath) && IsCliExecutable(preferredPath))
+            {
+                _cachedCliPath = preferredPath;
+                return preferredPath;
+            }
+
             if (!string.IsNullOrWhiteSpace(_cachedCliPath) && File.Exists(_cachedCliPath))
             {
                 return _cachedCliPath;
             }
 
+            // 自动探测
             foreach (var candidate in EnumerateCliCandidates())
             {
-                if (File.Exists(candidate))
+                if (File.Exists(candidate) && IsCliExecutable(candidate))
                 {
                     _cachedCliPath = candidate;
                     break;
@@ -74,6 +82,24 @@ namespace ImageViewer.Services
             }
 
             return _cachedCliPath;
+        }
+
+        private string? ResolveGuiPath(string? preferredPath)
+        {
+            if (!string.IsNullOrWhiteSpace(preferredPath) && File.Exists(preferredPath))
+            {
+                return preferredPath;
+            }
+
+            foreach (var candidate in EnumerateCliCandidates())
+            {
+                if (File.Exists(candidate))
+                {
+                    return candidate;
+                }
+            }
+
+            return null;
         }
 
         private IEnumerable<string> EnumerateCliCandidates()
@@ -84,12 +110,9 @@ namespace ImageViewer.Services
 
             var known = new[]
             {
-                Path.Combine(localAppData, "Programs", "LocalSend", "localsend.exe"),
-                Path.Combine(localAppData, "Programs", "LocalSend", "LocalSend.exe"),
-                Path.Combine(programFiles, "LocalSend", "localsend.exe"),
-                Path.Combine(programFiles, "LocalSend", "LocalSend.exe"),
-                Path.Combine(programFilesX86, "LocalSend", "localsend.exe"),
-                Path.Combine(programFilesX86, "LocalSend", "LocalSend.exe")
+                Path.Combine(localAppData, "Programs", "LocalSend", "localsend_app.exe"),
+                Path.Combine(programFiles, "LocalSend", "localsend_app.exe"),
+                Path.Combine(programFilesX86, "LocalSend", "localsend_app.exe")
             };
 
             foreach (var path in known)
@@ -97,20 +120,7 @@ namespace ImageViewer.Services
                 yield return path;
             }
 
-            foreach (var pathDir in EnumeratePathFolders())
-            {
-                var cliPath = Path.Combine(pathDir, "localsend.exe");
-                if (File.Exists(cliPath))
-                {
-                    yield return cliPath;
-                }
-
-                var altCliPath = Path.Combine(pathDir, "LocalSend.exe");
-                if (File.Exists(altCliPath))
-                {
-                    yield return altCliPath;
-                }
-            }
+    
         }
 
         private async Task<ShareResult> SendViaCliAsync(string cliPath, List<string> files, int skippedMissing, CancellationToken cancellationToken)
@@ -167,21 +177,26 @@ namespace ImageViewer.Services
             }
         }
 
-        private bool TrySendViaGui(IEnumerable<string> files)
+        private bool TrySendViaGui(string guiPath, IEnumerable<string> files)
         {
-            var guiPath = FindLocalSendGui();
-            if (guiPath == null)
-                return false;
-
             try
             {
-                var args = string.Join(" ", files.Select(f => $"\"{f}\""));
-                var psi = new ProcessStartInfo(guiPath)
+                // 关键修正：GUI版本直接传递文件路径，无需 "file://" 前缀
+                // 使用 ArgumentList 可以安全处理路径中的空格和特殊字符
+                var startInfo = new ProcessStartInfo(guiPath)
                 {
-                    UseShellExecute = true,
-                    Arguments = args
+                    UseShellExecute = true
                 };
-                Process.Start(psi);
+
+                // 先加隐藏启动参数
+                //startInfo.ArgumentList.Add("--hidden");
+
+                foreach (var file in files)
+                {
+                    startInfo.ArgumentList.Add(file); // 直接添加路径，如: "C:\Users\test.png"
+                }
+
+                Process.Start(startInfo);
                 return true;
             }
             catch

@@ -40,15 +40,15 @@ namespace ImageViewer.ViewModels
 
         public MainViewModel()
         {
-            _imageService = new ImageService();
-            _fileWatcher = new FileWatcherService();
-            _localSendService = new LocalSendService();
-            _slideshowTimer = new DispatcherTimer();
-            _slideshowTimer.Tick += SlideshowTimer_Tick;
-
             // 加载应用设置
             Settings = AppSettings.Load();
             CurrentViewMode = Settings.DefaultViewMode;
+
+            _imageService = new ImageService();
+            _fileWatcher = new FileWatcherService();
+            _localSendService = new LocalSendService(Settings);
+            _slideshowTimer = new DispatcherTimer();
+            _slideshowTimer.Tick += SlideshowTimer_Tick;
 
             // 订阅文件系统事件
             _fileWatcher.FileCreated += OnFileCreated;

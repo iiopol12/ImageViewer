@@ -78,16 +78,65 @@
             </StackPanel>
 
             <StackPanel Grid.Column="2" Orientation="Horizontal">
-                <Button x:Name="MinimizeButton" Content="─" Style="{StaticResource IconButtonStyle}" 
-                        Click="MinimizeButton_Click" Width="46" Height="32" FontSize="12" FontFamily="Segoe UI"
-                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
-                <Button x:Name="MaximizeButton" Content="☐" Style="{StaticResource IconButtonStyle}" 
-                        Click="MaximizeButton_Click" Width="46" Height="32" FontSize="14" FontFamily="Segoe UI"
-                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
-                <Button x:Name="CloseButton" Content="✕" Click="CloseButton_Click" Width="46" Height="32" FontSize="12" FontFamily="Segoe UI"
-                        Background="Transparent" Foreground="{StaticResource ForegroundBrush}" BorderThickness="0" Cursor="Hand"
-                        shell:WindowChrome.IsHitTestVisibleInChrome="True">
-                    <Button.Style>
+                <Button x:Name="MinimizeButton"
+                    Style="{StaticResource IconButtonStyle}"
+                    Click="MinimizeButton_Click"
+                    Width="46" Height="32"
+                    shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Path Data="M3 10 H13 V12 H3 Z"
+                          Width="12" Height="12"
+                          Stretch="Uniform"
+                          Fill="{StaticResource ForegroundBrush}"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"/>
+                </Button>
+                <Button x:Name="MaximizeButton"
+        Style="{StaticResource IconButtonStyle}"
+        Click="MaximizeButton_Click"
+        Width="46" Height="32"
+        shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Grid>
+                        <!-- 普通“最大化”图标 -->
+                        <Path x:Name="MaximizeIcon_Normal"
+              Width="14" Height="14"
+              Stretch="Uniform"
+              Stroke="{StaticResource ForegroundBrush}"
+              StrokeThickness="1.4"
+              Fill="Transparent"
+              Data="M3 4 H13 V14 H3 Z"/>
+
+                        <!-- “还原”图标（重叠方框） -->
+                        <Path x:Name="MaximizeIcon_Restore"
+              Width="14" Height="14"
+              Stretch="Uniform"
+              Stroke="{StaticResource ForegroundBrush}"
+              StrokeThickness="1.4"
+              Fill="Transparent"
+              Data="M5 4 H13 V12 H5 Z M3 6 H11 V14 H3 Z"
+              Visibility="Collapsed"/>
+                    </Grid>
+                </Button>
+
+
+                <Button x:Name="CloseButton"
+        Click="CloseButton_Click"
+        Width="46" Height="32"
+        Background="Transparent"
+        Foreground="{StaticResource ForegroundBrush}"
+        BorderThickness="0"
+        Cursor="Hand"
+        shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Path Data="M4 4 L12 12 M12 4 L4 12"
+          Width="12" Height="12"
+          Stretch="Uniform"
+          Stroke="{StaticResource ForegroundBrush}"
+          StrokeThickness="1.7"
+          StrokeStartLineCap="Round"
+          StrokeEndLineCap="Round"
+          HorizontalAlignment="Center"
+          VerticalAlignment="Center"/>
+              
+                <Button.Style>
                         <Style TargetType="Button">
                             <Setter Property="Template">
                                 <Setter.Value>
@@ -146,16 +195,9 @@
                     </Button>
                     <Rectangle Width="1" Fill="{StaticResource BackgroundLightBrush}" Margin="8,4"/>
 
-                    <Button Style="{StaticResource IconButtonStyle}" Content="⏮" FontFamily="Segoe UI Symbol"
-                            Command="{Binding GoToFirstCommand}" ToolTip="首页 (Home)" IsEnabled="{Binding HasImages}"/>
-                    <Button Style="{StaticResource IconButtonStyle}" Content="◀" FontFamily="Segoe UI Symbol"
-                            Command="{Binding GoPreviousCommand}" ToolTip="上一张 (←/A)" IsEnabled="{Binding CanGoPrevious}"/>
-                    <Button Style="{StaticResource IconButtonStyle}" Content="▶" FontFamily="Segoe UI Symbol"
-                            Command="{Binding GoNextCommand}" ToolTip="下一张 (→/D)" IsEnabled="{Binding CanGoNext}"/>
-                    <Button Style="{StaticResource IconButtonStyle}" Content="⏭" FontFamily="Segoe UI Symbol"
-                            Command="{Binding GoToLastCommand}" ToolTip="末页 (End)" IsEnabled="{Binding HasImages}"/>
+                 
 
-                    <Rectangle Width="1" Fill="{StaticResource BackgroundLightBrush}" Margin="8,4"/>
+                  
                     <Button   Style="{StaticResource IconButtonStyle}"  FontFamily="Segoe UI Emoji"
                             Command="{Binding ZoomOutCommand}" ToolTip="缩小 (-)" IsEnabled="{Binding HasImages}"
                                   >
@@ -220,10 +262,7 @@
                     </Button>
                 </StackPanel>
 
-                <TextBlock Grid.Column="1" Text="{Binding CurrentFolderPath}" 
-                           Foreground="{StaticResource ForegroundDimBrush}"
-                           VerticalAlignment="Center" HorizontalAlignment="Center"
-                           TextTrimming="CharacterEllipsis" MaxWidth="400" FontSize="12"/>
+           
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal">
                     <Button Style="{StaticResource IconButtonStyle}" ToolTip="单图模式" 
@@ -317,8 +356,9 @@
                         ToolTip="切换瀑布流视图"
                         IsEnabled="{Binding HasImages}">
                         <!-- 瀑布流网格图标 -->
-                        <Path Data="M3 3 H9 V9 H3 Z M11 3 H17 V7 H11 Z M19 3 H21 V11 H19 Z M3 11 H9 V15 H3 Z M11 9 H17 V15 H11 Z M19 13 H21 V21 H19 Z M3 17 H9 V21 H3 Z M11 17 H17 V21 H11 Z" 
-                          Stroke="White" StrokeThickness="1.2" Width="18" Height="18" Stretch="Uniform"/>
+                        <Path Data="M3 3h8v6H3z M13 3h8v10h-8z M3 11h8v10H3z M13 15h8v6h-8z"
+                          Stroke="White" StrokeThickness="1.5"
+                          Width="18" Height="18" Stretch="Uniform"/>
                     </Button>
                 </StackPanel>
             </Grid>
@@ -384,14 +424,23 @@
 
                                             <Border Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}"
                                                     Background="#80000000">
-                                                <TextBlock Text="❌" FontSize="24"
-                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <Path Width="24" Height="24"
+                                                  Stretch="Uniform"
+                                                  StrokeThickness="2"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"
+                                                  Data="M3,3 L21,21 M21,3 L3,21"/>
                                             </Border>
-
-                                            <TextBlock Text="★" FontSize="16" Foreground="#FFD700"
-                                                       HorizontalAlignment="Right" VerticalAlignment="Top"
-                                                       Margin="0,4,4,0"
-                                                       Visibility="{Binding IsBookmarked, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                            <Path Width="16" Height="16"
+                                                  Stretch="Uniform"
+                                                  Fill="#FFD700"
+                                                  HorizontalAlignment="Right"
+                                                  VerticalAlignment="Top"
+                                                  Margin="0,4,4,0"
+                                                  Visibility="{Binding IsBookmarked, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                  Data="M8,0 L9.76,5.17 L15.3,5.64 L10.8,9.02 
+                                                        L12.24,14.36 L8,11.4 L3.76,14.36 
+                                                        L5.2,9.02 L0.7,5.64 L6.24,5.17 Z"/>
                                         </Grid>
                                     </Border>
 
@@ -707,16 +756,27 @@
                                         <!-- Error indicator -->
                                         <Border Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}"
                                                 Background="#80000000">
-                                            <TextBlock Text="❌" FontSize="24"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <Path Width="24" Height="24"
+                                                  Stretch="Uniform"
+     
+                                                  StrokeThickness="2"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"
+                                                  Data="M3,3 L21,21 M21,3 L3,21"/>
                                         </Border>
                                         
                                         <!-- Bookmark indicator -->
-                                        <TextBlock Text="★" FontSize="16" Foreground="#FFD700"
-                                                   HorizontalAlignment="Right" VerticalAlignment="Top"
-                                                   Margin="0,4,4,0"
-                                                   Visibility="{Binding IsBookmarked, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                                        
+                                        <Path Width="16" Height="16"
+                                          Stretch="Uniform"
+                                          Fill="#FFD700"
+                                          HorizontalAlignment="Right"
+                                          VerticalAlignment="Top"
+                                          Margin="0,4,4,0"
+                                          Visibility="{Binding IsBookmarked, Converter={StaticResource BoolToVisibilityConverter}}"
+                                          Data="M8,0 L9.76,5.17 L15.3,5.64 L10.8,9.02 
+                                                L12.24,14.36 L8,11.4 L3.76,14.36 
+                                                L5.2,9.02 L0.7,5.64 L6.24,5.17 Z"/>
+
                                         <!-- File name overlay -->
                                         <Border VerticalAlignment="Bottom" Background="#AA000000" Padding="4,2">
                                             <TextBlock Text="{Binding FileName}" 
@@ -734,7 +794,21 @@
                 <!-- Empty State -->
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
                             Visibility="{Binding ShowEmptyState, Converter={StaticResource BoolToVisibilityConverter}}">
-                    <TextBlock Text="🖼" FontSize="72" HorizontalAlignment="Center" Opacity="0.3"/>
+                    <Path
+                        Data="
+                    M4 5 H20 V19 H4 Z
+                    M4 16 L9 11 L14 16 L17 13 L20 16
+                    M7 9 A 1.5 1.5 0 1 0 7 6 A 1.5 1.5 0 1 0 7 9
+                    M17 18 A 3 3 0 1 0 23 18 A 3 3 0 1 0 17 18
+                    M22 20 L25 23"
+                        Stroke="{StaticResource ForegroundBrush}"
+                        StrokeThickness="4"
+                        Width="72"
+                        Height="72"
+                        Stretch="Uniform"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Opacity="0.3" />
                     <TextBlock Text="拖拽图片或文件夹到此处" 
                                Foreground="{StaticResource ForegroundDimBrush}"
                                FontSize="18" HorizontalAlignment="Center" Margin="0,16,0,0"/>
@@ -941,9 +1015,9 @@
                         Command="{Binding ToggleInfoPanelCommand}"
                         ToolTip="查看图片信息" Margin="0,0,8,0"
                         IsEnabled="{Binding HasImages}">
-                    <Path Data="M12 2A10 10 0 1 0 12 22A10 10 0 1 0 12 2ZM11 7H13V9H11V7ZM11 11H13V17H11V11Z"
-                          Stroke="{StaticResource ForegroundBrush}" StrokeThickness="1.8"
-                          Width="18" Height="18" Stretch="Uniform"/>
+                    <Path Data="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6z M12 8v2 M12 12v5"
+                  Stroke="{StaticResource ForegroundBrush}" StrokeThickness="1.8"  StrokeLineJoin="Round"
+                  Width="18" Height="18" Stretch="Uniform"/>
                 </Button>
 
                 <TextBlock Grid.Column="2" Text="{Binding StatusMessage}" 

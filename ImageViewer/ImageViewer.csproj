@@ -6,17 +6,27 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-	  <Version>1.0.1</Version>
+	  <Version>1.0.3</Version>
 	  <ApplicationIcon>Image.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Image.ico" />
+    <None Remove="Image.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Remove="Views\MenuInterface.xaml" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Image.ico">
+      <CopyToOutputDirectory><Image Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center" Stretch="Uniform" Source="/Image.ico" /></CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

@@ -83,6 +83,9 @@ namespace ImageViewer.Views
             // Behavior
             RememberPositionCheckBox.IsChecked = _settings.RememberWindowPosition;
             RememberReadingCheckBox.IsChecked = _settings.RememberReadingPosition;
+
+  
+            LocalSendPathTextBox.Text = _settings.LocalSendPath;
         }
         
         private void SaveButton_Click(object sender, RoutedEventArgs e)
@@ -122,6 +125,9 @@ namespace ImageViewer.Views
             // Behavior
             _settings.RememberWindowPosition = RememberPositionCheckBox.IsChecked ?? true;
             _settings.RememberReadingPosition = RememberReadingCheckBox.IsChecked ?? true;
+
+       
+            _settings.LocalSendPath = LocalSendPathTextBox.Text ?? string.Empty;
             
             _settings.Save();
             DialogResult = true;
@@ -208,6 +214,20 @@ namespace ImageViewer.Views
             catch (Exception ex)
             {
                 return (false, ex.Message);
+            }
+        }
+
+        private void BrowseLocalSendButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "LocalSend 可执行文件|LocalSend.exe;localsend.exe;localsend_app.exe|可执行文件|*.exe|所有文件|*.*",
+                Title = "选择 LocalSend 可执行文件"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                LocalSendPathTextBox.Text = dialog.FileName;
             }
         }
     }
