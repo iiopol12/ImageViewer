@@ -275,6 +275,12 @@
                                  Stretch="Uniform"/>
                     </Button>
 
+                    <Button Style="{StaticResource IconButtonStyle}" ToolTip="通过 LocalSend 分享当前图片" 
+                            Command="{Binding ShareCurrentImageCommand}" IsEnabled="{Binding HasImages}">
+                        <Path Data="M3 11 L21 3 12 21 11 13 3 11 Z M11 13 L21 3" 
+                              Stroke="White" StrokeThickness="2" Width="18" Height="18" Stretch="Uniform"/>
+                    </Button>
+
 
 
                     <Button Style="{StaticResource IconButtonStyle}" FontFamily="Segoe UI Symbol"
@@ -781,6 +787,81 @@
                     </Border>
                 </StackPanel>
 
+                <!-- Image Info Panel -->
+                <Border x:Name="ImageInfoPanel"
+                        Padding="12"
+                        Background="#CC000000"
+                        CornerRadius="8"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Margin="12"
+                        MaxWidth="360">
+                    <Border.Effect>
+                        <DropShadowEffect Color="#99000000" BlurRadius="12" ShadowDepth="0"/>
+                    </Border.Effect>
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsInfoPanelVisible}" Value="True"/>
+                                        <Condition Binding="{Binding HasImages}" Value="True"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+
+                    <Grid>
+                       
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="1" Width="24" Height="24" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Style="{StaticResource IconButtonStyle}"
+                                Command="{Binding ToggleInfoPanelCommand}"
+                                ToolTip="关闭信息面板">
+                            <Path Data="M6 6 L18 18 M18 6 L6 18"
+                                  Stroke="{StaticResource ForegroundBrush}"
+                                  StrokeThickness="2"
+                                  Width="14" Height="14" Stretch="Uniform"/>
+                        </Button>
+
+                        <StackPanel Grid.Column="0" Margin="0,4,0,0">
+                            <TextBlock Text="{Binding CurrentImage.FileName}"
+                                       Foreground="{StaticResource ForegroundBrush}"
+                                       FontWeight="SemiBold"
+                                       FontSize="14"
+                                       TextTrimming="CharacterEllipsis"
+                                       MaxWidth="320"/>
+                            <TextBlock Text="{Binding PositionText}"
+                                       Foreground="{StaticResource ForegroundDimBrush}"
+                                       FontSize="11" Margin="0,2,0,6"/>
+                            <TextBlock Text="{Binding CurrentImage.DimensionsFormatted, StringFormat='分辨率：{0}'}"
+                                       Foreground="{StaticResource ForegroundBrush}"
+                                       FontSize="12"/>
+                            <TextBlock Text="{Binding CurrentImage.BitDepth, StringFormat='位深：{0} bpp'}"
+                                       Foreground="{StaticResource ForegroundBrush}"
+                                       FontSize="12" Margin="0,2,0,0"/>
+                            <TextBlock Text="{Binding CurrentImage.FileSizeFormatted, StringFormat='大小：{0}'}"
+                                       Foreground="{StaticResource ForegroundBrush}"
+                                       FontSize="12" Margin="0,2,0,0"/>
+                            <TextBlock Text="{Binding CurrentImage.DateModified, StringFormat='修改：{0:yyyy-MM-dd HH:mm}'}"
+                                       Foreground="{StaticResource ForegroundBrush}"
+                                       FontSize="12" Margin="0,2,0,0"/>
+                            <TextBlock Text="{Binding CurrentImage.FilePath}"
+                                       Foreground="{StaticResource ForegroundDimBrush}"
+                                       FontSize="11"
+                                       Margin="0,8,0,0"
+                                       TextTrimming="CharacterEllipsis"
+                                       MaxWidth="320"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
                 <!-- Loading Overlay -->
                 <Border Background="#80000000" 
                         Visibility="{Binding IsBusyLoading, Converter={StaticResource BoolToVisibilityConverter}}">
@@ -813,23 +894,70 @@
                 Visibility="{Binding Settings.ShowStatusBar, Converter={StaticResource BoolToVisibilityConverter}}">
             <Grid>
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" 
+                <Button Grid.Column="0" Width="32" Height="26"
+                        Command="{Binding ToggleBookmarkCommand}"
+                        ToolTip="收藏当前图片（仅单图模式）"
+                        Margin="0,0,8,0">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource IconButtonStyle}">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Setter Property="IsEnabled" Value="False"/>
+                            <Style.Triggers>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsSingleMode}" Value="True"/>
+                                        <Condition Binding="{Binding HasImages}" Value="True"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Setter Property="IsEnabled" Value="True"/>
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <Grid>
+                        <Path Data="M12 2 L15 9 H22 L17 13 L19 20 L12 16 L5 20 L7 13 L2 9 H9 Z"
+                              Stroke="{StaticResource ForegroundBrush}"
+                              StrokeThickness="1.8"
+                              Fill="Transparent"
+                              Width="18" Height="18" Stretch="Uniform"
+                              Visibility="{Binding CurrentImage.IsBookmarked, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}"/>
+                        <Path Data="M12 2 L15 9 H22 L17 13 L19 20 L12 16 L5 20 L7 13 L2 9 H9 Z"
+                              Fill="{StaticResource PrimaryBrush}"
+                              Stroke="{StaticResource PrimaryBrush}"
+                              StrokeThickness="1.2"
+                              Width="18" Height="18" Stretch="Uniform"
+                              Visibility="{Binding CurrentImage.IsBookmarked, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                    </Grid>
+                </Button>
+
+                <Button Grid.Column="1" Style="{StaticResource IconButtonStyle}" Width="32" Height="26"
+                        Command="{Binding ToggleInfoPanelCommand}"
+                        ToolTip="查看图片信息" Margin="0,0,8,0"
+                        IsEnabled="{Binding HasImages}">
+                    <Path Data="M12 2A10 10 0 1 0 12 22A10 10 0 1 0 12 2ZM11 7H13V9H11V7ZM11 11H13V17H11V11Z"
+                          Stroke="{StaticResource ForegroundBrush}" StrokeThickness="1.8"
+                          Width="18" Height="18" Stretch="Uniform"/>
+                </Button>
+
+                <TextBlock Grid.Column="2" Text="{Binding StatusMessage}" 
                            Foreground="{StaticResource ForegroundDimBrush}"
                            FontSize="12" VerticalAlignment="Center"/>
 
-                <Slider Grid.Column="1" Width="200" Minimum="0" 
+                <Slider Grid.Column="3" Width="200" Minimum="0" 
                         Maximum="{Binding Images.Count}" 
                         Value="{Binding CurrentIndex, Mode=TwoWay}"
                         Style="{StaticResource ModernSliderStyle}"
                         Visibility="{Binding HasImages, Converter={StaticResource BoolToVisibilityConverter}}"
                         Margin="20,0"/>
 
-                <TextBlock Grid.Column="2" Text="{Binding PositionText}" 
+                <TextBlock Grid.Column="4" Text="{Binding PositionText}" 
                            Foreground="{StaticResource ForegroundBrush}"
                            FontSize="12" VerticalAlignment="Center" MinWidth="80" TextAlignment="Right"/>
             </Grid>
@@ -854,6 +982,8 @@
             <MenuItem Header="添加/移除书签 (B)" Command="{Binding ToggleBookmarkCommand}"/>
             <Separator/>
             <MenuItem Header="复制到剪贴板 (Ctrl+C)" Command="{Binding CopyToClipboardCommand}"/>
+            <MenuItem Header="分享当前图片 (LocalSend)" Command="{Binding ShareCurrentImageCommand}"/>
+            <MenuItem Header="分享全部图片 (LocalSend)" Command="{Binding ShareAllImagesCommand}"/>
             <MenuItem Header="在资源管理器中显示" Command="{Binding OpenInExplorerCommand}"/>
             <MenuItem Header="删除 (Delete)" Command="{Binding DeleteImageCommand}"/>
             <Separator/>

@@ -144,10 +144,10 @@
                 <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,12,0,0">
                     <StackPanel>
                         <TextBlock Text="系统默认查看器" Foreground="{StaticResource ForegroundBrush}" FontWeight="SemiBold"/>
-                        <TextBlock Text="点击打开 Windows 默认应用设置，手动将 PNG/JPG 等图片扩展名关联到 ImageViewer。" 
+                        <TextBlock Text="一键写入注册表，把 JPG/JPEG 默认打开方式改为 ImageViewer；如未生效，可重启资源管理器或手动检查默认应用。" 
                                    TextWrapping="Wrap" Foreground="{StaticResource ForegroundDimBrush}" 
                                    Margin="0,6,0,10"/>
-                        <Button Content="设为默认查看器（打开系统设置）"
+                        <Button Content="设为默认 JPG 查看器（写入注册表）"
                                 Style="{StaticResource ModernButtonStyle}"
                                 Click="OpenDefaultAppsButton_Click"
                                 HorizontalAlignment="Left"/>

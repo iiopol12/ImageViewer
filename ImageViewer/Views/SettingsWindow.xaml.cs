@@ -1,8 +1,10 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.Win32;
 using ImageViewer.Models;
 
 namespace ImageViewer.Views
@@ -134,30 +136,78 @@ namespace ImageViewer.Views
 
         private void OpenDefaultAppsButton_Click(object sender, RoutedEventArgs e)
         {
-            // 打开 Windows 默认应用设置，引导用户手动关联 PNG/JPG 等图片到本程序
-            if (TryOpenSettingsUri("ms-settings:defaultapps"))
-                return;
-
-            if (TryOpenSettingsUri("ms-settings:defaultappsfileassociations"))
-                return;
-
-            MessageBox.Show(
-                "无法自动打开默认应用设置，请手动前往“设置 > 应用 > 默认应用”将图片类型关联到 ImageViewer。",
-                "提示",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+            var result = TryRegisterAsJpgDefault();
+            if (result.success)
+            {
+                MessageBox.Show(
+                    "已写入注册表，将 JPG/JPEG 默认打开方式指向 ImageViewer。\n如果资源管理器未立即生效，可重新打开资源管理器或重启系统。",
+                    "完成",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            else
+            {
+                MessageBox.Show(
+                    $"部分注册表项未能写入：{result.errorMessage}\n可尝试以管理员身份运行或手动在默认应用中设置。",
+                    "提示",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
         }
 
-        private bool TryOpenSettingsUri(string uri)
+        /// <summary>
+        /// 将本程序注册为 JPG/JPEG 的默认查看器（用户范围，不需要管理员权限）。
+        /// </summary>
+        private (bool success, string? errorMessage) TryRegisterAsJpgDefault()
         {
             try
             {
-                Process.Start(new ProcessStartInfo(uri) { UseShellExecute = true });
-                return true;
+                var exePath = Process.GetCurrentProcess().MainModule?.FileName;
+                if (string.IsNullOrWhiteSpace(exePath) || !File.Exists(exePath))
+                {
+                    return (false, "无法确定程序路径");
+                }
+
+                const string progId = "ImageViewer.jpg";
+                const string description = "ImageViewer JPG";
+
+                // 写入 ProgID
+                using (var progIdKey = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{progId}"))
+                {
+                    progIdKey?.SetValue(string.Empty, description);
+                    progIdKey?.CreateSubKey("DefaultIcon")?.SetValue(string.Empty, $"\"{exePath}\",0");
+                    progIdKey?.CreateSubKey(@"shell\open\command")?.SetValue(string.Empty, $"\"{exePath}\" \"%1\"");
+                }
+
+                // 关联扩展名（两种写法都覆盖）
+                using (var jpgKey = Registry.CurrentUser.CreateSubKey(@"Software\Classes\.jpg"))
+                {
+                    jpgKey?.SetValue(string.Empty, progId, RegistryValueKind.String);
+                }
+                using (var jpegKey = Registry.CurrentUser.CreateSubKey(@"Software\Classes\.jpeg"))
+                {
+                    jpegKey?.SetValue(string.Empty, progId, RegistryValueKind.String);
+                }
+
+                // 填充 OpenWithProgids，增加兼容性
+                using (var openWith = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.jpg\OpenWithProgids"))
+                {
+                    openWith?.SetValue(progId, string.Empty, RegistryValueKind.String);
+                }
+                using (var openWith = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.jpeg\OpenWithProgids"))
+                {
+                    openWith?.SetValue(progId, string.Empty, RegistryValueKind.String);
+                }
+
+                // 清理 UserChoice，让系统回退到我们写入的关联
+                Registry.CurrentUser.DeleteSubKeyTree(@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.jpg\UserChoice", false);
+                Registry.CurrentUser.DeleteSubKeyTree(@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.jpeg\UserChoice", false);
+
+                return (true, null);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return false;
+                return (false, ex.Message);
             }
         }
     }

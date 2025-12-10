@@ -25,6 +25,7 @@ namespace ImageViewer.ViewModels
     {
         private readonly ImageService _imageService;// 图片加载和缓存服务
         private readonly FileWatcherService _fileWatcher; // 文件系统监视服务
+        private readonly LocalSendService _localSendService; // LocalSend 分享服务
         private readonly DispatcherTimer _slideshowTimer;// 幻灯片播放定时器
 
         // === 取消令牌 ===
@@ -41,6 +42,7 @@ namespace ImageViewer.ViewModels
         {
             _imageService = new ImageService();
             _fileWatcher = new FileWatcherService();
+            _localSendService = new LocalSendService();
             _slideshowTimer = new DispatcherTimer();
             _slideshowTimer.Tick += SlideshowTimer_Tick;
 
@@ -107,6 +109,9 @@ namespace ImageViewer.ViewModels
         // === 是否正在加载图片 ===
         [ObservableProperty]
         private bool _isImageLoading;
+        // === 是否正在分享 ===
+        [ObservableProperty]
+        private bool _isSharing;
         // === 状态栏消息 ===
         [ObservableProperty]
         private string _statusMessage = "就绪";
@@ -122,6 +127,9 @@ namespace ImageViewer.ViewModels
         // === 是否显示瀑布流视图 ===
         [ObservableProperty]
         private bool _showWaterfallView = false;
+        // === 是否显示图片信息面板 ===
+        [ObservableProperty]
+        private bool _isInfoPanelVisible;
         /// <summary>位置文本 - 显示当前图片位置</summary>
         public string PositionText => Images.Count > 0 && CurrentIndex >= 0
             ? $"第 {CurrentIndex + 1}/{Images.Count} 张"
@@ -465,6 +473,83 @@ namespace ImageViewer.ViewModels
             }
         }
 
+        /// <summary>通过 LocalSend 分享当前图片</summary>
+        [RelayCommand]
+        private async Task ShareCurrentImage()
+        {
+            if (IsSharing)
+                return;
+
+            if (CurrentImage == null || string.IsNullOrWhiteSpace(CurrentImage.FilePath) || !File.Exists(CurrentImage.FilePath))
+            {
+                StatusMessage = "没有可分享的图片";
+                return;
+            }
+
+            await ShareFilesAsync(new[] { CurrentImage.FilePath });
+        }
+
+        /// <summary>通过 LocalSend 分享全部已加载的图片</summary>
+        [RelayCommand]
+        private async Task ShareAllImages()
+        {
+            if (IsSharing)
+                return;
+
+            if (!HasImages)
+            {
+                StatusMessage = "没有可分享的图片";
+                return;
+            }
+
+            var files = Images.Select(i => i.FilePath).Where(File.Exists).ToList();
+            if (files.Count == 0)
+            {
+                StatusMessage = "没有可分享的图片";
+                return;
+            }
+
+            await ShareFilesAsync(files);
+        }
+
+        /// <summary>
+        /// 通过 LocalSend 发送文件列表
+        /// </summary>
+        private async Task ShareFilesAsync(IEnumerable<string> filePaths)
+        {
+            try
+            {
+                IsSharing = true;
+                StatusMessage = "正在通过 LocalSend 分享...";
+
+                var result = await _localSendService.SendAsync(filePaths);
+
+                if (result.Success)
+                {
+                    if (result.SkippedMissing > 0)
+                    {
+                        StatusMessage = $"已调用 LocalSend 处理 {result.SentCount} 张，跳过 {result.SkippedMissing} 张缺失文件";
+                    }
+                    else
+                    {
+                        StatusMessage = $"已调用 LocalSend 处理 {result.SentCount} 张图片，如未自动发送请在 LocalSend 中确认";
+                    }
+                }
+                else
+                {
+                    StatusMessage = $"分享失败: {result.ErrorMessage}";
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"分享失败: {ex.Message}";
+            }
+            finally
+            {
+                IsSharing = false;
+            }
+        }
+
 
         /// <summary>在资源管理器中显示命令</summary>
         [RelayCommand]
@@ -533,6 +618,12 @@ namespace ImageViewer.ViewModels
             {
                 Settings.ShowSidebar = false;
             }
+        }
+
+        [RelayCommand]
+        private void ToggleInfoPanel()
+        {
+            IsInfoPanelVisible = !IsInfoPanelVisible;
         }
 
         /// <summary>
@@ -893,6 +984,7 @@ namespace ImageViewer.ViewModels
                 // 只有成功加载才替换（避免闪烁）
                 if (newDisplay != null)
                 {
+                    CurrentImage.UpdateMetadata(newDisplay);
                     DisplayImage = newDisplay;
                 }//如果加载失败，保持原有的 DisplayImage 不变
 
@@ -906,6 +998,7 @@ namespace ImageViewer.ViewModels
                         var newSecondDisplay = await _imageService.LoadImageAsync(SecondImage, null, _preloadCts.Token);
                         if (newSecondDisplay != null)
                         {
+                            SecondImage.UpdateMetadata(newSecondDisplay);
                             SecondDisplayImage = newSecondDisplay;
                         }
                     }

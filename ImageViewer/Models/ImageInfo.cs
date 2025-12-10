@@ -13,6 +13,7 @@ namespace ImageViewer.Models
         public long FileSize { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
+        public int BitDepth { get; private set; }
         public DateTime DateModified { get; set; }
         
         [ObservableProperty]
@@ -59,6 +60,21 @@ namespace ImageViewer.Models
                 FileSize = fileInfo.Exists ? fileInfo.Length : 0,
                 DateModified = fileInfo.Exists ? fileInfo.LastWriteTime : DateTime.MinValue
             };
+        }
+
+        /// <summary>
+        /// 更新图片元数据供信息面板展示（在 UI 线程调用）
+        /// </summary>
+        public void UpdateMetadata(BitmapSource source)
+        {
+            Width = source.PixelWidth;
+            Height = source.PixelHeight;
+            BitDepth = source.Format.BitsPerPixel;
+
+            OnPropertyChanged(nameof(Width));
+            OnPropertyChanged(nameof(Height));
+            OnPropertyChanged(nameof(DimensionsFormatted));
+            OnPropertyChanged(nameof(BitDepth));
         }
     }
 }
