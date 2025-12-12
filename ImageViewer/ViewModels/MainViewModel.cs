@@ -90,6 +90,9 @@ namespace ImageViewer.ViewModels
         // === 漫画模式缩放级别 ===
         [ObservableProperty]
         private double _mangaZoomLevel = 1.0;
+        // === 瀑布流视图缩放级别 ===
+        [ObservableProperty]
+        private double _waterfallZoomLevel = 1.0;
         // === 平移 X 坐标 ===
         [ObservableProperty]
         private double _panX;
@@ -403,6 +406,12 @@ namespace ImageViewer.ViewModels
                 _ => ViewMode.Single
             };
 
+            // 切换模式时自动关闭瀑布流视图，避免视图互斥导致无法显示
+            if (ShowWaterfallView)
+            {
+                ShowWaterfallView = false;
+            }
+
             OnPropertyChanged(nameof(IsDoublePage));
             OnPropertyChanged(nameof(IsMangaMode));
             OnPropertyChanged(nameof(IsSingleMode));
@@ -428,6 +437,12 @@ namespace ImageViewer.ViewModels
         [RelayCommand]
         private void SetViewMode(ViewMode mode)
         {
+            // 切换到指定模式时关闭瀑布流视图
+            if (ShowWaterfallView)
+            {
+                ShowWaterfallView = false;
+            }
+
             CurrentViewMode = mode;
             OnPropertyChanged(nameof(IsDoublePage));
             OnPropertyChanged(nameof(IsMangaMode));
@@ -1182,7 +1197,6 @@ namespace ImageViewer.ViewModels
         /// </summary>
         public void HandleMouseWheel(int delta, bool ctrlPressed)
         {
-
             // 滚轮行为：缩放或导航
             if (Settings.ScrollWheelBehavior == ScrollWheelBehavior.Zoom || ctrlPressed)
             {

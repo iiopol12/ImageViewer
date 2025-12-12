@@ -13,12 +13,6 @@ namespace ImageViewer.Models
         DoublePage
     }
 
-    public enum ReadingDirection
-    {
-        LeftToRight,
-        RightToLeft
-    }
-
     public enum BackgroundColor
     {
         Black,
@@ -35,8 +29,6 @@ namespace ImageViewer.Models
         Navigate
     }
 
-  
-
     public partial class AppSettings : ObservableObject
     {
         private static readonly string SettingsPath = Path.Combine(
@@ -45,9 +37,6 @@ namespace ImageViewer.Models
 
         [ObservableProperty]
         private ViewMode _defaultViewMode = ViewMode.Single;
-
-        [ObservableProperty]
-        private ReadingDirection _readingDirection = ReadingDirection.LeftToRight;
 
         [ObservableProperty]
         private BackgroundColor _backgroundColor = BackgroundColor.DarkGray;
@@ -100,7 +89,15 @@ namespace ImageViewer.Models
         [ObservableProperty]
         private int _mangaDecodeWidth = 1600;
 
+        // === 瀑布流/漫画总览布局参数 ===
+        [ObservableProperty]
+        private double _waterfallGap = 4;
 
+        [ObservableProperty]
+        private double _waterfallCornerRadius = 4;
+
+        [ObservableProperty]
+        private double _waterfallBorderThickness = 2;
 
         [ObservableProperty]
         private string _localSendPath = string.Empty;

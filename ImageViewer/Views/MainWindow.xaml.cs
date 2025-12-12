@@ -11,6 +11,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
+using System.Windows.Controls.Primitives;
 
 namespace ImageViewer.Views
 {
@@ -489,7 +490,11 @@ namespace ImageViewer.Views
             if (!Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
                 return;
 
-            if (ViewModel.IsMangaMode)
+            if (ViewModel.ShowWaterfallView)
+            {
+                HandleWaterfallZoomWithMouseWheel(e);
+            }
+            else if (ViewModel.IsMangaMode)
             {
                 HandleMangaZoomWithMouseWheel(e);
             }
@@ -546,6 +551,16 @@ namespace ImageViewer.Views
 
             // 判断是否按下 Ctrl 键
             bool ctrlPressed = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+            if (ViewModel.ShowWaterfallView)
+            {
+                // 瀑布流视图：仅 Ctrl + 滚轮缩放，其它情况交给 ScrollViewer 正常滚动
+                if (ctrlPressed)
+                {
+                    HandleWaterfallZoomWithMouseWheel(e);
+                    e.Handled = true;
+                }
+                return;
+            }
             bool forceZoom = ctrlPressed || ViewModel.Settings.ScrollWheelBehavior == ScrollWheelBehavior.Zoom;
 
             if (forceZoom)
@@ -676,6 +691,114 @@ namespace ImageViewer.Views
                     MangaScrollViewer.ScrollToVerticalOffset(newVerticalOffset);
                 }
             }), DispatcherPriority.Loaded);
+        }
+
+        /// <summary>
+        /// 瀑布流视图下 Ctrl + 滚轮缩放
+        /// </summary>
+        private void HandleWaterfallZoomWithMouseWheel(MouseWheelEventArgs e)
+        {
+            const double ZOOM_FACTOR = 0.1;
+            const double MIN_ZOOM = 0.2;
+            const double MAX_ZOOM = 3.0; // 限制最大图尺寸
+
+            if (ViewModel.Images.Count == 0)
+                return;
+
+            Point mousePos = e.GetPosition(WaterfallScrollViewer);
+
+            double horizontalRatio = 0;
+            double verticalRatio = 0;
+
+            if (WaterfallScrollViewer.ViewportWidth > 0 && WaterfallScrollViewer.ViewportHeight > 0)
+            {
+                horizontalRatio = (WaterfallScrollViewer.HorizontalOffset + mousePos.X) / WaterfallScrollViewer.ExtentWidth;
+                verticalRatio = (WaterfallScrollViewer.VerticalOffset + mousePos.Y) / WaterfallScrollViewer.ExtentHeight;
+            }
+
+            double currentZoom = ViewModel.WaterfallZoomLevel;
+            double delta = e.Delta > 0 ? ZOOM_FACTOR : -ZOOM_FACTOR;
+            double newZoom = currentZoom * (1 + delta);
+
+            newZoom = Math.Max(MIN_ZOOM, Math.Min(MAX_ZOOM, newZoom));
+
+            if (Math.Abs(newZoom - currentZoom) < 0.001)
+                return;
+
+            ViewModel.WaterfallZoomLevel = newZoom;
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (WaterfallScrollViewer.ExtentWidth > 0 && WaterfallScrollViewer.ExtentHeight > 0)
+                {
+                    double newHorizontalOffset = horizontalRatio * WaterfallScrollViewer.ExtentWidth - mousePos.X;
+                    double newVerticalOffset = verticalRatio * WaterfallScrollViewer.ExtentHeight - mousePos.Y;
+
+                    newHorizontalOffset = Math.Max(0, Math.Min(newHorizontalOffset, WaterfallScrollViewer.ScrollableWidth));
+                    newVerticalOffset = Math.Max(0, Math.Min(newVerticalOffset, WaterfallScrollViewer.ScrollableHeight));
+
+                    WaterfallScrollViewer.ScrollToHorizontalOffset(newHorizontalOffset);
+                    WaterfallScrollViewer.ScrollToVerticalOffset(newVerticalOffset);
+                }
+            }), DispatcherPriority.Loaded);
+        }
+
+        /// <summary>
+        /// 瀑布流视图空白处点击：取消所有选择
+        /// </summary>
+        private void WaterfallScrollViewer_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (!ViewModel.ShowWaterfallView)
+                return;
+
+            var source = e.OriginalSource as DependencyObject;
+            if (source == null)
+                return;
+
+            // 点击在滚动条/滑块上，不清除选择
+            if (FindVisualAncestor<ScrollBar>(source) != null ||
+                FindVisualAncestor<Thumb>(source) != null ||
+                FindVisualAncestor<RepeatButton>(source) != null)
+            {
+                return;
+            }
+
+            // 点击在图片项上，不清除选择
+            var itemContainer = FindVisualAncestor<FrameworkElement>(source, fe => fe.Tag is ImageInfo);
+            if (itemContainer != null)
+                return;
+
+            // 空白处：清除所有 IsSelected
+            foreach (var img in ViewModel.Images)
+            {
+                if (img.IsSelected)
+                    img.IsSelected = false;
+            }
+        }
+
+        private static T? FindVisualAncestor<T>(DependencyObject source) where T : DependencyObject
+        {
+            var current = source;
+            while (current != null)
+            {
+                if (current is T typed)
+                    return typed;
+                current = VisualTreeHelper.GetParent(current);
+            }
+            return null;
+        }
+
+        private static FrameworkElement? FindVisualAncestor<FrameworkElement>(DependencyObject source, Func<FrameworkElement, bool> predicate)
+            where FrameworkElement : System.Windows.FrameworkElement
+        {
+            var current = source;
+            while (current != null)
+            {
+                if (current is System.Windows.FrameworkElement fe && predicate((FrameworkElement)fe))
+                    return (FrameworkElement)fe;
+                current = VisualTreeHelper.GetParent(current);
+            }
+            return null;
         }
 
         private async void Window_Drop(object sender, DragEventArgs e)
@@ -1002,34 +1125,53 @@ namespace ImageViewer.Views
         /// </summary>
         private void WaterfallItem_Click(object sender, MouseButtonEventArgs e)
         {
-            if (sender is FrameworkElement element && element.Tag is ImageInfo imageInfo)
+            if (sender is not FrameworkElement element || element.Tag is not ImageInfo imageInfo)
+                return;
+
+            // 找到图片在集合中的索引
+            var index = ViewModel.Images.IndexOf(imageInfo);
+            if (index < 0)
+                return;
+
+            var modifiers = Keyboard.Modifiers;
+            bool ctrlPressed = (modifiers & ModifierKeys.Control) == ModifierKeys.Control;
+            bool shiftPressed = (modifiers & ModifierKeys.Shift) == ModifierKeys.Shift;
+            if (ctrlPressed)
             {
-                // 找到图片在集合中的索引
-                var index = ViewModel.Images.IndexOf(imageInfo);
-                if (index >= 0)
+                // Ctrl 复选 - 仅切换选中状态，不离开瀑布流视图
+                imageInfo.IsSelected = !imageInfo.IsSelected;
+                e.Handled = true;
+                return;
+            }
+
+            if (shiftPressed && imageInfo.IsSelected)
+            {
+                // Shift 点击已选项：取消该项选中
+                imageInfo.IsSelected = false;
+                e.Handled = true;
+                return;
+            }
+
+            // 漫画模式普通点击：只切换当前图片，不离开漫画模式，也不产生选中描边
+            if (ViewModel.IsMangaMode && !ViewModel.ShowWaterfallView)
+            {
+                if (ViewModel.CurrentIndex != index)
                 {
-                    bool ctrlPressed = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+                    ViewModel.CurrentIndex = index;
+                }
+                return;
+            }
 
-
-
-                    if (ctrlPressed)
-
-                    {
-
-                        imageInfo.IsSelected = !imageInfo.IsSelected;
-
-                        e.Handled = true;
-
-                        return;
-
-                    }
-
-
-                    imageInfo.IsSelected = true;
-
-                    ViewModel.SelectFromWaterfallCommand.Execute(index);
+            // 瀑布流普通点击：清除所有复选并跳转到单图模式
+            foreach (var img in ViewModel.Images)
+            {
+                if (img.IsSelected)
+                {
+                    img.IsSelected = false;
                 }
             }
+
+            ViewModel.SelectFromWaterfallCommand.Execute(index);
         }
         #endregion
 

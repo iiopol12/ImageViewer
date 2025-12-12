@@ -30,7 +30,6 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="默认浏览模式" 
@@ -42,16 +41,9 @@
                      
                     </ComboBox>
                     
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="阅读方向" 
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="背景颜色" 
                                Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
-                    <ComboBox Grid.Row="1" Grid.Column="1" x:Name="DirectionComboBox" Margin="0,12,0,4">
-                        <ComboBoxItem Content="从左到右" Tag="{x:Static models:ReadingDirection.LeftToRight}"/>
-                        <ComboBoxItem Content="从右到左" Tag="{x:Static models:ReadingDirection.RightToLeft}"/>
-                    </ComboBox>
-                    
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="背景颜色" 
-                               Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
-                    <ComboBox Grid.Row="2" Grid.Column="1" x:Name="BackgroundComboBox" Margin="0,12,0,4">
+                    <ComboBox Grid.Row="1" Grid.Column="1" x:Name="BackgroundComboBox" Margin="0,12,0,4">
                         <ComboBoxItem Content="黑色" Tag="{x:Static models:BackgroundColor.Black}"/>
                         <ComboBoxItem Content="白色" Tag="{x:Static models:BackgroundColor.White}"/>
                         <ComboBoxItem Content="灰色" Tag="{x:Static models:BackgroundColor.Gray}"/>
@@ -59,10 +51,10 @@
                         <ComboBoxItem Content="透明" Tag="{x:Static models:BackgroundColor.Transparent}"/>
                      
                     </ComboBox>
-                    
-                    <TextBlock Grid.Row="3" Grid.Column="0" Text="滚轮行为" 
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="滚轮行为"
                                Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
-                    <ComboBox Grid.Row="3" Grid.Column="1" x:Name="ScrollWheelComboBox" Margin="0,12,0,4">
+                    <ComboBox Grid.Row="2" Grid.Column="1" x:Name="ScrollWheelComboBox" Margin="0,12,0,4">
                         <ComboBoxItem Content="缩放" Tag="{x:Static models:ScrollWheelBehavior.Zoom}"/>
                         <ComboBoxItem Content="翻页" Tag="{x:Static models:ScrollWheelBehavior.Navigate}"/>
                     </ComboBox>
@@ -144,10 +136,10 @@
                 <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,12,0,0">
                     <StackPanel>
                         <TextBlock Text="系统默认查看器" Foreground="{StaticResource ForegroundBrush}" FontWeight="SemiBold"/>
-                        <TextBlock Text="一键写入注册表，把 JPG/JPEG 默认打开方式改为 ImageViewer；如未生效，可重启资源管理器或手动检查默认应用。" 
+                        <TextBlock Text="点击下方按钮选择要关联的图片格式，勾选后写入注册表，将所选格式默认打开方式改为 ImageViewer；如未生效，可重启资源管理器或手动检查默认应用。" 
                                    TextWrapping="Wrap" Foreground="{StaticResource ForegroundDimBrush}" 
                                    Margin="0,6,0,0"/>
-                        <Button Content="设为默认 JPG 查看器（写入注册表）"
+                        <Button Content="选择关联类型（写入注册表）"
                                 Style="{StaticResource ModernButtonStyle}"
                                 Click="OpenDefaultAppsButton_Click"
                                 HorizontalAlignment="Left"/>

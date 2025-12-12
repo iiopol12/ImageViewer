@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -38,16 +39,6 @@ namespace ImageViewer.Views
                 }
             }
             
-            // Reading Direction
-            foreach (ComboBoxItem item in DirectionComboBox.Items)
-            {
-                if (item.Tag is ReadingDirection dir && dir == _settings.ReadingDirection)
-                {
-                    DirectionComboBox.SelectedItem = item;
-                    break;
-                }
-            }
-            
             // Background Color
             foreach (ComboBoxItem item in BackgroundComboBox.Items)
             {
@@ -57,7 +48,7 @@ namespace ImageViewer.Views
                     break;
                 }
             }
-            
+
             // Scroll Wheel Behavior
             foreach (ComboBoxItem item in ScrollWheelComboBox.Items)
             {
@@ -96,18 +87,12 @@ namespace ImageViewer.Views
                 _settings.DefaultViewMode = mode;
             }
             
-            // Reading Direction
-            if (DirectionComboBox.SelectedItem is ComboBoxItem dirItem && dirItem.Tag is ReadingDirection dir)
-            {
-                _settings.ReadingDirection = dir;
-            }
-            
             // Background Color
             if (BackgroundComboBox.SelectedItem is ComboBoxItem bgItem && bgItem.Tag is BackgroundColor color)
             {
                 _settings.BackgroundColor = color;
             }
-            
+
             // Scroll Wheel Behavior
             if (ScrollWheelComboBox.SelectedItem is ComboBoxItem swItem && swItem.Tag is ScrollWheelBehavior behavior)
             {
@@ -142,11 +127,22 @@ namespace ImageViewer.Views
 
         private void OpenDefaultAppsButton_Click(object sender, RoutedEventArgs e)
         {
-            var result = TryRegisterAsJpgDefault();
+            var picker = new FileAssociationsWindow(SupportedExtensions)
+            {
+                Owner = this
+            };
+
+            if (picker.ShowDialog() != true)
+                return;
+
+            var selected = picker.SelectedExtensions;
+            var result = TryRegisterAsDefaultViewer(selected);
+
             if (result.success)
             {
+                var formats = string.Join("/", selected.Select(e => e.TrimStart('.').ToUpperInvariant()));
                 MessageBox.Show(
-                    "已写入注册表，将 JPG/JPEG 默认打开方式指向 ImageViewer。\n如果资源管理器未立即生效，可重新打开资源管理器或重启系统。",
+                    $"已写入注册表，将以下格式默认打开方式指向 ImageViewer：{formats}。\n如果资源管理器未立即生效，可重新打开资源管理器或重启系统。",
                     "完成",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
@@ -161,10 +157,15 @@ namespace ImageViewer.Views
             }
         }
 
+        private static readonly string[] SupportedExtensions =
+        {
+            ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff", ".tif", ".ico"
+        };
+
         /// <summary>
-        /// 将本程序注册为 JPG/JPEG 的默认查看器（用户范围，不需要管理员权限）。
+        /// 将本程序注册为支持格式的默认查看器（用户范围，不需要管理员权限）。
         /// </summary>
-        private (bool success, string? errorMessage) TryRegisterAsJpgDefault()
+        private (bool success, string? errorMessage) TryRegisterAsDefaultViewer(IReadOnlyList<string> extensions)
         {
             try
             {
@@ -174,8 +175,8 @@ namespace ImageViewer.Views
                     return (false, "无法确定程序路径");
                 }
 
-                const string progId = "ImageViewer.jpg";
-                const string description = "ImageViewer JPG";
+                const string progId = "ImageViewer.image";
+                const string description = "ImageViewer Image";
 
                 // 写入 ProgID
                 using (var progIdKey = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{progId}"))
@@ -185,29 +186,23 @@ namespace ImageViewer.Views
                     progIdKey?.CreateSubKey(@"shell\open\command")?.SetValue(string.Empty, $"\"{exePath}\" \"%1\"");
                 }
 
-                // 关联扩展名（两种写法都覆盖）
-                using (var jpgKey = Registry.CurrentUser.CreateSubKey(@"Software\Classes\.jpg"))
+                foreach (var ext in extensions)
                 {
-                    jpgKey?.SetValue(string.Empty, progId, RegistryValueKind.String);
-                }
-                using (var jpegKey = Registry.CurrentUser.CreateSubKey(@"Software\Classes\.jpeg"))
-                {
-                    jpegKey?.SetValue(string.Empty, progId, RegistryValueKind.String);
-                }
+                    // 关联扩展名
+                    using (var extKey = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{ext}"))
+                    {
+                        extKey?.SetValue(string.Empty, progId, RegistryValueKind.String);
+                    }
 
-                // 填充 OpenWithProgids，增加兼容性
-                using (var openWith = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.jpg\OpenWithProgids"))
-                {
-                    openWith?.SetValue(progId, string.Empty, RegistryValueKind.String);
-                }
-                using (var openWith = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.jpeg\OpenWithProgids"))
-                {
-                    openWith?.SetValue(progId, string.Empty, RegistryValueKind.String);
-                }
+                    // 填充 OpenWithProgids，增加兼容性
+                    using (var openWith = Registry.CurrentUser.CreateSubKey($@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\{ext}\OpenWithProgids"))
+                    {
+                        openWith?.SetValue(progId, string.Empty, RegistryValueKind.String);
+                    }
 
-                // 清理 UserChoice，让系统回退到我们写入的关联
-                Registry.CurrentUser.DeleteSubKeyTree(@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.jpg\UserChoice", false);
-                Registry.CurrentUser.DeleteSubKeyTree(@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.jpeg\UserChoice", false);
+                    // 清理 UserChoice，让系统回退到我们写入的关联
+                    Registry.CurrentUser.DeleteSubKeyTree($@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\{ext}\UserChoice", false);
+                }
 
                 return (true, null);
             }

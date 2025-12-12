@@ -672,7 +672,7 @@
                                       ItemsSource="{Binding Images}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                     <WrapPanel x:Name="WaterfallWrapPanel" Orientation="Horizontal" HorizontalAlignment="Center"/>
+                                     <StackPanel Orientation="Vertical" HorizontalAlignment="Center"/>
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
@@ -681,28 +681,19 @@
                                             Background="{StaticResource BackgroundDarkBrush}" 
                                             CornerRadius="{Binding DataContext.Settings.WaterfallCornerRadius, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource DoubleToCornerRadiusConverter}}"
                                             Cursor="Hand"
-                                            BorderThickness="{Binding DataContext.Settings.WaterfallBorderThickness, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            BorderThickness="{Binding DataContext.Settings.WaterfallBorderThickness, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource DoubleToThicknessConverter}}"
                                             MouseLeftButtonUp="WaterfallItem_Click"
                                             Tag="{Binding}">
                                         <Border.Style>
                                             <Style TargetType="Border">
-                                                <Setter Property="BorderBrush" Value="Transparent"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                                 <Setter Property="BorderBrush" Value="Transparent"/>
+                                                 <Style.Triggers>
+                                                     <DataTrigger Binding="{Binding IsSelected}" Value="True">
                                                         <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
                                                     </DataTrigger>
-                                                    <!-- 幻灯片播放时隐藏当前页的描边 -->
-                                                    <MultiDataTrigger>
-                                                        <MultiDataTrigger.Conditions>
-                                                            <Condition Binding="{Binding IsCurrent}" Value="True"/>
-                                                            <Condition Binding="{Binding DataContext.IsSlideShowActive, RelativeSource={RelativeSource AncestorType=Window}}" Value="True"/>
-                                                        </MultiDataTrigger.Conditions>
-                                                        <Setter Property="BorderBrush" Value="Transparent"/>
-                                                        <Setter Property="BorderThickness" Value="0"/>
-                                                    </MultiDataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
+                                                 </Style.Triggers>
+                                             </Style>
+                                         </Border.Style>
 
                                         <Image Source="{Binding FullImage, TargetNullValue={x:Null}}" 
                                                Stretch="Uniform" 
@@ -719,9 +710,13 @@
                 <ScrollViewer x:Name="WaterfallScrollViewer"
                               VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled"
+                              PreviewMouseLeftButtonDown="WaterfallScrollViewer_PreviewMouseLeftButtonDown"
                               Background="{Binding Settings.BackgroundColor, Converter={StaticResource BackgroundColorToBrushConverter}}"
                               Visibility="{Binding ShowWaterfallView, Converter={StaticResource BoolToVisibilityConverter}}">
                     <ItemsControl ItemsSource="{Binding Images}">
+                        <ItemsControl.LayoutTransform>
+                            <ScaleTransform ScaleX="{Binding WaterfallZoomLevel}" ScaleY="{Binding WaterfallZoomLevel}"/>
+                        </ItemsControl.LayoutTransform>
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
@@ -736,17 +731,17 @@
                                     <Border.Style>
                                         <Style TargetType="Border">
                                             <Setter Property="BorderThickness" Value="2"/>
-                                            <Setter Property="BorderBrush" Value="Transparent"/>
-                                            <Style.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
-                                                </Trigger>
-                                                <DataTrigger Binding="{Binding IsCurrent}" Value="True">
-                                                    <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Border.Style>
+                                             <Setter Property="BorderBrush" Value="Transparent"/>
+                                             <Style.Triggers>
+                                                 <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="BorderBrush" Value="{StaticResource BackgroundLightBrush}"/>
+                                                 </Trigger>
+                                                 <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                     <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                                                 </DataTrigger>
+                                             </Style.Triggers>
+                                         </Style>
+                                     </Border.Style>
                                     <Grid Width="180" Height="140">
                                         <Image Source="{Binding Thumbnail}" Stretch="Uniform" 
                                                RenderOptions.BitmapScalingMode="HighQuality"
@@ -1030,12 +1025,25 @@
                            Foreground="{StaticResource ForegroundDimBrush}"
                            FontSize="12" VerticalAlignment="Center"/>
 
-                <Slider Grid.Column="3" Width="200" Minimum="0" 
-                        Maximum="{Binding Images.Count}" 
+                <Slider Grid.Column="3" Width="200" Minimum="0"
+                        Maximum="{Binding Images.Count}"
                         Value="{Binding CurrentIndex, Mode=TwoWay}"
-                        Style="{StaticResource ModernSliderStyle}"
-                        Visibility="{Binding HasImages, Converter={StaticResource BoolToVisibilityConverter}}"
-                        Margin="20,0"/>
+                        Margin="20,0">
+                    <Slider.Style>
+                        <Style TargetType="Slider" BasedOn="{StaticResource ModernSliderStyle}">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding HasImages}" Value="True"/>
+                                        <Condition Binding="{Binding IsSingleMode}" Value="True"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Slider.Style>
+                </Slider>
 
                 <TextBlock Grid.Column="4" Text="{Binding PositionText}" 
                            Foreground="{StaticResource ForegroundBrush}"
