@@ -203,6 +203,48 @@ namespace ImageViewer.Converters
         }
     }
 
+    public class DoubleToThicknessConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is double d)
+            {
+                return new Thickness(d);
+            }
+            return new Thickness(0);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is Thickness th)
+            {
+                return th.Left;
+            }
+            return 0.0;
+        }
+    }
+
+    public class DoubleToCornerRadiusConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is double d)
+            {
+                return new CornerRadius(d);
+            }
+            return new CornerRadius(0);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is CornerRadius cr)
+            {
+                return cr.TopLeft;
+            }
+            return 0.0;
+        }
+    }
+
     /// <summary>
     /// 图片视图可见性转换器
     /// 用于在瀑布流显示时隐藏单图/双页/漫画视图

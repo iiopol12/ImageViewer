@@ -130,7 +130,12 @@ namespace ImageViewer.ViewModels
         // === 是否显示图片信息面板 ===
         [ObservableProperty]
         private bool _isInfoPanelVisible;
+      
+        // === 漫画模式缩略图总览是否可见 ===
+        [ObservableProperty]
+        private bool _isMangaOverviewVisible;
         /// <summary>位置文本 - 显示当前图片位置</summary>
+        /// 
         public string PositionText => Images.Count > 0 && CurrentIndex >= 0
             ? $"第 {CurrentIndex + 1}/{Images.Count} 张"
             : "无图片";
@@ -170,6 +175,11 @@ namespace ImageViewer.ViewModels
         partial void OnCurrentViewModeChanged(ViewMode value)
         {
             OnPropertyChanged(nameof(ActiveZoomLevel));
+            if (value != ViewMode.Manga)
+            {
+                IsMangaOverviewVisible = false;
+
+            }
         }
         /// <summary>当前索引变化时触发 - 加载对应图片</summary>
         partial void OnCurrentIndexChanged(int value)
@@ -480,6 +490,14 @@ namespace ImageViewer.ViewModels
             if (IsSharing)
                 return;
 
+            var selected = Images.Where(i => i.IsSelected && !string.IsNullOrWhiteSpace(i.FilePath) && File.Exists(i.FilePath))
+                              .Select(i => i.FilePath)
+                              .ToList();
+            if (selected.Count > 0)
+            {
+                await ShareFilesAsync(selected);
+                return;
+            }
             if (CurrentImage == null || string.IsNullOrWhiteSpace(CurrentImage.FilePath) || !File.Exists(CurrentImage.FilePath))
             {
                 StatusMessage = "没有可分享的图片";
@@ -674,40 +692,50 @@ namespace ImageViewer.ViewModels
         [RelayCommand]
         private async Task DeleteImage()
         {
-            if (CurrentImage != null && File.Exists(CurrentImage.FilePath))
+            var selected = Images.Select((img, idx) => new { img, idx })
+                                 .Where(x => x.img.IsSelected && File.Exists(x.img.FilePath))
+                                 .ToList();
+
+            // 如果有多选，优先删除多选
+            if (selected.Count > 0)
             {
                 var result = MessageBox.Show(
-                    $"确定要删除 {CurrentImage.FileName} 吗？",
+                    $"确定要删除选中的 {selected.Count} 张图片吗？",
                     "确认删除",
                     MessageBoxButton.YesNo,
                     MessageBoxImage.Warning);
+
 
                 if (result == MessageBoxResult.Yes)
                 {
                     try
                     {
-                        var indexToRemove = CurrentIndex;
-                        var filePath = CurrentImage.FilePath;
+                        // 按索引倒序删除，避免位移
+                        foreach (var item in selected.OrderByDescending(x => x.idx))
+                        {
+                            Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(
+                                item.img.FilePath,
+                                Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs,
+                                Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
+                            Images.RemoveAt(item.idx);
+                        }
 
-                        Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(
-                            filePath,
-                            Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs,
-                            Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
-
-                        Images.RemoveAt(indexToRemove);
-
+                        foreach (var img in Images)
+                        {
+                            img.IsSelected = false;
+                        }
                         if (Images.Count > 0)
                         {
                             try
                             {
                                 _suppressIndexChangeHandling = true;
-                                CurrentIndex = Math.Min(indexToRemove, Images.Count - 1);
+                                var targetIndex = CurrentIndex < 0 ? 0 : Math.Min(CurrentIndex, Images.Count - 1);
+                                CurrentIndex = targetIndex;
                             }
                             finally
                             {
                                 _suppressIndexChangeHandling = false;
                             }
-
                             await LoadCurrentImage();
                         }
                         else
@@ -717,7 +745,6 @@ namespace ImageViewer.ViewModels
                             CurrentIndex = -1;
                             UpdateEmptyState();
                         }
-
                         StatusMessage = "已删除到回收站";
                     }
                     catch (Exception ex)
@@ -725,17 +752,18 @@ namespace ImageViewer.ViewModels
                         MessageBox.Show($"删除失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
+                return;
             }
         }
 
         #endregion
 
-        #region  图片加载
+            #region  图片加载
 
 
-        /// <summary>
-        /// 从文件路径加载图片
-        /// </summary>
+            /// <summary>
+            /// 从文件路径加载图片
+            /// </summary>
         public async Task LoadImageFromPath(string filePath)
         {
             if (!File.Exists(filePath))

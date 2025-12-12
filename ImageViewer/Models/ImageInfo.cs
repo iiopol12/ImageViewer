@@ -36,7 +36,13 @@ namespace ImageViewer.Models
         
         [ObservableProperty]
         private string _errorMessage = string.Empty;
-        
+
+
+        [ObservableProperty]
+
+        private bool _isSelected;
+
+
         public string FileSizeFormatted
         {
             get

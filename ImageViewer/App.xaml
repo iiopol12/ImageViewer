@@ -14,7 +14,8 @@
             <converters:BoolToBookmarkIconConverter x:Key="BoolToBookmarkIconConverter"/>
             <converters:ToolbarVisibilityConverter x:Key="ToolbarVisibilityConverter"/>
             <converters:DoubleToGridLengthConverter x:Key="DoubleToGridLengthConverter"/>
-            
+            <converters:DoubleToThicknessConverter x:Key="DoubleToThicknessConverter"/>
+            <converters:DoubleToCornerRadiusConverter x:Key="DoubleToCornerRadiusConverter"/>
             <!-- Colors -->
             <Color x:Key="PrimaryColor">#3498db</Color>
             <Color x:Key="PrimaryDarkColor">#2980b9</Color>

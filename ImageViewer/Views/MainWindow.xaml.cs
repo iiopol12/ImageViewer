@@ -595,7 +595,7 @@ namespace ImageViewer.Views
 
             // 计算新的缩放级别
             double currentZoom = ViewModel.ZoomLevel;
-            double delta = e.Delta < 0 ? ZOOM_FACTOR : -ZOOM_FACTOR;
+            double delta = e.Delta >0 ? ZOOM_FACTOR : -ZOOM_FACTOR;
             double newZoom = currentZoom * (1 + delta);
 
             // 限制缩放范围
@@ -652,7 +652,7 @@ namespace ImageViewer.Views
             }
 
             double currentZoom = ViewModel.MangaZoomLevel;
-            double delta = e.Delta < 0 ? ZOOM_FACTOR : -ZOOM_FACTOR;
+            double delta = e.Delta > 0 ? ZOOM_FACTOR : -ZOOM_FACTOR;
             double newZoom = currentZoom * (1 + delta);
 
             newZoom = Math.Max(MIN_ZOOM, Math.Min(MAX_ZOOM, newZoom));
@@ -1008,7 +1008,25 @@ namespace ImageViewer.Views
                 var index = ViewModel.Images.IndexOf(imageInfo);
                 if (index >= 0)
                 {
-                    // 使用ViewModel命令来选择图片并切换模式
+                    bool ctrlPressed = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+
+
+
+                    if (ctrlPressed)
+
+                    {
+
+                        imageInfo.IsSelected = !imageInfo.IsSelected;
+
+                        e.Handled = true;
+
+                        return;
+
+                    }
+
+
+                    imageInfo.IsSelected = true;
+
                     ViewModel.SelectFromWaterfallCommand.Execute(index);
                 }
             }
