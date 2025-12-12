@@ -19,6 +19,9 @@ namespace ImageViewer.Views
             InitializeComponent();
             _settings = settings;
             LoadSettings();
+
+            // 初始化默认关联格式列表（默认全选）
+            FileAssociationsControl.InitializeExtensions(SupportedExtensions);
             
             // Bind slider value changes
             IntervalSlider.ValueChanged += (s, e) => IntervalText.Text = ((int)e.NewValue).ToString();
@@ -125,19 +128,23 @@ namespace ImageViewer.Views
             Close();
         }
 
-        private void OpenDefaultAppsButton_Click(object sender, RoutedEventArgs e)
+        private void ToggleAssociationsButton_Click(object sender, RoutedEventArgs e)
         {
-            var picker = new FileAssociationsWindow(SupportedExtensions)
+            var isVisible = FileAssociationsControl.Visibility == Visibility.Visible;
+            FileAssociationsControl.Visibility = isVisible ? Visibility.Collapsed : Visibility.Visible;
+            ApplyAssociationsButton.Visibility = isVisible ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        private void ApplyAssociationsButton_Click(object sender, RoutedEventArgs e)
+        {
+            var selected = FileAssociationsControl.SelectedExtensions;
+            if (selected.Count == 0)
             {
-                Owner = this
-            };
-
-            if (picker.ShowDialog() != true)
+                MessageBox.Show("请至少选择一种格式。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
+            }
 
-            var selected = picker.SelectedExtensions;
             var result = TryRegisterAsDefaultViewer(selected);
-
             if (result.success)
             {
                 var formats = string.Join("/", selected.Select(e => e.TrimStart('.').ToUpperInvariant()));

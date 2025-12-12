@@ -3,48 +3,37 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace ImageViewer.Views
 {
-    public partial class FileAssociationsWindow : Window
+    public partial class FileAssociationsControl : UserControl
     {
-        public ObservableCollection<AssociationOption> Options { get; }
+        public ObservableCollection<AssociationOption> Options { get; } = new();
 
-        public FileAssociationsWindow(IEnumerable<string> extensions, IEnumerable<string>? preselected = null)
+        public FileAssociationsControl()
         {
             InitializeComponent();
+            DataContext = this;
+        }
+
+        public void InitializeExtensions(IEnumerable<string> extensions, IEnumerable<string>? preselected = null)
+        {
+            Options.Clear();
 
             var selectedSet = preselected != null
                 ? new HashSet<string>(preselected, StringComparer.OrdinalIgnoreCase)
                 : null;
 
-            Options = new ObservableCollection<AssociationOption>(
-                extensions.Select(ext => new AssociationOption(ext, selectedSet == null || selectedSet.Contains(ext))));
-
-            DataContext = this;
+            foreach (var ext in extensions)
+            {
+                Options.Add(new AssociationOption(ext, selectedSet == null || selectedSet.Contains(ext)));
+            }
         }
 
         public IReadOnlyList<string> SelectedExtensions =>
             Options.Where(o => o.IsSelected).Select(o => o.Extension).ToList();
-
-        private void Apply_Click(object sender, RoutedEventArgs e)
-        {
-            if (SelectedExtensions.Count == 0)
-            {
-                MessageBox.Show("请至少选择一种格式。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-
-            DialogResult = true;
-            Close();
-        }
-
-        private void Cancel_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-            Close();
-        }
 
         private void SelectAll_Click(object sender, RoutedEventArgs e)
         {
@@ -79,4 +68,3 @@ namespace ImageViewer.Views
         }
     }
 }
-

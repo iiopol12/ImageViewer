@@ -14,9 +14,7 @@
     <None Remove="Image.ico" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Page Remove="Views\MenuInterface.xaml" />
-  </ItemGroup>
+
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
