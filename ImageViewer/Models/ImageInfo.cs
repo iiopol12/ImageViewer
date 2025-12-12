@@ -43,6 +43,9 @@ namespace ImageViewer.Models
         private bool _isSelected;
 
 
+        [ObservableProperty]
+        private double _rotationAngle = 0;
+
         public string FileSizeFormatted
         {
             get

@@ -12,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using System.Windows.Controls.Primitives;
+using System.Windows.Forms;
+
 
 namespace ImageViewer.Views
 {
@@ -32,7 +34,11 @@ namespace ImageViewer.Views
         private bool _previousShowStatusBar;      // 之前是否显示状态栏
         private bool _previousShowSidebar;        // 之前是否显示侧边栏
 
-
+        private double _previousLeft;
+        private double _previousTop;
+        private double _previousWidth;
+        private double _previousHeight;
+        private bool _previousTopmost;
         // 窗口位置恢复标志
         private bool _hasRestoredWindowPlacement;
 
@@ -72,7 +78,7 @@ namespace ImageViewer.Views
 
                 Opacity = 1;
                 // 如果有启动参数传入的文件，则加载该文件
-                if (Application.Current.Properties["StartupFile"] is string filePath)
+                if (System.Windows.Application.Current.Properties["StartupFile"] is string filePath)
                 {
                     await ViewModel.LoadImageFromPath(filePath);
                 }
@@ -370,7 +376,7 @@ namespace ImageViewer.Views
 
         private void OpenSettingsMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            var settingsWindow = new SettingsWindow(ViewModel.Settings)
+            var settingsWindow = new MenuInterface(ViewModel.Settings)
             {
                 Owner = this
             };
@@ -422,7 +428,7 @@ namespace ImageViewer.Views
           
         }
 
-        private void Window_KeyDown(object sender, KeyEventArgs e)
+        private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             // 只保留 Escape 键的特殊处理
             // 其他快捷键已通过 HotKeyManager 处理
@@ -467,7 +473,7 @@ namespace ImageViewer.Views
         /// <summary>
         /// 鼠标移动事件 - 用于自动隐藏光标
         /// </summary>
-        private void Window_MouseMove(object sender, MouseEventArgs e)
+        private void Window_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
         {
             // 移动鼠标时立即显示，并在幻灯片模式下重启隐藏计时器
             ShowCursor();
@@ -531,7 +537,7 @@ namespace ImageViewer.Views
             if (_isCursorHidden)
                 return;
 
-            Mouse.OverrideCursor = Cursors.None;
+            Mouse.OverrideCursor = System.Windows.Input.Cursors.None;
             _isCursorHidden = true;
         }
 
@@ -756,7 +762,7 @@ namespace ImageViewer.Views
                 return;
 
             // 点击在滚动条/滑块上，不清除选择
-            if (FindVisualAncestor<ScrollBar>(source) != null ||
+            if (FindVisualAncestor<System.Windows.Controls.Primitives.ScrollBar>(source) != null ||
                 FindVisualAncestor<Thumb>(source) != null ||
                 FindVisualAncestor<RepeatButton>(source) != null)
             {
@@ -801,24 +807,24 @@ namespace ImageViewer.Views
             return null;
         }
 
-        private async void Window_Drop(object sender, DragEventArgs e)
+        private async void Window_Drop(object sender, System.Windows.DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
             {
-                var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                var files = (string[])e.Data.GetData(System.Windows.DataFormats.FileDrop);
                 await ViewModel.HandleFileDrop(files);
             }
         }
 
-        private void Window_DragEnter(object sender, DragEventArgs e)
+        private void Window_DragEnter(object sender, System.Windows.DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
             {
-                e.Effects = DragDropEffects.Copy;
+                e.Effects = System.Windows.DragDropEffects.Copy;
             }
             else
             {
-                e.Effects = DragDropEffects.None;
+                e.Effects = System.Windows.DragDropEffects.None;
             }
         }
 
@@ -896,23 +902,47 @@ namespace ImageViewer.Views
         /// </summary>
         private void EnterFullScreen()
         {
-            // 保存当前窗口状态
+            // 1. 保存当前窗口的所有状态
             _previousWindowState = WindowState;
             _previousWindowStyle = WindowStyle;
             _previousResizeMode = ResizeMode;
+            _previousTopmost = Topmost;
 
-            // 保存当前界面显示状态
-            _previousShowStatusBar = ViewModel.Settings.ShowStatusBar;
-            _previousShowSidebar = ViewModel.Settings.ShowSidebar;
+            // 2. 保存窗口位置和大小
+            if (WindowState == WindowState.Normal)
+            {
+                _previousLeft = Left;
+                _previousTop = Top;
+                _previousWidth = Width;
+                _previousHeight = Height;
+            }
+            else
+            {
+                // 如果是最大化状态，使用 RestoreBounds
+                _previousLeft = RestoreBounds.Left;
+                _previousTop = RestoreBounds.Top;
+                _previousWidth = RestoreBounds.Width;
+                _previousHeight = RestoreBounds.Height;
+            }
 
-            // 设置全屏模式
-            WindowStyle = WindowStyle.None;
-            ResizeMode = ResizeMode.NoResize;
-            WindowState = WindowState.Maximized;
-
-            // 隐藏所有界面元素,只显示图片
+            // 3. 隐藏UI元素
             ViewModel.Settings.ShowStatusBar = false;
             ViewModel.Settings.ShowSidebar = false;
+
+            // 4. 获取当前窗口所在的屏幕
+            var currentScreen = GetCurrentScreen();
+
+            // 5. 设置真正的全屏（覆盖任务栏）
+            WindowState = WindowState.Normal;
+            WindowStyle = WindowStyle.None;
+            ResizeMode = ResizeMode.NoResize;
+            Topmost = true; // 置顶确保覆盖任务栏
+
+            // 6. 使用屏幕的完整区域
+            Left = currentScreen.Bounds.Left;
+            Top = currentScreen.Bounds.Top;
+            Width = currentScreen.Bounds.Width;
+            Height = currentScreen.Bounds.Height;
         }
 
 
@@ -921,16 +951,37 @@ namespace ImageViewer.Views
         /// </summary>
         private void ExitFullScreen()
         {
-            // 恢复窗口状态
+            // 1. 恢复窗口属性
             WindowStyle = _previousWindowStyle;
             ResizeMode = _previousResizeMode;
+            Topmost = _previousTopmost;
+
+            // 2. 恢复窗口位置和大小
+            Left = _previousLeft;
+            Top = _previousTop;
+            Width = _previousWidth;
+            Height = _previousHeight;
+
+            // 3. 恢复窗口状态
             WindowState = _previousWindowState;
 
-            // 恢复界面显示状态
+            // 4. 恢复UI元素
             ViewModel.Settings.ShowStatusBar = _previousShowStatusBar;
             ViewModel.Settings.ShowSidebar = _previousShowSidebar;
         }
+        /// <summary>
+        /// 获取窗口当前所在的屏幕
+        /// </summary>
+        private Screen GetCurrentScreen()
+        {
+            // 获取窗口中心点的屏幕坐标
+            var centerX = Left + Width / 2;
+            var centerY = Top + Height / 2;
+            var centerPoint = new System.Drawing.Point((int)centerX, (int)centerY);
 
+            // 找到包含此点的屏幕
+            return Screen.FromPoint(centerPoint);
+        }
         #endregion
 
         #region  图片交互处理
@@ -961,7 +1012,7 @@ namespace ImageViewer.Views
         /// <summary>
         /// 图片容器鼠标移动事件 - 处理图片拖拽
         /// </summary>
-        private void ImageContainer_MouseMove(object sender, MouseEventArgs e)
+        private void ImageContainer_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
         {
             // 只有在拖拽状态下才处理移动
             if (_isDragging && e.LeftButton == MouseButtonState.Pressed)
@@ -1093,7 +1144,7 @@ namespace ImageViewer.Views
         /// </summary>
         private void ThumbnailList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var listBox = sender as ListBox;
+            var listBox = sender as System.Windows.Controls.ListBox;
             if (listBox == null) return;
 
             // 确保选中项滚动到可见区域

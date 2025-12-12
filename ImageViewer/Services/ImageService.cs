@@ -1,13 +1,14 @@
+using ImageViewer.Models;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
-using ImageViewer.Models;
 
 namespace ImageViewer.Services
 {
@@ -196,7 +197,60 @@ namespace ImageViewer.Services
             rotated.Freeze();
             return rotated;
         }
-        
+
+
+        // Ìí¼ÓÍ¬²½¼ÓÔØÍ¼Æ¬·½·¨
+        public BitmapSource? LoadImage(string filePath)
+        {
+            try
+            {
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.UriSource = new Uri(filePath);
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
+                bitmap.EndInit();
+                bitmap.Freeze();
+                return bitmap;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"¼ÓÔØÍ¼Æ¬Ê§°Ü: {ex.Message}");
+                return null;
+            }
+        }
+
+        // Ìí¼ÓÍ¬²½¼ÓÔØËõÂÔÍ¼·½·¨
+        public BitmapSource? LoadThumbnail(string filePath, int size = 120)
+        {
+            if (_thumbnailCache.TryGetValue(filePath, out var cached))
+            {
+                return cached;
+            }
+
+            try
+            {
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.UriSource = new Uri(filePath);
+                bitmap.DecodePixelWidth = size;
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
+                bitmap.EndInit();
+                bitmap.Freeze();
+
+                _thumbnailCache.TryAdd(filePath, bitmap);
+                return bitmap;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"¼ÓÔØËõÂÔÍ¼Ê§°Ü: {ex.Message}");
+                return null;
+            }
+        }
+
+       
+
         private void AddToCache(string key, BitmapSource image)
         {
             lock (_cacheLock)
@@ -211,7 +265,67 @@ namespace ImageViewer.Services
                 _cacheOrder.Enqueue(key);
             }
         }
-        
+
+        public void SaveRotatedImage(string filePath, BitmapSource rotatedImage)
+        {
+            try
+            {
+                BitmapEncoder encoder = Path.GetExtension(filePath).ToLower() switch
+                {
+                    ".jpg" or ".jpeg" => new JpegBitmapEncoder { QualityLevel = 95 },
+                    ".png" => new PngBitmapEncoder(),
+                    ".bmp" => new BmpBitmapEncoder(),
+                    ".gif" => new GifBitmapEncoder(),
+                    ".tiff" or ".tif" => new TiffBitmapEncoder(),
+                    _ => new PngBitmapEncoder()
+                };
+
+                encoder.Frames.Add(BitmapFrame.Create(rotatedImage));
+
+                using var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
+                encoder.Save(stream);
+
+                // Çå³ý¸ÃÍ¼Æ¬µÄ»º´æ
+                _imageCache.TryRemove(filePath, out _);
+                _thumbnailCache.TryRemove(filePath, out _);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"±£´æÍ¼Æ¬Ê§°Ü: {ex.Message}");
+                throw;
+            }
+        }
+
+
+        //public void SaveRotatedImage(string filePath, BitmapSource rotatedImage)
+        //{
+        //    try
+        //    {
+        //        var encoder = GetEncoderForExtension(Path.GetExtension(filePath));
+        //        encoder.Frames.Add(BitmapFrame.Create(rotatedImage));
+
+        //        using var stream = new FileStream(filePath, FileMode.Create);
+        //        encoder.Save(stream);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Debug.WriteLine($"±£´æÐý×ªÍ¼Æ¬Ê§°Ü: {ex.Message}");
+        //        throw;
+        //    }
+        //}
+
+        private BitmapEncoder GetEncoderForExtension(string extension)
+        {
+            return extension.ToLower() switch
+            {
+                ".jpg" or ".jpeg" => new JpegBitmapEncoder { QualityLevel = 95 },
+                ".png" => new PngBitmapEncoder(),
+                ".bmp" => new BmpBitmapEncoder(),
+                ".gif" => new GifBitmapEncoder(),
+                ".tiff" or ".tif" => new TiffBitmapEncoder(),
+                _ => new PngBitmapEncoder()
+            };
+        }
         public void ClearCache()
         {
             lock (_cacheLock)

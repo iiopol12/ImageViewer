@@ -211,6 +211,8 @@ namespace ImageViewer.ViewModels
 
         #region 命令
 
+
+
         /// <summary>打开文件命令</summary>
         [RelayCommand]
         private async Task OpenFile()
@@ -481,12 +483,69 @@ namespace ImageViewer.ViewModels
         [RelayCommand]
         private async Task Rotate90()
         {
-            // 调用带参数的旋转命令,旋转90度
+            // 瀑布流模式下，检查是否有选中的图片
+            if (ShowWaterfallView)
+            {
+                var selectedImages = Images.Where(img => img.IsSelected).ToList();
+                if (selectedImages.Count > 0)
+                {
+                    // 批量旋转选中的缩略图显示（不保存）
+                    RotateSelectedThumbnails(selectedImages);
+                    return;
+                }
+            }
+
+            // 原有的单图旋转逻辑
             await RotateImage(90.0);
         }
 
+        // 批量旋转（记录角度）
+        private void RotateSelectedThumbnails(List<ImageInfo> selectedImages)
+        {
+            foreach (var img in selectedImages)
+            {
+                // 累加旋转角度
+                img.RotationAngle = (img.RotationAngle + 90) % 360;
+
+                // 如果有缩略图，立即旋转显示
+                if (img.Thumbnail != null)
+                {
+                    img.Thumbnail = _imageService.RotateImage(img.Thumbnail, 90.0);
+                }
+            }
+        }
 
 
+        // 修正批量旋转方法
+        private async Task RotateSelectedImages(List<ImageInfo> selectedImages)
+        {
+            foreach (var img in selectedImages)
+            {
+                try
+                {
+                    // 使用同步方法加载图片
+                    var bitmap = _imageService.LoadImage(img.FilePath);
+                    if (bitmap != null)
+                    {
+                        // 旋转图片
+                        var rotated = _imageService.RotateImage(bitmap, 90.0);
+
+                        // 在后台线程保存
+                        await Task.Run(() => _imageService.SaveRotatedImage(img.FilePath, rotated));
+
+                        // 在 UI 线程刷新缩略图
+                        await Application.Current.Dispatcher.InvokeAsync(() =>
+                        {
+                            img.Thumbnail = _imageService.LoadThumbnail(img.FilePath, Settings.ThumbnailSize);
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"旋转图片失败 {img.FileName}: {ex.Message}");
+                }
+            }
+        }
         /// <summary>复制到剪贴板命令</summary>
         [RelayCommand]
         private void CopyToClipboard()
@@ -606,6 +665,24 @@ namespace ImageViewer.ViewModels
         [RelayCommand]
         private void ToggleBookmark()
         {
+            // 瀑布流模式下，检查是否有选中的图片
+            if (ShowWaterfallView)
+            {
+                var selectedImages = Images.Where(img => img.IsSelected).ToList();
+                if (selectedImages.Count > 0)
+                {
+                    // 批量收藏/取消收藏
+                    bool shouldBookmark = selectedImages.Any(img => !img.IsBookmarked);
+                    foreach (var img in selectedImages)
+                    {
+                        img.IsBookmarked = shouldBookmark;
+                    }
+                    return;
+                }
+            }
+
+
+
             if (CurrentImage != null)
             {
                 CurrentImage.IsBookmarked = !CurrentImage.IsBookmarked;
