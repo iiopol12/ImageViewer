@@ -46,6 +46,7 @@ namespace ImageViewer.Models
         [ObservableProperty]
         private double _rotationAngle = 0;
 
+       
         public string FileSizeFormatted
         {
             get

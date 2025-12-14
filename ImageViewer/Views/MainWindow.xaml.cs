@@ -50,6 +50,8 @@ namespace ImageViewer.Views
         private bool _isCursorHidden;                     // 光标是否已隐藏
         private readonly TimeSpan _cursorHideDelay = TimeSpan.FromSeconds(3);
 
+        private bool _mangaCenterPending;
+
         // 非客户区命中测试常量
         private const int WM_NCHITTEST = 0x0084;
         private const int HTLEFT = 10, HTRIGHT = 11, HTTOP = 12, HTTOPLEFT = 13, HTTOPRIGHT = 14, HTBOTTOM = 15, HTBOTTOMLEFT = 16, HTBOTTOMRIGHT = 17;
@@ -843,6 +845,10 @@ namespace ImageViewer.Views
                     HandleFullScreenChange();
                     break;
                 case nameof(MainViewModel.DisplayImage):
+                    // 图片加载完成后，触发淡入动画
+                    StartImageFadeIn();
+                    RequestCenterMangaCurrentImage();
+                    goto case nameof(MainViewModel.FitToWindow);
                 case nameof(MainViewModel.SecondDisplayImage):
                     // 图片加载完成后，触发淡入动画
                     StartImageFadeIn();
@@ -852,12 +858,105 @@ namespace ImageViewer.Views
                 case nameof(MainViewModel.ZoomLevel):
                     // 查看模式改变时，重新计算缩放
                     ScheduleFitToWindowUpdate();
+                    RequestCenterMangaCurrentImage();
+                    break;
+                case nameof(MainViewModel.CurrentIndex):
+                    RequestCenterMangaCurrentImage();
                     break;
                 case nameof(MainViewModel.IsSlideShowActive):
                     // 适应窗口选项改变时，重新计算缩放
                     HandleSlideShowChange();
+                    RequestCenterMangaCurrentImage();
                     break;
             }
+        }
+
+        private void RequestCenterMangaCurrentImage()
+        {
+            if (!ViewModel.IsMangaMode || ViewModel.ShowWaterfallView)
+            {
+                return;
+            }
+
+            if (_mangaCenterPending)
+            {
+                return;
+            }
+
+            _mangaCenterPending = true;
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                _mangaCenterPending = false;
+                CenterMangaImageAtViewportCenter(ViewModel.CurrentIndex, attempt: 0);
+            }), DispatcherPriority.Loaded);
+        }
+
+        private void CenterMangaImageAtViewportCenter(int index, int attempt)
+        {
+            if (!ViewModel.IsMangaMode || ViewModel.ShowWaterfallView)
+            {
+                return;
+            }
+
+            if (index != ViewModel.CurrentIndex)
+            {
+                return;
+            }
+
+            if (index < 0 || index >= ViewModel.Images.Count)
+            {
+                return;
+            }
+
+            if (!MangaScrollViewer.IsLoaded || !MangaItemsControl.IsLoaded || !MangaScrollViewer.IsVisible)
+            {
+                RetryCenterMangaImage(index, attempt);
+                return;
+            }
+
+            if (MangaScrollViewer.ViewportHeight <= 0 || MangaScrollViewer.ExtentHeight <= 0)
+            {
+                RetryCenterMangaImage(index, attempt);
+                return;
+            }
+
+            MangaItemsControl.UpdateLayout();
+            var container = MangaItemsControl.ItemContainerGenerator.ContainerFromIndex(index) as FrameworkElement;
+            if (container == null || container.ActualHeight <= 0 || container.ActualWidth <= 0)
+            {
+                RetryCenterMangaImage(index, attempt);
+                return;
+            }
+
+            try
+            {
+                var centerInViewer = container.TransformToVisual(MangaScrollViewer)
+                    .Transform(new Point(container.ActualWidth / 2, container.ActualHeight / 2));
+
+                var targetOffset = MangaScrollViewer.VerticalOffset + (centerInViewer.Y - MangaScrollViewer.ViewportHeight / 2);
+                targetOffset = Math.Max(0, Math.Min(targetOffset, MangaScrollViewer.ScrollableHeight));
+
+                MangaScrollViewer.ScrollToVerticalOffset(targetOffset);
+            }
+            catch
+            {
+                RetryCenterMangaImage(index, attempt);
+            }
+        }
+
+        private void RetryCenterMangaImage(int index, int attempt)
+        {
+            const int maxAttempts = 8;
+            if (attempt >= maxAttempts)
+            {
+                return;
+            }
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                CenterMangaImageAtViewportCenter(index, attempt + 1);
+            }), DispatcherPriority.Loaded);
         }
 
 

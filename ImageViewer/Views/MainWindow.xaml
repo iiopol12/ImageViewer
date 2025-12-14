@@ -8,10 +8,10 @@
         xmlns:models="clr-namespace:ImageViewer.Models"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         mc:Ignorable="d"
-        Title="图片查看器" 
+        Title="漫游" 
         Height="Auto" Width="Auto"
        
-    
+         MinHeight="500" MinWidth="650"
         WindowStyle="None"
         AllowsTransparency="False"
         ResizeMode="CanResize"
@@ -68,7 +68,7 @@
                   Stretch="Uniform"
                   VerticalAlignment="Center"
                   Margin="0,0,8,0"/>
-                <TextBlock Text="图片查看器" Foreground="{StaticResource ForegroundBrush}" 
+                <TextBlock Text="漫游" Foreground="{StaticResource ForegroundBrush}" 
                            VerticalAlignment="Center" FontSize="13"/>
                
               

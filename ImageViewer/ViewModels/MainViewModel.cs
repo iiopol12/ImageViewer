@@ -219,7 +219,7 @@ namespace ImageViewer.ViewModels
         {
             var dialog = new Microsoft.Win32.OpenFileDialog
             {
-                Filter = "图片文件|*.jpg;*.jpeg;*.png;*.gif;*.bmp;*.webp;*.tiff;*.tif|所有文件|*.*",
+                Filter = ImageService.OpenFileDialogFilter,
                 Title = "打开图片"
             };
 
@@ -668,15 +668,48 @@ namespace ImageViewer.ViewModels
             // 瀑布流模式下，检查是否有选中的图片
             if (ShowWaterfallView)
             {
-                var selectedImages = Images.Where(img => img.IsSelected).ToList();
+                var selectedImages = Images.Where(img => img.IsSelected && !string.IsNullOrWhiteSpace(img.FilePath)).ToList();
                 if (selectedImages.Count > 0)
                 {
                     // 批量收藏/取消收藏
                     bool shouldBookmark = selectedImages.Any(img => !img.IsBookmarked);
-                    foreach (var img in selectedImages)
+                    var selectedPaths = new HashSet<string>(selectedImages.Select(i => i.FilePath), StringComparer.OrdinalIgnoreCase);
+
+                    if (shouldBookmark)
                     {
-                        img.IsBookmarked = shouldBookmark;
+                        var existing = new HashSet<string>(
+                            Settings.Bookmarks
+                                .Where(b => !string.IsNullOrWhiteSpace(b.FilePath))
+                                .Select(b => b.FilePath),
+                            StringComparer.OrdinalIgnoreCase);
+
+                        foreach (var img in selectedImages)
+                        {
+                            img.IsBookmarked = true;
+                            if (existing.Add(img.FilePath))
+                            {
+                                Settings.Bookmarks.Add(new Bookmark
+                                {
+                                    FilePath = img.FilePath,
+                                    Name = img.FileName
+                                });
+                            }
+                        }
+
+                        StatusMessage = $"已收藏 {selectedImages.Count} 张";
                     }
+                    else
+                    {
+                        foreach (var img in selectedImages)
+                        {
+                            img.IsBookmarked = false;
+                        }
+
+                        Settings.Bookmarks.RemoveAll(b => !string.IsNullOrWhiteSpace(b.FilePath) && selectedPaths.Contains(b.FilePath));
+                        StatusMessage = $"已取消收藏 {selectedImages.Count} 张";
+                    }
+
+                    Settings.Save();
                     return;
                 }
             }
@@ -1098,15 +1131,26 @@ namespace ImageViewer.ViewModels
                 CurrentImage.IsBookmarked = Settings.Bookmarks.Any(b => b.FilePath == CurrentImage.FilePath);
 
 
-                // 在后台加载新图，但不立即替换
-                var newDisplay = await _imageService.LoadImageAsync(CurrentImage, null, _preloadCts.Token);
+                 // 在后台加载新图，但不立即替换
+                 int? maxSize = null;
+                 if (IsMangaMode)
+                 {
+                     maxSize = Math.Max(400, Settings.MangaDecodeWidth);
+                 }
 
-                // 只有成功加载才替换（避免闪烁）
-                if (newDisplay != null)
-                {
-                    CurrentImage.UpdateMetadata(newDisplay);
-                    DisplayImage = newDisplay;
-                }//如果加载失败，保持原有的 DisplayImage 不变
+                 var newDisplay = await _imageService.LoadImageAsync(CurrentImage, maxSize, _preloadCts.Token);
+
+                 // 只有成功加载才替换（避免闪烁）
+                 if (newDisplay != null)
+                 {
+                     CurrentImage.UpdateMetadata(newDisplay);
+                     DisplayImage = newDisplay;
+
+                     if (IsMangaMode && CurrentImage.FullImage == null)
+                     {
+                         CurrentImage.FullImage = newDisplay;
+                     }
+                 }//如果加载失败，保持原有的 DisplayImage 不变
 
                 // 双页模式同理 
                 if (CurrentViewMode == ViewMode.DoublePage && !CurrentImage.IsWide && CurrentIndex < Images.Count - 1)

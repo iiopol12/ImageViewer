@@ -16,7 +16,7 @@
         </Grid.ColumnDefinitions>
 
         <!-- 左侧按钮栏 - 黑色背景 -->
-        <Grid Grid.Column="0" Background="#FF000000">
+        <Grid Grid.Column="0" Background="#FF1E1E1E">
             <StackPanel VerticalAlignment="Top" Margin="0,40,0,0">
 
                 <!-- 设置 -->
@@ -102,122 +102,136 @@
 
                     <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
                         <StackPanel>
-                          
+                        
 
-                            <Grid Margin="0,0,0,16">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="150"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
+                             <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,0,40,16">
+                                 <Grid>
+                                     <Grid.ColumnDefinitions>
+                                         <ColumnDefinition Width="150"/>
+                                         <ColumnDefinition Width="*"/>
+                                     </Grid.ColumnDefinitions>
+                                     <Grid.RowDefinitions>
+                                         <RowDefinition Height="Auto"/>
+                                         <RowDefinition Height="Auto"/>
+                                         <RowDefinition Height="Auto"/>
+                                     </Grid.RowDefinitions>
 
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="默认浏览模式"
-                                           Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center"/>
-                                <ComboBox Grid.Row="0" Grid.Column="1" x:Name="ViewModeComboBox" Margin="0,4">
-                                    <ComboBoxItem Content="单图模式" Tag="{x:Static models:ViewMode.Single}"/>
-                                    <ComboBoxItem Content="漫画模式" Tag="{x:Static models:ViewMode.Manga}"/>
-                                    <ComboBoxItem Content="双页模式" Tag="{x:Static models:ViewMode.DoublePage}"/>
-                                </ComboBox>
+                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="默认浏览模式"
+                                                Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center"/>
+                                     <ComboBox Grid.Row="0" Grid.Column="1" x:Name="ViewModeComboBox" Margin="0,4">
+                                         <ComboBoxItem Content="单图模式" Tag="{x:Static models:ViewMode.Single}"/>
+                                         <ComboBoxItem Content="漫画模式" Tag="{x:Static models:ViewMode.Manga}"/>
+                                         <ComboBoxItem Content="双页模式" Tag="{x:Static models:ViewMode.DoublePage}"/>
+                                     </ComboBox>
 
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="背景颜色"
-                                           Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
-                                <ComboBox Grid.Row="1" Grid.Column="1" x:Name="BackgroundComboBox" Margin="0,12,0,4">
-                                    <ComboBoxItem Content="黑色" Tag="{x:Static models:BackgroundColor.Black}"/>
-                                    <ComboBoxItem Content="白色" Tag="{x:Static models:BackgroundColor.White}"/>
-                                    <ComboBoxItem Content="灰色" Tag="{x:Static models:BackgroundColor.Gray}"/>
-                                    <ComboBoxItem Content="深灰" Tag="{x:Static models:BackgroundColor.DarkGray}"/>
-                                    <ComboBoxItem Content="透明" Tag="{x:Static models:BackgroundColor.Transparent}"/>
-                                </ComboBox>
+                                     <TextBlock Grid.Row="1" Grid.Column="0" Text="背景颜色"
+                                                Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                     <ComboBox Grid.Row="1" Grid.Column="1" x:Name="BackgroundComboBox" Margin="0,12,0,4">
+                                         <ComboBoxItem Content="黑色" Tag="{x:Static models:BackgroundColor.Black}"/>
+                                         <ComboBoxItem Content="白色" Tag="{x:Static models:BackgroundColor.White}"/>
+                                         <ComboBoxItem Content="灰色" Tag="{x:Static models:BackgroundColor.Gray}"/>
+                                         <ComboBoxItem Content="深灰" Tag="{x:Static models:BackgroundColor.DarkGray}"/>
+                                   
+                                     </ComboBox>
 
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="滚轮行为"
-                                           Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
-                                <ComboBox Grid.Row="2" Grid.Column="1" x:Name="ScrollWheelComboBox" Margin="0,12,0,4">
-                                    <ComboBoxItem Content="缩放" Tag="{x:Static models:ScrollWheelBehavior.Zoom}"/>
-                                    <ComboBoxItem Content="翻页" Tag="{x:Static models:ScrollWheelBehavior.Navigate}"/>
-                                </ComboBox>
-                            </Grid>
+                                     <TextBlock Grid.Row="2" Grid.Column="0" Text="滚轮行为"
+                                                Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                     <ComboBox Grid.Row="2" Grid.Column="1" x:Name="ScrollWheelComboBox" Margin="0,12,0,4">
+                                         <ComboBoxItem Content="缩放" Tag="{x:Static models:ScrollWheelBehavior.Zoom}"/>
+                                         <ComboBoxItem Content="翻页" Tag="{x:Static models:ScrollWheelBehavior.Navigate}"/>
+                                     </ComboBox>
+                                 </Grid>
+                             </Border>
 
                             <!-- Slideshow Settings -->
-                            <TextBlock Text="幻灯片设置" Foreground="{StaticResource ForegroundBrush}"
-                                       FontSize="16" FontWeight="SemiBold" Margin="0,16,0,12"/>
+                            <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="幻灯片设置" Foreground="{StaticResource ForegroundBrush}"
+                                               FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
 
-                            <Grid Margin="0,0,0,16">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="150"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="150"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
 
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="切换间隔(秒)"
-                                           Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
-                                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
-                                    <Slider x:Name="IntervalSlider" Width="150" Minimum="1" Maximum="30"
-                                            Value="5" TickFrequency="1" IsSnapToTickEnabled="True"/>
-                                    <TextBlock x:Name="IntervalText" Text="5" Foreground="{StaticResource ForegroundBrush}"
-                                               VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="切换间隔(秒)"
+                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
+                                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
+                                            <Slider x:Name="IntervalSlider" Width="150" Minimum="1" Maximum="30"
+                                                    Value="5" TickFrequency="1" IsSnapToTickEnabled="True"/>
+                                            <TextBlock x:Name="IntervalText" Text="5" Foreground="{StaticResource ForegroundBrush}"
+                                                       VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
                                 </StackPanel>
-                            </Grid>
+                            </Border>
 
                             <!-- Performance Settings -->
-                            <TextBlock Text="性能设置" Foreground="{StaticResource ForegroundBrush}"
-                                       FontSize="16" FontWeight="SemiBold" Margin="0,16,0,12"/>
+                            <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="性能设置" Foreground="{StaticResource ForegroundBrush}"
+                                               FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
 
-                            <Grid Margin="0,0,0,16">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="150"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="150"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
 
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="预加载数量"
-                                           Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
-                                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
-                                    <Slider x:Name="PreloadSlider" Width="150" Minimum="1" Maximum="10"
-                                            Value="3" TickFrequency="1" IsSnapToTickEnabled="True"/>
-                                    <TextBlock x:Name="PreloadText" Text="3" Foreground="{StaticResource ForegroundBrush}"
-                                               VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="预加载数量"
+                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
+                                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
+                                            <Slider x:Name="PreloadSlider" Width="150" Minimum="1" Maximum="10"
+                                                    Value="3" TickFrequency="1" IsSnapToTickEnabled="True"/>
+                                            <TextBlock x:Name="PreloadText" Text="3" Foreground="{StaticResource ForegroundBrush}"
+                                                       VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                        </StackPanel>
+
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="缩略图大小(px)"
+                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
+                                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
+                                            <Slider x:Name="ThumbnailSlider" Width="150" Minimum="40" Maximum="240"
+                                                    Value="120" TickFrequency="20" IsSnapToTickEnabled="True"/>
+                                            <TextBlock x:Name="ThumbnailText" Text="120" Foreground="{StaticResource ForegroundBrush}"
+                                                       VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                        </StackPanel>
+
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="漫画解码宽度(px)" Visibility="Hidden"
+                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
+                                        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0" Visibility="Hidden">
+                                            <Slider x:Name="MangaDecodeSlider" Width="150" Minimum="800" Maximum="4000"
+                                                    Value="1600" TickFrequency="200" IsSnapToTickEnabled="True"/>
+                                            <TextBlock x:Name="MangaDecodeText" Text="1600" Foreground="{StaticResource ForegroundBrush}"
+                                                       VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
                                 </StackPanel>
-
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="缩略图大小(px)"
-                                           Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
-                                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
-                                    <Slider x:Name="ThumbnailSlider" Width="150" Minimum="40" Maximum="240"
-                                            Value="120" TickFrequency="20" IsSnapToTickEnabled="True"/>
-                                    <TextBlock x:Name="ThumbnailText" Text="120" Foreground="{StaticResource ForegroundBrush}"
-                                               VerticalAlignment="Center" Margin="12,0,0,0"/>
-                                </StackPanel>
-
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="漫画解码宽度(px)" Visibility="Hidden"
-                                           Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
-                                <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0" Visibility="Hidden">
-                                    <Slider x:Name="MangaDecodeSlider" Width="150" Minimum="800" Maximum="4000"
-                                            Value="1600" TickFrequency="200" IsSnapToTickEnabled="True"/>
-                                    <TextBlock x:Name="MangaDecodeText" Text="1600" Foreground="{StaticResource ForegroundBrush}"
-                                               VerticalAlignment="Center" Margin="12,0,0,0"/>
-                                </StackPanel>
-                            </Grid>
+                            </Border>
 
                             <!-- Behavior Settings -->
-                            <TextBlock Text="行为设置" Foreground="{StaticResource ForegroundBrush}"
-                                       FontSize="16" FontWeight="SemiBold" Margin="0,16,0,12"/>
+                            <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="行为设置" Foreground="{StaticResource ForegroundBrush}"
+                                               FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
 
-                            <CheckBox x:Name="RememberPositionCheckBox" Content="记住窗口位置和大小"
-                                      Foreground="{StaticResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
-                            <CheckBox x:Name="RememberReadingCheckBox" Content="记住上次阅读位置"
-                                      Foreground="{StaticResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
+                                    <CheckBox x:Name="RememberPositionCheckBox" Content="记住窗口位置和大小"
+                                              Foreground="{StaticResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
+                                    <CheckBox x:Name="RememberReadingCheckBox" Content="记住上次阅读位置"
+                                              Foreground="{StaticResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
+                                </StackPanel>
+                            </Border>
 
                             <!-- LocalSend -->
-                            <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,12,0,0">
+                            <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">
                                 <StackPanel>
                                     <TextBlock Text="LocalSend 分享设置" Foreground="{StaticResource ForegroundBrush}" FontWeight="SemiBold"/>
                                     <Grid>
@@ -229,32 +243,168 @@
                                         <TextBlock Grid.Row="0" Grid.Column="0" Text="可执行文件路径" Width="100"
                                                    Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
                                         <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0">
-                                            <TextBox x:Name="LocalSendPathTextBox" Width="100" IsReadOnly="True" VerticalContentAlignment="Center"/>
+                                            <TextBox x:Name="LocalSendPathTextBox" Width="200" Height="30"
+                                                     IsReadOnly="True" VerticalContentAlignment="Center"/>
                                             <Button Content="浏览..." Style="{StaticResource ModernButtonStyle}" Margin="8,0,0,0"
                                                     Click="BrowseLocalSendButton_Click"/>
                                         </StackPanel>
                                     </Grid>
                                 </StackPanel>
                             </Border>
-                        </StackPanel>
-                    </ScrollViewer>
+                            
+                            <!-- 版本更新和交流 -->
+                            <Border Background="#E3F2FD" CornerRadius="8" Padding="20" Margin="0,16,0,15">
+                                <StackPanel>
+                                    <TextBlock Text="版本更新和交流" FontWeight="Bold" Margin="0,0,0,15"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="150"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="当前版本：" VerticalAlignment="Center" FontWeight="Medium"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding AppVersion, StringFormat=v{0}}" VerticalAlignment="Center"/>
+
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="交流地址：" VerticalAlignment="Center" FontWeight="Medium" Margin="0,12,0,0"/>
+                                        <Button Grid.Row="1" Grid.Column="1" Content="打开网址"
+                                                HorizontalAlignment="Left"
+                                                Width="200"
+                                                Background="#2196F3" Foreground="White" BorderThickness="0"
+                                                Click="OpenWebsite_Click"
+                                                ToolTip="在默认浏览器中打开网站"
+                                                Margin="0,12,0,0"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                         </StackPanel>
+                     </ScrollViewer>
 
                     <!-- Buttons -->
                     <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
                         <Button Content="取消" Style="{StaticResource ModernButtonStyle}"
                                 Click="CancelButton_Click" Width="80" Margin="0,0,8,0"/>
                         <Button Content="保存" Style="{StaticResource ModernButtonStyle}"
-                                Click="SaveButton_Click" Width="80"/>
+                                Click="SaveButton_Click" Width="80" Margin="0,0,40,0"/>
                     </StackPanel>
                 </Grid>
             </Grid>
 
             <!-- 收藏页（占位） -->
             <Grid x:Name="FavoritesPage" Visibility="Collapsed" Margin="0,50,0,0">
-                <StackPanel Margin="20">
-                  
-                    <TextBlock Text="收藏列表功能待实现" Foreground="{StaticResource ForegroundDimBrush}"/>
-                </StackPanel>
+                <Grid Margin="20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0"
+                               Text="{Binding FavoriteItems.Count, StringFormat=共 {0} 项}"
+                               Foreground="{StaticResource ForegroundDimBrush}"
+                               Margin="0,0,0,12"/>
+
+                    <Grid Grid.Row="1">
+                        <TextBlock Text="暂无收藏"
+                                   Foreground="{StaticResource ForegroundDimBrush}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ElementName=FavoritesItemsControl, Path=HasItems}" Value="False">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <ItemsControl x:Name="FavoritesItemsControl" ItemsSource="{Binding FavoriteItems}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{StaticResource BackgroundMediumBrush}"
+                                                CornerRadius="6"
+                                                Padding="8"
+                                                Margin="0,0,12,12"
+                                                Width="180"
+                                                ToolTip="{Binding FilePath}">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="120"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                </Grid.RowDefinitions>
+
+                                                <Border Grid.Row="0" Background="{StaticResource BackgroundDarkBrush}" CornerRadius="4">
+                                                    <Grid>
+                                                        <Image Source="{Binding Thumbnail}" Stretch="Uniform"
+                                                               RenderOptions.BitmapScalingMode="HighQuality"/>
+
+                                                        <Border Background="#80000000"
+                                                                Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                            <TextBlock Text="加载中..." Foreground="White"
+                                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+
+                                                        <Border Background="#80000000">
+                                                            <Border.Style>
+                                                                <Style TargetType="Border">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                    <Style.Triggers>
+                                                                        <MultiDataTrigger>
+                                                                            <MultiDataTrigger.Conditions>
+                                                                                <Condition Binding="{Binding Thumbnail}" Value="{x:Null}"/>
+                                                                                <Condition Binding="{Binding IsLoading}" Value="False"/>
+                                                                                <Condition Binding="{Binding Exists}" Value="True"/>
+                                                                            </MultiDataTrigger.Conditions>
+                                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                                        </MultiDataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Border.Style>
+                                                            <TextBlock Text="无预览" Foreground="White"
+                                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+
+                                                        <Border Background="#80000000"
+                                                                Visibility="{Binding Exists, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
+                                                            <TextBlock Text="文件不存在" Foreground="White"
+                                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                </Border>
+
+                                                <TextBlock Grid.Row="1" Text="{Binding Name}"
+                                                           Foreground="{StaticResource ForegroundBrush}"
+                                                           FontSize="12"
+                                                           Margin="0,8,0,0"
+                                                           TextTrimming="CharacterEllipsis"/>
+
+                                                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+                                                    <Button Content="定位" Style="{StaticResource ModernButtonStyle}" Padding="10,6" Margin="0,0,8,0"
+                                                            IsEnabled="{Binding Exists}"
+                                                            Click="OpenFavoriteInExplorer_Click"/>
+                                                    <Button Content="取消收藏" Style="{StaticResource ModernButtonStyle}" Padding="10,6"
+                                                            Click="RemoveFavorite_Click"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Grid>
             </Grid>
 
             <!-- 关联页 -->
@@ -300,7 +450,7 @@
                         </StackPanel>
 
                         <Button x:Name="ApplyAssociationsButton"
-                                Content="关联所选格式（写入注册表）"
+                                Content="关联所选格式"
                                 Style="{StaticResource ModernButtonStyle}"
                                 Click="ApplyAssociationsButton_Click"
                                 HorizontalAlignment="Left"

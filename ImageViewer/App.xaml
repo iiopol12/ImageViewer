@@ -43,6 +43,7 @@
                 <Setter Property="Padding" Value="12,8"/>
                 <Setter Property="Cursor" Value="Hand"/>
                 <Setter Property="FontSize" Value="13"/>
+                <Setter Property="Height" Value="32"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">

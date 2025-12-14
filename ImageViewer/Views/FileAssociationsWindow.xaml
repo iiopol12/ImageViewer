@@ -27,7 +27,7 @@
         </ScrollViewer>
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,8,0,0">
-            <Button Content="全选" Style="{StaticResource ModernButtonStyle}" Width="70" Margin="0,0,8,0"
+            <Button Content="全选" Style="{StaticResource ModernButtonStyle}" Width="80" Margin="0,0,8,0"
                     Click="SelectAll_Click"/>
             <Button Content="取消全选" Style="{StaticResource ModernButtonStyle}" Width="80"
                     Click="ClearAll_Click"/>

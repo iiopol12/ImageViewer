@@ -1,4 +1,5 @@
 using ImageViewer.Models;
+using ImageMagick;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -14,10 +15,23 @@ namespace ImageViewer.Services
 {
     public class ImageService : IDisposable
     {
-        private static readonly string[] SupportedExtensions = 
-        { 
+        private static readonly string[] BitmapImageExtensions =
+        {
             ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff", ".tif", ".ico"
         };
+
+        private static readonly string[] MagickNetExtensions =
+        {
+            ".avif", ".heic", ".heif", ".jxl"
+        };
+
+        private static readonly HashSet<string> BitmapImageExtensionSet = new(BitmapImageExtensions, StringComparer.OrdinalIgnoreCase);
+        private static readonly HashSet<string> SupportedExtensionSet = new(BitmapImageExtensions.Concat(MagickNetExtensions), StringComparer.OrdinalIgnoreCase);
+
+        public static IReadOnlyList<string> SupportedExtensions { get; } = SupportedExtensionSet.OrderBy(e => e).ToArray();
+
+        public static string OpenFileDialogFilter =>
+            $"ÂõæÁâáÊñá‰ª∂|{string.Join(';', SupportedExtensions.Select(ext => $"*{ext}"))}|ÊâÄÊúâÊñá‰ª∂|*.*";
         
         private readonly ConcurrentDictionary<string, BitmapSource> _thumbnailCache = new();
         private readonly ConcurrentDictionary<string, BitmapSource> _imageCache = new();
@@ -29,8 +43,47 @@ namespace ImageViewer.Services
         
         public static bool IsSupportedImage(string filePath)
         {
-            var ext = Path.GetExtension(filePath).ToLowerInvariant();
-            return SupportedExtensions.Contains(ext);
+            var ext = Path.GetExtension(filePath);
+            return !string.IsNullOrWhiteSpace(ext) && SupportedExtensionSet.Contains(ext);
+        }
+
+        private static bool PreferBitmapImage(string filePath)
+        {
+            var ext = Path.GetExtension(filePath);
+            return !string.IsNullOrWhiteSpace(ext) && BitmapImageExtensionSet.Contains(ext);
+        }
+
+        private static BitmapSource? LoadWithBitmapImage(string filePath, int? decodePixelWidth = null)
+        {
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.UriSource = new Uri(filePath);
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
+
+            if (decodePixelWidth.HasValue)
+            {
+                bitmap.DecodePixelWidth = decodePixelWidth.Value;
+            }
+
+            bitmap.EndInit();
+            bitmap.Freeze();
+            return bitmap;
+        }
+
+        private static BitmapSource? LoadWithMagickNet(string filePath, int? decodePixelWidth = null)
+        {
+            using var image = new MagickImage(filePath);
+            image.AutoOrient();
+
+            if (decodePixelWidth.HasValue && decodePixelWidth.Value > 0)
+            {
+                image.Resize((uint)decodePixelWidth.Value, 0);
+            }
+
+            var bitmapSource = image.ToBitmapSource();
+            bitmapSource.Freeze();
+            return bitmapSource;
         }
         
         public IEnumerable<ImageInfo> ScanFolder(string folderPath)
@@ -67,18 +120,39 @@ namespace ImageViewer.Services
                 {
                     try
                     {
-                        var bitmap = new BitmapImage();
-                        bitmap.BeginInit();
-                        bitmap.UriSource = new Uri(imageInfo.FilePath);
-                        bitmap.DecodePixelWidth = size;
-                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                        bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
-                        bitmap.EndInit();
-                        bitmap.Freeze();
-                        
-                        imageInfo.Width = bitmap.PixelWidth * size / (bitmap.PixelWidth > 0 ? bitmap.PixelWidth : 1);
-                        imageInfo.Height = bitmap.PixelHeight * size / (bitmap.PixelWidth > 0 ? bitmap.PixelWidth : 1);
-                        
+                        BitmapSource? bitmap;
+                        if (PreferBitmapImage(imageInfo.FilePath))
+                        {
+                            try
+                            {
+                                bitmap = LoadWithBitmapImage(imageInfo.FilePath, size);
+                            }
+                            catch (Exception bitmapEx)
+                            {
+                                try
+                                {
+                                    bitmap = LoadWithMagickNet(imageInfo.FilePath, size);
+                                }
+                                catch (Exception magickEx)
+                                {
+                                    throw new InvalidOperationException(
+                                        $"BitmapImage Ëß£Á†ÅÂ§±Ë¥•: {bitmapEx.Message}; Magick.NET Ëß£Á†ÅÂ§±Ë¥•: {magickEx.Message}",
+                                        magickEx);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            bitmap = LoadWithMagickNet(imageInfo.FilePath, size);
+                        }
+
+                        if (bitmap == null)
+                        {
+                            return null;
+                        }
+
+                        imageInfo.Width = bitmap.PixelWidth;
+                        imageInfo.Height = bitmap.PixelHeight;
                         return bitmap;
                     }
                     catch (Exception ex)
@@ -114,7 +188,7 @@ namespace ImageViewer.Services
             var cts = new CancellationTokenSource();
             _loadingTasks.TryAdd(imageInfo.FilePath, cts);
             
-            var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cts.Token);
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cts.Token);
             
             await _loadSemaphore.WaitAsync(linkedCts.Token);
             try
@@ -130,23 +204,39 @@ namespace ImageViewer.Services
                 {
                     try
                     {
-                        var bitmap = new BitmapImage();
-                        bitmap.BeginInit();
-                        bitmap.UriSource = new Uri(imageInfo.FilePath);
-                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                        bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
-                        
-                        if (maxSize.HasValue)
+                        BitmapSource? bitmap;
+                        if (PreferBitmapImage(imageInfo.FilePath))
                         {
-                            bitmap.DecodePixelWidth = maxSize.Value;
+                            try
+                            {
+                                bitmap = LoadWithBitmapImage(imageInfo.FilePath, maxSize);
+                            }
+                            catch (Exception bitmapEx)
+                            {
+                                try
+                                {
+                                    bitmap = LoadWithMagickNet(imageInfo.FilePath, maxSize);
+                                }
+                                catch (Exception magickEx)
+                                {
+                                    throw new InvalidOperationException(
+                                        $"BitmapImage Ëß£Á†ÅÂ§±Ë¥•: {bitmapEx.Message}; Magick.NET Ëß£Á†ÅÂ§±Ë¥•: {magickEx.Message}",
+                                        magickEx);
+                                }
+                            }
                         }
-                        
-                        bitmap.EndInit();
-                        bitmap.Freeze();
-                        
+                        else
+                        {
+                            bitmap = LoadWithMagickNet(imageInfo.FilePath, maxSize);
+                        }
+
+                        if (bitmap == null)
+                        {
+                            return null;
+                        }
+
                         imageInfo.Width = bitmap.PixelWidth;
                         imageInfo.Height = bitmap.PixelHeight;
-                        
                         return bitmap;
                     }
                     catch (Exception ex)
@@ -167,7 +257,10 @@ namespace ImageViewer.Services
             finally
             {
                 imageInfo.IsLoading = false;
-                _loadingTasks.TryRemove(imageInfo.FilePath, out _);
+                if (_loadingTasks.TryRemove(imageInfo.FilePath, out var removedCts))
+                {
+                    removedCts.Dispose();
+                }
                 _loadSemaphore.Release();
             }
         }
@@ -189,7 +282,7 @@ namespace ImageViewer.Services
                 _ = LoadImageAsync(image, null, cancellationToken);
             }
         }
-        /// <summary>–˝◊™90∂»√¸¡Ó</summary>
+        /// <summary>ÊóãËΩ¨90Â∫¶ÂëΩ‰ª§</summary>
         public BitmapSource RotateImage(BitmapSource source, double angle)
         {
             var transform = new System.Windows.Media.RotateTransform(angle);
@@ -199,28 +292,33 @@ namespace ImageViewer.Services
         }
 
 
-        // ÃÌº”Õ¨≤Ωº”‘ÿÕº∆¨∑Ω∑®
+        // Ê∑ªÂä†ÂêåÊ≠•Âä†ËΩΩÂõæÁâáÊñπÊ≥ï
         public BitmapSource? LoadImage(string filePath)
         {
             try
             {
-                var bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.UriSource = new Uri(filePath);
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
-                bitmap.EndInit();
-                bitmap.Freeze();
-                return bitmap;
+                if (PreferBitmapImage(filePath))
+                {
+                    try
+                    {
+                        return LoadWithBitmapImage(filePath);
+                    }
+                    catch
+                    {
+                        return LoadWithMagickNet(filePath);
+                    }
+                }
+
+                return LoadWithMagickNet(filePath);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"º”‘ÿÕº∆¨ ß∞‹: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Âä†ËΩΩÂõæÁâáÂ§±Ë¥•: {ex.Message}");
                 return null;
             }
         }
 
-        // ÃÌº”Õ¨≤Ωº”‘ÿÀı¬‘Õº∑Ω∑®
+        // Ê∑ªÂä†ÂêåÊ≠•Âä†ËΩΩÁº©Áï•ÂõæÊñπÊ≥ï
         public BitmapSource? LoadThumbnail(string filePath, int size = 120)
         {
             if (_thumbnailCache.TryGetValue(filePath, out var cached))
@@ -230,21 +328,34 @@ namespace ImageViewer.Services
 
             try
             {
-                var bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.UriSource = new Uri(filePath);
-                bitmap.DecodePixelWidth = size;
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
-                bitmap.EndInit();
-                bitmap.Freeze();
+                BitmapSource? bitmap;
+                if (PreferBitmapImage(filePath))
+                {
+                    try
+                    {
+                        bitmap = LoadWithBitmapImage(filePath, size);
+                    }
+                    catch
+                    {
+                        bitmap = LoadWithMagickNet(filePath, size);
+                    }
+                }
+                else
+                {
+                    bitmap = LoadWithMagickNet(filePath, size);
+                }
+
+                if (bitmap == null)
+                {
+                    return null;
+                }
 
                 _thumbnailCache.TryAdd(filePath, bitmap);
                 return bitmap;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"º”‘ÿÀı¬‘Õº ß∞‹: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Âä†ËΩΩÁº©Áï•ÂõæÂ§±Ë¥•: {ex.Message}");
                 return null;
             }
         }
@@ -285,13 +396,13 @@ namespace ImageViewer.Services
                 using var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
                 encoder.Save(stream);
 
-                // «Â≥˝∏√Õº∆¨µƒª∫¥Ê
+                // Ê∏ÖÈô§ËØ•ÂõæÁâáÁöÑÁºìÂ≠ò
                 _imageCache.TryRemove(filePath, out _);
                 _thumbnailCache.TryRemove(filePath, out _);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"±£¥ÊÕº∆¨ ß∞‹: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"‰øùÂ≠òÂõæÁâáÂ§±Ë¥•: {ex.Message}");
                 throw;
             }
         }
@@ -309,7 +420,7 @@ namespace ImageViewer.Services
         //    }
         //    catch (Exception ex)
         //    {
-        //        Debug.WriteLine($"±£¥Ê–˝◊™Õº∆¨ ß∞‹: {ex.Message}");
+        //        Debug.WriteLine($"‰øùÂ≠òÊóãËΩ¨ÂõæÁâáÂ§±Ë¥•: {ex.Message}");
         //        throw;
         //    }
         //}

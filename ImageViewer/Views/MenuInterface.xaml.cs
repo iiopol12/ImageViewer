@@ -4,30 +4,69 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Win32;
 using ImageViewer.Models;
+using ImageViewer.Services;
 
 namespace ImageViewer.Views
 {
     public partial class MenuInterface : Window
     {
         private readonly AppSettings _settings;
+        private readonly ImageService _imageService = new();
+        private CancellationTokenSource? _favoritesCts;
+
+
+
+        public string WebsiteUrl = "https://www.52pojie.cn/thread-2079875-1-1.html";
+
+        public string AppVersion { get; } = GetAppVersion();
+
+        private static string GetAppVersion()
+        {
+            try
+            {
+                var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+
+                var informationalVersion = assembly
+                    .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+                    ?.InformationalVersion;
+
+                if (!string.IsNullOrWhiteSpace(informationalVersion))
+                {
+                    var plusIndex = informationalVersion.IndexOf('+');
+                    return plusIndex >= 0 ? informationalVersion.Substring(0, plusIndex) : informationalVersion;
+                }
+
+                var version = assembly.GetName().Version;
+                return version?.ToString(3) ?? "unknown";
+            }
+            catch
+            {
+                return "unknown";
+            }
+        }
+
 
         public ObservableCollection<AssociationOption> AssociationOptions { get; } = new();
-
-        private static readonly string[] SupportedExtensions =
-        {
-            ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff", ".tif", ".ico"
-        };
+        public ObservableCollection<FavoriteItem> FavoriteItems { get; } = new();
 
         // 定义颜色常量
         private static readonly SolidColorBrush ActiveColor = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF4A9EFF"));
         private static readonly SolidColorBrush InactiveColor = new SolidColorBrush(Colors.White);
+
+
+      
+
 
         public MenuInterface(AppSettings settings)
         {
@@ -124,6 +163,7 @@ namespace ImageViewer.Views
         private void FavoritesNavButton_Click(object sender, RoutedEventArgs e)
         {
             ShowPage(MenuPage.Favorites);
+            _ = RefreshFavoritesAsync();
         }
 
         private void AssociationsNavButton_Click(object sender, RoutedEventArgs e)
@@ -229,6 +269,106 @@ namespace ImageViewer.Views
             Close();
         }
 
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+
+            _favoritesCts?.Cancel();
+            _favoritesCts?.Dispose();
+            _imageService.Dispose();
+        }
+
+        private async Task RefreshFavoritesAsync()
+        {
+            _favoritesCts?.Cancel();
+            _favoritesCts?.Dispose();
+            _favoritesCts = new CancellationTokenSource();
+            var token = _favoritesCts.Token;
+
+            FavoriteItems.Clear();
+
+            var unique = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var bookmark in _settings.Bookmarks.OrderByDescending(b => b.CreatedAt))
+            {
+                if (string.IsNullOrWhiteSpace(bookmark.FilePath))
+                {
+                    continue;
+                }
+
+                if (!unique.Add(bookmark.FilePath))
+                {
+                    continue;
+                }
+
+                FavoriteItems.Add(new FavoriteItem(bookmark.FilePath, bookmark.Name, bookmark.CreatedAt));
+            }
+
+            try
+            {
+                await LoadFavoriteThumbnailsAsync(token);
+            }
+            catch (OperationCanceledException)
+            {
+                // ignore
+            }
+        }
+
+        private async Task LoadFavoriteThumbnailsAsync(CancellationToken token)
+        {
+            var thumbnailSize = Math.Max(40, _settings.ThumbnailSize);
+
+            foreach (var item in FavoriteItems)
+            {
+                if (token.IsCancellationRequested)
+                {
+                    break;
+                }
+
+                if (!item.Exists || item.Thumbnail != null)
+                {
+                    continue;
+                }
+
+                item.IsLoading = true;
+                try
+                {
+                    var imageInfo = ImageInfo.FromFile(item.FilePath);
+                    item.Thumbnail = await _imageService.LoadThumbnailAsync(imageInfo, thumbnailSize, token);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    item.HasError = true;
+                    item.ErrorMessage = ex.Message;
+                }
+                finally
+                {
+                    item.IsLoading = false;
+                }
+            }
+        }
+
+        private void OpenFavoriteInExplorer_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement { DataContext: FavoriteItem item } && item.Exists)
+            {
+                Process.Start("explorer.exe", $"/select,\"{item.FilePath}\"");
+            }
+        }
+
+        private void RemoveFavorite_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement { DataContext: FavoriteItem item })
+            {
+                _settings.Bookmarks.RemoveAll(b => string.Equals(b.FilePath, item.FilePath, StringComparison.OrdinalIgnoreCase));
+                _settings.Save();
+                FavoriteItems.Remove(item);
+            }
+        }
+
         private void BrowseLocalSendButton_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new OpenFileDialog
@@ -243,10 +383,46 @@ namespace ImageViewer.Views
             }
         }
 
+
+
+
+        // 打开网站方法
+        private void OpenWebsite_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(WebsiteUrl))
+                {
+                    // 确保URL格式正确
+                    string url = WebsiteUrl;
+                    if (!url.StartsWith("http://") && !url.StartsWith("https://"))
+                    {
+                        url = "https://" + url;
+                    }
+
+                    // 使用默认浏览器打开
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = url,
+                        UseShellExecute = true
+                    });
+                }
+                else
+                {
+                    System.Windows.MessageBox.Show("请先设置网站地址", "提示",
+                        System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"打开网站失败：{ex.Message}", "错误",
+                    System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            }
+        }
         private void InitializeAssociationOptions()
         {
             AssociationOptions.Clear();
-            foreach (var ext in SupportedExtensions)
+            foreach (var ext in ImageService.SupportedExtensions)
             {
                 AssociationOptions.Add(new AssociationOption(ext, true));
             }
@@ -356,6 +532,34 @@ namespace ImageViewer.Views
                 Extension = extension;
                 DisplayName = extension.TrimStart('.').ToUpperInvariant();
                 _isSelected = isSelected;
+            }
+        }
+
+        public sealed partial class FavoriteItem : ObservableObject
+        {
+            public string FilePath { get; }
+            public string Name { get; }
+            public DateTime CreatedAt { get; }
+            public bool Exists { get; }
+
+            [ObservableProperty]
+            private BitmapSource? _thumbnail;
+
+            [ObservableProperty]
+            private bool _isLoading;
+
+            [ObservableProperty]
+            private bool _hasError;
+
+            [ObservableProperty]
+            private string _errorMessage = string.Empty;
+
+            public FavoriteItem(string filePath, string name, DateTime createdAt)
+            {
+                FilePath = filePath;
+                Name = string.IsNullOrWhiteSpace(name) ? System.IO.Path.GetFileName(filePath) : name;
+                CreatedAt = createdAt;
+                Exists = File.Exists(filePath);
             }
         }
     }
