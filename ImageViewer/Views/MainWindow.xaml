@@ -11,7 +11,7 @@
         Title="漫游" 
         Height="Auto" Width="Auto"
        
-         MinHeight="500" MinWidth="650"
+        MinHeight="500" MinWidth="650"
         WindowStyle="None"
         AllowsTransparency="False"
         ResizeMode="CanResize"
@@ -677,11 +677,11 @@
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Margin="{Binding DataContext.Settings.WaterfallGap, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource DoubleToThicknessConverter}}"
+                                    <Border Margin="{Binding DataContext.Settings.MangaGap, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource DoubleToThicknessConverter}}"
                                             Background="{StaticResource BackgroundDarkBrush}" 
-                                            CornerRadius="{Binding DataContext.Settings.WaterfallCornerRadius, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource DoubleToCornerRadiusConverter}}"
+                                            CornerRadius="0"
                                             Cursor="Hand"
-                                            BorderThickness="{Binding DataContext.Settings.WaterfallBorderThickness, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource DoubleToThicknessConverter}}"
+                                            BorderThickness="0"
                                             MouseLeftButtonUp="WaterfallItem_Click"
                                             Tag="{Binding}">
                                         <Border.Style>

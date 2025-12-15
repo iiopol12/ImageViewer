@@ -114,7 +114,9 @@
                                          <RowDefinition Height="Auto"/>
                                          <RowDefinition Height="Auto"/>
                                          <RowDefinition Height="Auto"/>
-                                     </Grid.RowDefinitions>
+                                         <RowDefinition Height="Auto"/>
+                                         <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
 
                                      <TextBlock Grid.Row="0" Grid.Column="0" Text="默认浏览模式"
                                                 Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center"/>
@@ -140,7 +142,17 @@
                                          <ComboBoxItem Content="缩放" Tag="{x:Static models:ScrollWheelBehavior.Zoom}"/>
                                          <ComboBoxItem Content="翻页" Tag="{x:Static models:ScrollWheelBehavior.Navigate}"/>
                                      </ComboBox>
-                                 </Grid>
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="漫画模式间隔(px)"
+                                      Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
+                                    <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
+                                        <Slider x:Name="MangaGapSlider" Width="150" Minimum="0" Maximum="30"
+                                 Value="4" TickFrequency="1" IsSnapToTickEnabled="True"/>
+                                        <TextBlock x:Name="MangaGapText" Text="4" Foreground="{StaticResource ForegroundBrush}"
+                                     VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                    </StackPanel>
+
+                                </Grid>
                              </Border>
 
                             <!-- Slideshow Settings -->
@@ -205,6 +217,7 @@
                                                        VerticalAlignment="Center" Margin="12,0,0,0"/>
                                         </StackPanel>
 
+                                      
                                         <TextBlock Grid.Row="2" Grid.Column="0" Text="漫画解码宽度(px)" Visibility="Hidden"
                                                    Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
                                         <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0" Visibility="Hidden">

@@ -91,13 +91,9 @@ namespace ImageViewer.Models
 
         // === 瀑布流/漫画总览布局参数 ===
         [ObservableProperty]
-        private double _waterfallGap = 4;
+        private double _MangaGap = 4;
 
-        [ObservableProperty]
-        private double _waterfallCornerRadius = 4;
-
-        [ObservableProperty]
-        private double _waterfallBorderThickness = 2;
+  
 
         [ObservableProperty]
         private string _localSendPath = string.Empty;

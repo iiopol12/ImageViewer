@@ -10,9 +10,7 @@
 	  <ApplicationIcon>Image.ico</ApplicationIcon>
   </PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="Image.ico" />
-  </ItemGroup>
+
 
 
 

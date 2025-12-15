@@ -82,6 +82,7 @@ namespace ImageViewer.Views
             IntervalSlider.ValueChanged += (s, e) => IntervalText.Text = ((int)e.NewValue).ToString();
             PreloadSlider.ValueChanged += (s, e) => PreloadText.Text = ((int)e.NewValue).ToString();
             ThumbnailSlider.ValueChanged += (s, e) => ThumbnailText.Text = ((int)e.NewValue).ToString();
+            MangaGapSlider.ValueChanged += (s, e) => MangaGapText.Text = ((int)e.NewValue).ToString();
             MangaDecodeSlider.ValueChanged += (s, e) => MangaDecodeText.Text = ((int)e.NewValue).ToString();
         }
 
@@ -212,6 +213,8 @@ namespace ImageViewer.Views
             PreloadText.Text = _settings.PreloadCount.ToString();
             ThumbnailSlider.Value = _settings.ThumbnailSize;
             ThumbnailText.Text = _settings.ThumbnailSize.ToString();
+            MangaGapSlider.Value = _settings.MangaGap;
+            MangaGapText.Text = ((int)_settings.MangaGap).ToString();
             MangaDecodeSlider.Value = _settings.MangaDecodeWidth;
             MangaDecodeText.Text = _settings.MangaDecodeWidth.ToString();
 
@@ -249,6 +252,7 @@ namespace ImageViewer.Views
             // Performance
             _settings.PreloadCount = (int)PreloadSlider.Value;
             _settings.ThumbnailSize = (int)ThumbnailSlider.Value;
+            _settings.MangaGap = MangaGapSlider.Value;
             _settings.MangaDecodeWidth = (int)MangaDecodeSlider.Value;
 
             // Behavior
