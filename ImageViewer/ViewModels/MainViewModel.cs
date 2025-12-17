@@ -39,7 +39,10 @@ namespace ImageViewer.ViewModels
         // === 并发控制 ===
         private readonly SemaphoreSlim _thumbnailSemaphore = new SemaphoreSlim(4); // 限制并发数为4
 
-
+        // === 动画 GIF 进入/退出时的视图状态（用于自动恢复） ===
+        private bool _hasSavedViewStateBeforeAnimatedGif;
+        private bool _fitToWindowBeforeAnimatedGif;
+        private double _zoomLevelBeforeAnimatedGif = 1.0;
         public MainViewModel()
         {
             // 加载应用设置
@@ -216,6 +219,8 @@ namespace ImageViewer.ViewModels
 
         /// <summary>当前激活的缩放级别</summary>
         public double ActiveZoomLevel => IsMangaMode ? MangaZoomLevel : ZoomLevel;
+
+
 
 
         /// <summary>缩放级别变化时触发</summary>
@@ -1335,7 +1340,7 @@ namespace ImageViewer.ViewModels
                      }
                  }//如果加载失败，保持原有的 DisplayImage 不变
 
-
+                var wasAnimatedGif = IsCurrentAnimatedGif;
                 // 检测是否为动画 GIF
                 if (CurrentImage.FileExtension == ".gif")
                 {
@@ -1362,9 +1367,9 @@ namespace ImageViewer.ViewModels
 
                     CurrentImage.UpdateGifMetadata(frameCount, gifData);
 
-                    // 更新 ViewModel 属性供视图绑定
-                    IsCurrentAnimatedGif = CurrentImage.IsAnimatedGif;
-                    CurrentGifData = CurrentImage.IsAnimatedGif ? gifData : null;
+                    var isAnimatedGif = CurrentImage.IsAnimatedGif;
+                    IsCurrentAnimatedGif = isAnimatedGif;
+                    CurrentGifData = isAnimatedGif ? gifData : null;
                 }
                 else
                 {
@@ -1373,7 +1378,25 @@ namespace ImageViewer.ViewModels
                     CurrentGifData = null;
                 }
 
+                // 动画 GIF：用原始像素显示（避免隐式缩放）；退出时恢复进入 GIF 前的查看状态。
+                if (IsCurrentAnimatedGif)
+                {
+                    if (!wasAnimatedGif && !_hasSavedViewStateBeforeAnimatedGif)
+                    {
+                        _fitToWindowBeforeAnimatedGif = FitToWindow;
+                        _zoomLevelBeforeAnimatedGif = ZoomLevel;
+                        _hasSavedViewStateBeforeAnimatedGif = true;
+                    }
 
+                    FitToWindow = false;
+                    ZoomLevel = 1.0;
+                }
+                else if (wasAnimatedGif && _hasSavedViewStateBeforeAnimatedGif)
+                {
+                    ZoomLevel = _zoomLevelBeforeAnimatedGif;
+                    FitToWindow = _fitToWindowBeforeAnimatedGif;
+                    _hasSavedViewStateBeforeAnimatedGif = false;
+                }
                 // 双页模式同理 
                 if (CurrentViewMode == ViewMode.DoublePage && !CurrentImage.IsWide && CurrentIndex < Images.Count - 1)
                 {
