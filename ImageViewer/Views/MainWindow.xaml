@@ -6,6 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:ImageViewer.ViewModels"
         xmlns:models="clr-namespace:ImageViewer.Models"
+        xmlns:controls="clr-namespace:ImageViewer.Controls"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         mc:Ignorable="d"
         Title="漫游" 
@@ -507,28 +508,53 @@
                             </Grid.LayoutTransform>
 
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Grid.Column="1" HorizontalAlignment="Center">
-                                <Image x:Name="MainImage" Source="{Binding DisplayImage}" 
-                                     Stretch="None" RenderOptions.BitmapScalingMode="HighQuality">
-                                    <Image.Style>
-                                        <Style TargetType="Image">
-                                            <Style.Triggers>
-                                                <Trigger Property="Source" Value="{x:Null}">
-                                                    <Setter Property="Opacity" Value="0"/>
-                                                </Trigger>
-                                                <EventTrigger RoutedEvent="Loaded">
-                                                    <BeginStoryboard>
-                                                        <Storyboard>
-                                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                           From="0" To="1" Duration="0:0:0.15"/>
-                                                        </Storyboard>
-                                                    </BeginStoryboard>
-                                                </EventTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Image.Style>
-                                </Image>
+                                    <!-- 静态图片显示（非动画 GIF 或其他格式） -->
+                                    <Image x:Name="MainImage" Source="{Binding DisplayImage}" 
+                                         Stretch="None" RenderOptions.BitmapScalingMode="HighQuality">
+                                        <Image.Style>
+                                            <Style TargetType="Image">
+                                                <!-- 仅在非动画 GIF 时显示 -->
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsCurrentAnimatedGif}" Value="True">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                    <Trigger Property="Source" Value="{x:Null}">
+                                                        <Setter Property="Opacity" Value="0"/>
+                                                    </Trigger>
+                                                    <EventTrigger RoutedEvent="Loaded">
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                 From="0" To="1" Duration="0:0:0.15"/>
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </EventTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Image.Style>
+                                    </Image>
 
-                                <Image x:Name="SecondImageControl" Source="{Binding SecondDisplayImage}" 
+                                    <!-- GIF 动画播放控件（仅动画 GIF 时显示） -->
+                                    <controls:GifViewerControl x:Name="GifViewer"
+                                           Source="{Binding CurrentGifData}"
+                                           IsPlaying="True"
+                                           Speed="1.0"
+                                           LoopMode="Infinite">
+                                        <controls:GifViewerControl.Style>
+                                            <Style TargetType="controls:GifViewerControl">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsCurrentAnimatedGif}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </controls:GifViewerControl.Style>
+                                    </controls:GifViewerControl>
+                                
+                                
+                                    <Image x:Name="SecondImageControl" Source="{Binding SecondDisplayImage}" 
                                        Stretch="None" RenderOptions.BitmapScalingMode="HighQuality"
                                        Visibility="{Binding IsDoublePage, Converter={StaticResource BoolToVisibilityConverter}}"
                                        Margin="8,0,0,0"/>

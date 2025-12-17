@@ -1680,6 +1680,121 @@ namespace ImageViewer.Services
             _loadSemaphore.Dispose();
             ClearCache();
         }
+
+
+        /// <summary>
+        /// 检测 GIF 文件的帧数
+        /// </summary>
+        /// <param name="filePath">文件路径</param>
+        /// <returns>帧数，非 GIF 或错误返回 1</returns>
+        public static int GetGifFrameCount(string filePath)
+        {
+            try
+            {
+                var ext = Path.GetExtension(filePath);
+                if (!string.Equals(ext, ".gif", StringComparison.OrdinalIgnoreCase))
+                    return 1;
+
+                using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                return GetGifFrameCountFromStream(stream);
+            }
+            catch
+            {
+                return 1;
+            }
+        }
+
+        /// <summary>
+        /// 从字节数组检测 GIF 帧数
+        /// </summary>
+        public static int GetGifFrameCount(byte[] data)
+        {
+            try
+            {
+                using var stream = new MemoryStream(data, writable: false);
+                return GetGifFrameCountFromStream(stream);
+            }
+            catch
+            {
+                return 1;
+            }
+        }
+
+        /// <summary>
+        /// 从流检测 GIF 帧数
+        /// </summary>
+        public static int GetGifFrameCountFromStream(Stream stream)
+        {
+            try
+            {
+                var decoder = new GifBitmapDecoder(
+                    stream,
+                    BitmapCreateOptions.DelayCreation,
+                    BitmapCacheOption.None);
+                return decoder.Frames.Count;
+            }
+            catch
+            {
+                return 1;
+            }
+        }
+
+        /// <summary>
+        /// 加载 GIF 原始数据（用于 GifViewerControl）
+        /// </summary>
+        public static byte[]? LoadGifData(string filePath)
+        {
+            try
+            {
+                return File.ReadAllBytes(filePath);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 从压缩包加载 GIF 原始数据
+        /// </summary>
+        public byte[]? LoadGifDataFromArchive(ImageInfo imageInfo)
+        {
+            if (imageInfo.SourceKind != ImageSourceKind.ZipEntry)
+                return null;
+
+            try
+            {
+                // 复用现有的压缩包读取逻辑
+                return LoadArchiveEntryBytes(imageInfo.ArchivePath!, imageInfo.ArchiveEntryPath!);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+
+        /// <summary>
+        /// 从压缩包读取条目的原始字节
+        /// </summary>
+        private byte[]? LoadArchiveEntryBytes(string archivePath, string entryPath)
+        {
+            try
+            {
+                using var archive = ZipFile.OpenRead(archivePath);
+                var entry = archive.GetEntry(entryPath);
+                if (entry == null) return null;
+
+                using var stream = entry.Open();
+                using var ms = new MemoryStream();
+                stream.CopyTo(ms);
+                return ms.ToArray();
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 
 

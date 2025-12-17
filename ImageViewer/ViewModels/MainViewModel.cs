@@ -39,6 +39,7 @@ namespace ImageViewer.ViewModels
         // === 并发控制 ===
         private readonly SemaphoreSlim _thumbnailSemaphore = new SemaphoreSlim(4); // 限制并发数为4
 
+
         public MainViewModel()
         {
             // 加载应用设置
@@ -175,6 +176,22 @@ namespace ImageViewer.ViewModels
         // === 漫画模式缩略图总览是否可见 ===
         [ObservableProperty]
         private bool _isMangaOverviewVisible;
+
+
+        /// <summary>
+        /// 当前图片的 GIF 数据（用于 GifViewerControl 绑定）
+        /// </summary>
+        [ObservableProperty]
+        private byte[]? _currentGifData;
+
+        /// <summary>
+        /// 当前图片是否为动画 GIF
+        /// </summary>
+        [ObservableProperty]
+        private bool _isCurrentAnimatedGif;
+
+
+
         /// <summary>位置文本 - 显示当前图片位置</summary>
         /// 
         public string PositionText => Images.Count > 0 && CurrentIndex >= 0
@@ -1317,6 +1334,45 @@ namespace ImageViewer.ViewModels
                          CurrentImage.FullImage = newDisplay;
                      }
                  }//如果加载失败，保持原有的 DisplayImage 不变
+
+
+                // 检测是否为动画 GIF
+                if (CurrentImage.FileExtension == ".gif")
+                {
+                    // 检测 GIF 帧数
+                    int frameCount = 1;
+                    byte[]? gifData = null;
+
+                    if (CurrentImage.SourceKind == ImageSourceKind.File)
+                    {
+                        frameCount = ImageService.GetGifFrameCount(CurrentImage.FilePath);
+                        if (frameCount > 1)
+                        {
+                            gifData = ImageService.LoadGifData(CurrentImage.FilePath);
+                        }
+                    }
+                    else if (CurrentImage.SourceKind == ImageSourceKind.ZipEntry)
+                    {
+                        gifData = _imageService.LoadGifDataFromArchive(CurrentImage);
+                        if (gifData != null)
+                        {
+                            frameCount = ImageService.GetGifFrameCount(gifData);
+                        }
+                    }
+
+                    CurrentImage.UpdateGifMetadata(frameCount, gifData);
+
+                    // 更新 ViewModel 属性供视图绑定
+                    IsCurrentAnimatedGif = CurrentImage.IsAnimatedGif;
+                    CurrentGifData = CurrentImage.IsAnimatedGif ? gifData : null;
+                }
+                else
+                {
+                    // 非 GIF 文件，清除 GIF 相关状态
+                    IsCurrentAnimatedGif = false;
+                    CurrentGifData = null;
+                }
+
 
                 // 双页模式同理 
                 if (CurrentViewMode == ViewMode.DoublePage && !CurrentImage.IsWide && CurrentIndex < Images.Count - 1)

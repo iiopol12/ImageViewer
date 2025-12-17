@@ -75,7 +75,23 @@ namespace ImageViewer.Models
         [ObservableProperty]
         private double _rotationAngle = 0;
 
-       
+        /// <summary>
+        /// GIF 帧数（仅 GIF 文件有效）
+        /// </summary>
+        [ObservableProperty]
+        private int _gifFrameCount;
+
+        /// <summary>
+        /// GIF 原始数据（用于 GifViewerControl 播放）
+        /// </summary>
+        [ObservableProperty]
+        private byte[]? _gifData;
+
+        /// <summary>
+        /// 是否为动画 GIF（帧数 > 1）
+        /// </summary>
+        public bool IsAnimatedGif => FileExtension == ".gif" && GifFrameCount > 1;
+
         public string FileSizeFormatted
         {
             get
@@ -128,6 +144,20 @@ namespace ImageViewer.Models
             OnPropertyChanged(nameof(Height));
             OnPropertyChanged(nameof(DimensionsFormatted));
             OnPropertyChanged(nameof(BitDepth));
+        }
+
+
+        /// <summary>
+        /// 更新 GIF 元数据
+        /// </summary>
+        public void UpdateGifMetadata(int frameCount, byte[]? gifData = null)
+        {
+            GifFrameCount = frameCount;
+            if (gifData != null)
+            {
+                GifData = gifData;
+            }
+            OnPropertyChanged(nameof(IsAnimatedGif));
         }
     }
 }

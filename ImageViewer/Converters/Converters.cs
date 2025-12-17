@@ -283,4 +283,93 @@ namespace ImageViewer.Converters
             throw new NotImplementedException();
         }
     }
+
+
+
+    /// <summary>
+    /// GIF 显示可见性转换器
+    /// 当文件扩展名为 .gif 且帧数 > 1 时显示 GIF 控件
+    /// </summary>
+    public class GifVisibilityConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            // values[0] = FileExtension (string)
+            // values[1] = FrameCount (int) 或 IsAnimatedGif (bool)
+            if (values.Length < 2)
+                return Visibility.Collapsed;
+
+            var extension = values[0] as string;
+            bool isGif = string.Equals(extension, ".gif", StringComparison.OrdinalIgnoreCase);
+
+            // 检查是否为动画 GIF
+            bool isAnimated = false;
+            if (values[1] is int frameCount)
+                isAnimated = frameCount > 1;
+            else if (values[1] is bool b)
+                isAnimated = b;
+
+            bool showGif = parameter?.ToString() == "Gif";
+
+            if (showGif)
+            {
+                // GIF 控件：仅在动画 GIF 时显示
+                return isGif && isAnimated ? Visibility.Visible : Visibility.Collapsed;
+            }
+            else
+            {
+                // 静态图片控件：非动画 GIF 或其他格式时显示
+                return isGif && isAnimated ? Visibility.Collapsed : Visibility.Visible;
+            }
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// GIF 播放速度格式化转换器
+    /// </summary>
+    public class SpeedToTextConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is double speed)
+            {
+                return $"{speed:F1}x";
+            }
+            return "1.0x";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// GIF 帧进度转换器
+    /// </summary>
+    public class FrameProgressConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            // values[0] = CurrentFrameIndex
+            // values[1] = FrameCount
+            if (values.Length < 2)
+                return "0/0";
+
+            int current = values[0] is int c ? c + 1 : 0;
+            int total = values[1] is int t ? t : 0;
+
+            return $"{current}/{total}";
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }
