@@ -193,11 +193,12 @@
                                             <ColumnDefinition Width="150"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
+                                     <Grid.RowDefinitions>
+                                         <RowDefinition Height="Auto"/>
+                                         <RowDefinition Height="Auto"/>
+                                         <RowDefinition Height="Auto"/>
+                                         <RowDefinition Height="Auto"/>
+                                     </Grid.RowDefinitions>
 
                                         <TextBlock Grid.Row="0" Grid.Column="0" Text="预加载数量"
                                                    Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
@@ -218,30 +219,41 @@
                                         </StackPanel>
 
                                       
-                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="漫画解码宽度(px)" Visibility="Hidden"
-                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
-                                        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0" Visibility="Hidden">
-                                            <Slider x:Name="MangaDecodeSlider" Width="150" Minimum="800" Maximum="4000"
-                                                    Value="1600" TickFrequency="200" IsSnapToTickEnabled="True"/>
-                                            <TextBlock x:Name="MangaDecodeText" Text="1600" Foreground="{StaticResource ForegroundBrush}"
-                                                       VerticalAlignment="Center" Margin="12,0,0,0"/>
-                                        </StackPanel>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
+                                         <TextBlock Grid.Row="2" Grid.Column="0" Text="漫画解码宽度(px)" Visibility="Hidden"
+                                                    Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
+                                         <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0" Visibility="Hidden">
+                                             <Slider x:Name="MangaDecodeSlider" Width="150" Minimum="800" Maximum="4000"
+                                                     Value="1600" TickFrequency="200" IsSnapToTickEnabled="True"/>
+                                             <TextBlock x:Name="MangaDecodeText" Text="1600" Foreground="{StaticResource ForegroundBrush}"
+                                                        VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                         </StackPanel>
+
+                                         <TextBlock Grid.Row="3" Grid.Column="0" Text="压缩包读取"
+                                                    Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
+                                         <ComboBox Grid.Row="3" Grid.Column="1" x:Name="ArchiveStrategyComboBox" Margin="0,12,40,0">
+                                             <ComboBoxItem Content="内存流（默认）" Tag="{x:Static models:ArchiveLoadStrategy.Stream}"/>
+                                             <ComboBoxItem Content="解压到临时目录" Tag="{x:Static models:ArchiveLoadStrategy.TempExtractLru}"/>
+                                         </ComboBox>
+                                     </Grid>
+                                 </StackPanel>
+                             </Border>
 
                             <!-- Behavior Settings -->
-                            <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">
-                                <StackPanel>
-                                    <TextBlock Text="行为设置" Foreground="{StaticResource ForegroundBrush}"
-                                               FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
-
-                                    <CheckBox x:Name="RememberPositionCheckBox" Content="记住窗口位置和大小"
-                                              Foreground="{StaticResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
-                                    <CheckBox x:Name="RememberReadingCheckBox" Content="记住上次阅读位置"
-                                              Foreground="{StaticResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
-                                </StackPanel>
-                            </Border>
+                             <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">
+                                 <StackPanel>
+                                     <TextBlock Text="行为设置" Foreground="{StaticResource ForegroundBrush}"
+                                                FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
+ 
+                                     <CheckBox x:Name="RememberPositionCheckBox" Content="记住窗口位置和大小"
+                                               Foreground="{StaticResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
+                                     <CheckBox x:Name="RememberReadingCheckBox" Content="记住上次阅读位置"
+                                               Foreground="{StaticResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
+                                     <CheckBox x:Name="FreezeDuringResizeCheckBox" Content="拖动缩放时冻结界面（减少抖动）"
+                                               Foreground="{StaticResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
+                                     <CheckBox x:Name="ShowStatusBarCheckBox" Content="显示底边栏（状态栏）"
+                                               Foreground="{StaticResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
+                                 </StackPanel>
+                             </Border>
 
                             <!-- LocalSend -->
                             <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">
@@ -425,14 +437,17 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="20">
                      
-                        <TextBlock Text="选择要关联的图片格式，勾选后写入注册表，将所选格式默认打开方式改为 ImageViewer；如未生效，可重启资源管理器或手动检查默认应用。"
+                         <TextBlock Text="选择要关联的图片格式，勾选后写入注册表，将所选格式默认打开方式改为 ImageViewer；如未生效，可重启资源管理器或手动检查默认应用。"
+                                    TextWrapping="Wrap" Foreground="{StaticResource ForegroundDimBrush}"
+                                    Margin="0,0,0,12"/>
+                        <TextBlock Text="RAW 格式优先使用系统 WIC 解码（建议从微软商店安装 Raw Image Extension）；若系统不支持则自动回退到 Magick.NET。"
                                    TextWrapping="Wrap" Foreground="{StaticResource ForegroundDimBrush}"
                                    Margin="0,0,0,12"/>
-
-                        <StackPanel x:Name="AssociationsPanel" Margin="0,8,0,0">
-                            <TextBlock Text="选择要关联的图片格式"
-                                       Foreground="{StaticResource ForegroundBrush}"
-                                       FontSize="14"
+ 
+                         <StackPanel x:Name="AssociationsPanel" Margin="0,8,0,0">
+                             <TextBlock Text="选择要关联的图片格式"
+                                        Foreground="{StaticResource ForegroundBrush}"
+                                        FontSize="14"
                                        FontWeight="SemiBold"
                                        Margin="0,0,0,8"/>
 

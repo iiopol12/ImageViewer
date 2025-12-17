@@ -218,13 +218,24 @@ namespace ImageViewer.Views
             MangaDecodeSlider.Value = _settings.MangaDecodeWidth;
             MangaDecodeText.Text = _settings.MangaDecodeWidth.ToString();
 
-            // Behavior
-            RememberPositionCheckBox.IsChecked = _settings.RememberWindowPosition;
-            RememberReadingCheckBox.IsChecked = _settings.RememberReadingPosition;
+            foreach (ComboBoxItem item in ArchiveStrategyComboBox.Items)
+            {
+                if (item.Tag is ArchiveLoadStrategy strategy && strategy == _settings.ArchiveLoadStrategy)
+                {
+                    ArchiveStrategyComboBox.SelectedItem = item;
+                    break;
+                }
+            }
 
-            // LocalSend
-            LocalSendPathTextBox.Text = _settings.LocalSendPath;
-        }
+             // Behavior
+             RememberPositionCheckBox.IsChecked = _settings.RememberWindowPosition;
+             RememberReadingCheckBox.IsChecked = _settings.RememberReadingPosition;
+             FreezeDuringResizeCheckBox.IsChecked = _settings.FreezeDuringResize;
+             ShowStatusBarCheckBox.IsChecked = _settings.ShowStatusBar;
+
+             // LocalSend
+             LocalSendPathTextBox.Text = _settings.LocalSendPath;
+         }
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
@@ -255,12 +266,19 @@ namespace ImageViewer.Views
             _settings.MangaGap = MangaGapSlider.Value;
             _settings.MangaDecodeWidth = (int)MangaDecodeSlider.Value;
 
-            // Behavior
-            _settings.RememberWindowPosition = RememberPositionCheckBox.IsChecked ?? true;
-            _settings.RememberReadingPosition = RememberReadingCheckBox.IsChecked ?? true;
+            if (ArchiveStrategyComboBox.SelectedItem is ComboBoxItem archiveItem && archiveItem.Tag is ArchiveLoadStrategy strategy)
+            {
+                _settings.ArchiveLoadStrategy = strategy;
+            }
 
-            // LocalSend
-            _settings.LocalSendPath = LocalSendPathTextBox.Text ?? string.Empty;
+             // Behavior
+             _settings.RememberWindowPosition = RememberPositionCheckBox.IsChecked ?? true;
+             _settings.RememberReadingPosition = RememberReadingCheckBox.IsChecked ?? true;
+             _settings.FreezeDuringResize = FreezeDuringResizeCheckBox.IsChecked ?? true;
+             _settings.ShowStatusBar = ShowStatusBarCheckBox.IsChecked ?? true;
+
+             // LocalSend
+             _settings.LocalSendPath = LocalSendPathTextBox.Text ?? string.Empty;
 
             _settings.Save();
             DialogResult = true;

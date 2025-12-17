@@ -10,6 +10,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using System.Windows.Controls.Primitives;
 using System.Windows.Forms;
@@ -54,7 +55,30 @@ namespace ImageViewer.Views
 
         // 非客户区命中测试常量
         private const int WM_NCHITTEST = 0x0084;
+        private const int WM_SIZING = 0x0214;
+        private const int WM_ENTERSIZEMOVE = 0x0231;
+        private const int WM_EXITSIZEMOVE = 0x0232;
         private const int HTLEFT = 10, HTRIGHT = 11, HTTOP = 12, HTTOPLEFT = 13, HTTOPRIGHT = 14, HTBOTTOM = 15, HTBOTTOMLEFT = 16, HTBOTTOMRIGHT = 17;
+
+        private const int WMSZ_LEFT = 1;
+        private const int WMSZ_RIGHT = 2;
+        private const int WMSZ_TOP = 3;
+        private const int WMSZ_TOPLEFT = 4;
+        private const int WMSZ_TOPRIGHT = 5;
+        private const int WMSZ_BOTTOM = 6;
+        private const int WMSZ_BOTTOMLEFT = 7;
+        private const int WMSZ_BOTTOMRIGHT = 8;
+
+        // Resize freeze state (prevent UI jitter during sizing)
+        private bool _isInSizeMove;
+        private bool _isResizeFreezeActive;
+        private bool _isResizeFreezePending;
+        private int _resizeSizingEdge;
+        private double _resizeFreezeDipWidth;
+        private double _resizeFreezeDipHeight;
+        private RenderTargetBitmap? _resizePreparedSnapshot;
+        private Storyboard? _resizeFreezeStoryboard;
+        private Visibility _mainLayoutVisibilityBeforeResize = Visibility.Visible;
 
 
         public MainWindow()
@@ -121,14 +145,41 @@ namespace ImageViewer.Views
         /// </summary>
         private IntPtr WindowProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
-            if (msg == WM_NCHITTEST)
+            switch (msg)
             {
-                var hitResult = HitTestResize(lParam);
-                if (hitResult != IntPtr.Zero)
+                case WM_NCHITTEST:
                 {
-                    handled = true;
-                    return hitResult;
+                    var hitResult = HitTestResize(lParam);
+                    if (hitResult != IntPtr.Zero)
+                    {
+                        handled = true;
+                        return hitResult;
+                    }
+                    break;
                 }
+                case WM_ENTERSIZEMOVE:
+                    _isInSizeMove = true;
+                    _resizeSizingEdge = 0;
+                    _resizePreparedSnapshot = null;
+                    _isResizeFreezeActive = false;
+                    _isResizeFreezePending = false;
+                    Dispatcher.BeginInvoke(DispatcherPriority.Render, PrepareResizeFreezeSnapshot);
+                    break;
+                case WM_SIZING:
+                    if (_isInSizeMove)
+                    {
+                        _resizeSizingEdge = wParam.ToInt32();
+                        if (!_isResizeFreezeActive && !_isResizeFreezePending)
+                        {
+                            _isResizeFreezePending = true;
+                            Dispatcher.BeginInvoke(DispatcherPriority.Render, BeginResizeFreezeIfEnabled);
+                        }
+                    }
+                    break;
+                case WM_EXITSIZEMOVE:
+                    _isInSizeMove = false;
+                    Dispatcher.BeginInvoke(DispatcherPriority.Render, EndResizeFreezeIfNeeded);
+                    break;
             }
             return IntPtr.Zero;
         }
@@ -164,6 +215,231 @@ namespace ImageViewer.Views
             int x = unchecked((short)((long)lParam & 0xFFFF));
             int y = unchecked((short)(((long)lParam >> 16) & 0xFFFF));
             return new Point(x, y);
+        }
+        #endregion
+
+        #region Resize Freeze (reduce jitter during window sizing)
+        private bool IsResizeFreezeEnabled()
+        {
+            try
+            {
+                return ViewModel?.Settings?.FreezeDuringResize ?? true;
+            }
+            catch
+            {
+                return true;
+            }
+        }
+
+        private void PrepareResizeFreezeSnapshot()
+        {
+            if (!_isInSizeMove || _isResizeFreezeActive || !IsResizeFreezeEnabled())
+            {
+                return;
+            }
+
+            if (_resizePreparedSnapshot != null)
+            {
+                return;
+            }
+
+            CaptureResizeFreezeSnapshot();
+        }
+
+        private void BeginResizeFreezeIfEnabled()
+        {
+            _isResizeFreezePending = false;
+
+            if (!_isInSizeMove || _isResizeFreezeActive || !IsResizeFreezeEnabled())
+            {
+                return;
+            }
+
+            if (_resizePreparedSnapshot == null)
+            {
+                CaptureResizeFreezeSnapshot();
+                if (_resizePreparedSnapshot == null)
+                {
+                    return;
+                }
+            }
+
+            StopResizeFreezeStoryboard();
+
+            _isResizeFreezeActive = true;
+
+            _mainLayoutVisibilityBeforeResize = MainLayout.Visibility;
+            MainLayout.Visibility = Visibility.Collapsed;
+
+            ResizeFreezeImage.BeginAnimation(OpacityProperty, null);
+            ResizeFreezeImage.RenderTransform = null;
+            ResizeFreezeImage.RenderTransformOrigin = new Point(0.5, 0.5);
+            ResizeFreezeImage.Opacity = 1;
+            ResizeFreezeImage.Width = _resizeFreezeDipWidth;
+            ResizeFreezeImage.Height = _resizeFreezeDipHeight;
+            ResizeFreezeImage.Source = _resizePreparedSnapshot;
+            ResizeFreezeImage.Visibility = Visibility.Visible;
+
+            ResizeFreezeBorder.BeginAnimation(OpacityProperty, null);
+            ResizeFreezeBorder.Opacity = 1;
+            ResizeFreezeBorder.Visibility = Visibility.Visible;
+        }
+
+        private void EndResizeFreezeIfNeeded()
+        {
+            if (!_isResizeFreezeActive)
+            {
+                _resizePreparedSnapshot = null;
+                _isResizeFreezePending = false;
+                return;
+            }
+
+            MainLayout.Visibility = _mainLayoutVisibilityBeforeResize;
+            AnimateAndCleanupResizeFreezeOverlay();
+        }
+
+        private void CaptureResizeFreezeSnapshot()
+        {
+            if (RootGrid == null)
+            {
+                return;
+            }
+
+            _resizeFreezeDipWidth = RootGrid.ActualWidth;
+            _resizeFreezeDipHeight = RootGrid.ActualHeight;
+            if (_resizeFreezeDipWidth <= 0 || _resizeFreezeDipHeight <= 0)
+            {
+                return;
+            }
+
+            var dpi = VisualTreeHelper.GetDpi(RootGrid);
+            int pixelWidth = Math.Max(1, (int)Math.Round(_resizeFreezeDipWidth * dpi.DpiScaleX));
+            int pixelHeight = Math.Max(1, (int)Math.Round(_resizeFreezeDipHeight * dpi.DpiScaleY));
+
+            var rtb = new RenderTargetBitmap(
+                pixelWidth,
+                pixelHeight,
+                dpi.PixelsPerInchX,
+                dpi.PixelsPerInchY,
+                PixelFormats.Pbgra32);
+
+            rtb.Render(RootGrid);
+            rtb.Freeze();
+            _resizePreparedSnapshot = rtb;
+        }
+
+        private void AnimateAndCleanupResizeFreezeOverlay()
+        {
+            StopResizeFreezeStoryboard();
+
+            double newWidth = RootGrid.ActualWidth;
+            double newHeight = RootGrid.ActualHeight;
+
+            double scaleX = (_resizeFreezeDipWidth > 0) ? (newWidth / _resizeFreezeDipWidth) : 1;
+            double scaleY = (_resizeFreezeDipHeight > 0) ? (newHeight / _resizeFreezeDipHeight) : 1;
+
+            if (!double.IsFinite(scaleX) || scaleX <= 0) scaleX = 1;
+            if (!double.IsFinite(scaleY) || scaleY <= 0) scaleY = 1;
+
+            var scaleTransform = new ScaleTransform(1, 1);
+            ResizeFreezeImage.RenderTransformOrigin = GetResizeTransformOrigin(_resizeSizingEdge);
+            ResizeFreezeImage.RenderTransform = scaleTransform;
+
+            var duration = TimeSpan.FromMilliseconds(160);
+            var ease = new QuadraticEase { EasingMode = EasingMode.EaseOut };
+
+            var storyboard = new Storyboard { FillBehavior = FillBehavior.Stop };
+
+            storyboard.Children.Add(CreateDoubleAnimation(ResizeFreezeImage, UIElement.OpacityProperty, 1, 0, duration, ease));
+            storyboard.Children.Add(CreateDoubleAnimation(ResizeFreezeBorder, UIElement.OpacityProperty, 1, 0, duration, ease));
+            storyboard.Children.Add(CreateDoubleAnimation(scaleTransform, ScaleTransform.ScaleXProperty, 1, scaleX, duration, ease));
+            storyboard.Children.Add(CreateDoubleAnimation(scaleTransform, ScaleTransform.ScaleYProperty, 1, scaleY, duration, ease));
+
+            storyboard.Completed += (_, _) => CleanupResizeFreezeOverlay();
+
+            _resizeFreezeStoryboard = storyboard;
+            storyboard.Begin();
+        }
+
+        private static Timeline CreateDoubleAnimation(
+            DependencyObject target,
+            DependencyProperty property,
+            double from,
+            double to,
+            TimeSpan duration,
+            IEasingFunction? easing)
+        {
+            var anim = new DoubleAnimation
+            {
+                From = from,
+                To = to,
+                Duration = new Duration(duration),
+                EasingFunction = easing
+            };
+
+            Storyboard.SetTarget(anim, target);
+            Storyboard.SetTargetProperty(anim, new PropertyPath(property));
+            return anim;
+        }
+
+        private static Point GetResizeTransformOrigin(int sizingEdge)
+        {
+            return sizingEdge switch
+            {
+                WMSZ_LEFT => new Point(1, 0.5),
+                WMSZ_RIGHT => new Point(0, 0.5),
+                WMSZ_TOP => new Point(0.5, 1),
+                WMSZ_BOTTOM => new Point(0.5, 0),
+                WMSZ_TOPLEFT => new Point(1, 1),
+                WMSZ_TOPRIGHT => new Point(0, 1),
+                WMSZ_BOTTOMLEFT => new Point(1, 0),
+                WMSZ_BOTTOMRIGHT => new Point(0, 0),
+                _ => new Point(0.5, 0.5)
+            };
+        }
+
+        private void CleanupResizeFreezeOverlay()
+        {
+            StopResizeFreezeStoryboard();
+
+            ResizeFreezeImage.BeginAnimation(OpacityProperty, null);
+            ResizeFreezeImage.RenderTransform = null;
+            ResizeFreezeImage.Source = null;
+            ResizeFreezeImage.Visibility = Visibility.Collapsed;
+            ResizeFreezeImage.Opacity = 1;
+            ResizeFreezeImage.Width = double.NaN;
+            ResizeFreezeImage.Height = double.NaN;
+
+            ResizeFreezeBorder.BeginAnimation(OpacityProperty, null);
+            ResizeFreezeBorder.Visibility = Visibility.Collapsed;
+            ResizeFreezeBorder.Opacity = 1;
+
+            _resizePreparedSnapshot = null;
+            _resizeFreezeDipWidth = 0;
+            _resizeFreezeDipHeight = 0;
+            _resizeSizingEdge = 0;
+            _isResizeFreezeActive = false;
+        }
+
+        private void StopResizeFreezeStoryboard()
+        {
+            if (_resizeFreezeStoryboard == null)
+            {
+                return;
+            }
+
+            try
+            {
+                _resizeFreezeStoryboard.Stop();
+            }
+            catch
+            {
+                // ignored
+            }
+            finally
+            {
+                _resizeFreezeStoryboard = null;
+            }
         }
         #endregion
 
@@ -389,6 +665,12 @@ namespace ImageViewer.Views
         /// </summary>
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            if (_isResizeFreezeActive)
+            {
+                MainLayout.Visibility = _mainLayoutVisibilityBeforeResize;
+                CleanupResizeFreezeOverlay();
+            }
+
             if (ViewModel.IsFullScreen)
             {
                 ExitFullScreen();
@@ -1024,7 +1306,9 @@ namespace ImageViewer.Views
                 _previousHeight = RestoreBounds.Height;
             }
 
-            // 3. 隐藏UI元素
+            // 3. 保存并隐藏UI元素
+            _previousShowStatusBar = ViewModel.Settings.ShowStatusBar;
+            _previousShowSidebar = ViewModel.Settings.ShowSidebar;
             ViewModel.Settings.ShowStatusBar = false;
             ViewModel.Settings.ShowSidebar = false;
 

@@ -5,11 +5,40 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace ImageViewer.Models
 {
+    public enum ImageSourceKind
+    {
+        File = 0,
+        ZipEntry = 1
+    }
+
     public partial class ImageInfo : ObservableObject
     {
         public string FilePath { get; set; } = string.Empty;
-        public string FileName => Path.GetFileName(FilePath);
-        public string FileExtension => Path.GetExtension(FilePath).ToLowerInvariant();
+
+        public ImageSourceKind SourceKind { get; set; } = ImageSourceKind.File;
+        public string? ArchivePath { get; set; }
+        public string? ArchiveEntryPath { get; set; }
+
+        public string FileName =>
+            SourceKind == ImageSourceKind.ZipEntry
+                ? Path.GetFileName(ArchiveEntryPath ?? string.Empty)
+                : Path.GetFileName(FilePath);
+
+        public string FileExtension =>
+            SourceKind == ImageSourceKind.ZipEntry
+                ? Path.GetExtension(ArchiveEntryPath ?? string.Empty).ToLowerInvariant()
+                : Path.GetExtension(FilePath).ToLowerInvariant();
+
+        public string CacheKey =>
+            SourceKind == ImageSourceKind.ZipEntry
+                ? $"zip:{ArchivePath}|{ArchiveEntryPath}"
+                : FilePath;
+
+        public string DisplayPath =>
+            SourceKind == ImageSourceKind.ZipEntry
+                ? $"{ArchivePath}::{ArchiveEntryPath}"
+                : FilePath;
+
         public long FileSize { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
@@ -67,8 +96,22 @@ namespace ImageViewer.Models
             return new ImageInfo
             {
                 FilePath = filePath,
+                SourceKind = ImageSourceKind.File,
                 FileSize = fileInfo.Exists ? fileInfo.Length : 0,
                 DateModified = fileInfo.Exists ? fileInfo.LastWriteTime : DateTime.MinValue
+            };
+        }
+
+        public static ImageInfo FromZipEntry(string archivePath, string entryPath, long uncompressedSize, DateTime dateModified)
+        {
+            return new ImageInfo
+            {
+                FilePath = $"{archivePath}::{entryPath}",
+                SourceKind = ImageSourceKind.ZipEntry,
+                ArchivePath = archivePath,
+                ArchiveEntryPath = entryPath,
+                FileSize = uncompressedSize,
+                DateModified = dateModified
             };
         }
 

@@ -5,6 +5,7 @@ using ImageViewer.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -45,6 +46,9 @@ namespace ImageViewer.ViewModels
             CurrentViewMode = Settings.DefaultViewMode;
 
             _imageService = new ImageService();
+            _imageService.ArchivePasswordCanceled += OnArchivePasswordCanceled;
+            _imageService.ArchiveLoadStrategy = Settings.ArchiveLoadStrategy;
+            Settings.PropertyChanged += OnSettingsPropertyChanged;
             _fileWatcher = new FileWatcherService();
             _localSendService = new LocalSendService(Settings);
             _slideshowTimer = new DispatcherTimer();
@@ -54,6 +58,40 @@ namespace ImageViewer.ViewModels
             _fileWatcher.FileCreated += OnFileCreated;
             _fileWatcher.FileDeleted += OnFileDeleted;
             _fileWatcher.FileRenamed += OnFileRenamed;
+        }
+
+        private void OnArchivePasswordCanceled(string archivePath)
+        {
+            if (!string.IsNullOrWhiteSpace(CurrentFolderPath) &&
+                !string.Equals(CurrentFolderPath, archivePath, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            _preloadCts?.Cancel();
+            _thumbnailCts?.Cancel();
+
+            try
+            {
+                Application.Current?.Dispatcher?.InvokeAsync(() =>
+                {
+                    StatusMessage = "已取消输入密码";
+                    IsImageLoading = false;
+                    IsBusyLoading = false;
+                }, DispatcherPriority.Background);
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void OnSettingsPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(AppSettings.ArchiveLoadStrategy))
+            {
+                _imageService.ArchiveLoadStrategy = Settings.ArchiveLoadStrategy;
+            }
         }
 
         #region 属性定义
@@ -220,7 +258,7 @@ namespace ImageViewer.ViewModels
             var dialog = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = ImageService.OpenFileDialogFilter,
-                Title = "打开图片"
+                Title = "打开图片/压缩包"
             };
 
             if (dialog.ShowDialog() == true)
@@ -897,6 +935,21 @@ namespace ImageViewer.ViewModels
                 return;
             }
 
+            if (ImageService.IsSupportedArchive(filePath))
+            {
+                await LoadArchive(filePath);
+
+                Settings.RecentFiles.Remove(filePath);
+                Settings.RecentFiles.Insert(0, filePath);
+                if (Settings.RecentFiles.Count > 20)
+                {
+                    Settings.RecentFiles = Settings.RecentFiles.Take(20).ToList();
+                }
+                Settings.Save();
+
+                return;
+            }
+
             var folder = Path.GetDirectoryName(filePath);
             if (string.IsNullOrEmpty(folder)) return;
 
@@ -926,6 +979,119 @@ namespace ImageViewer.ViewModels
                 Settings.RecentFiles = Settings.RecentFiles.Take(20).ToList();
             }
             Settings.Save();
+        }
+
+        /// <summary>
+        /// 加载压缩包中的所有图片
+        /// </summary>
+        public async Task LoadArchive(string archivePath)
+        {
+            if (!File.Exists(archivePath)) return;
+
+            try
+            {
+                _imageService.ResetArchivePasswordCancellation(archivePath);
+                IsBusyLoading = true;
+
+                if (Settings.ArchiveLoadStrategy == ArchiveLoadStrategy.TempExtractLru)
+                {
+                    StatusMessage = "正在扫描压缩包（临时目录缓存/LRU）...";
+                }
+                else
+                {
+                    StatusMessage = "正在扫描压缩包...";
+                }
+
+                _preloadCts?.Cancel();
+                _preloadCts = new CancellationTokenSource();
+
+                _fileWatcher.StopWatching();
+
+                Images.Clear();
+                CurrentImage = null;
+                DisplayImage = null;
+                SecondImage = null;
+                SecondDisplayImage = null;
+                CurrentIndex = -1;
+
+                var imageList = new List<ImageInfo>();
+                await Task.Run(() =>
+                {
+                    imageList.AddRange(_imageService.ScanArchive(archivePath));
+                });
+
+                foreach (var img in imageList)
+                {
+                    Images.Add(img);
+                }
+
+                CurrentFolderPath = archivePath;
+
+                if (Images.Count > 0)
+                {
+                    var targetIndex = 0;
+
+                    if (Settings.RememberReadingPosition &&
+                        Settings.ReadingPositions.TryGetValue(archivePath, out var lastIndex))
+                    {
+                        targetIndex = Math.Min(lastIndex, Images.Count - 1);
+                    }
+
+                    try
+                    {
+                        _suppressIndexChangeHandling = true;
+                        CurrentIndex = targetIndex;
+                    }
+                    finally
+                    {
+                        _suppressIndexChangeHandling = false;
+                    }
+
+                    await LoadCurrentImage();
+
+                    if (_imageService.IsArchivePasswordCancelled(archivePath))
+                    {
+                        Images.Clear();
+                        CurrentImage = null;
+                        DisplayImage = null;
+                        SecondImage = null;
+                        SecondDisplayImage = null;
+                        CurrentIndex = -1;
+                        CurrentFolderPath = string.Empty;
+
+                        IsBusyLoading = false;
+                        UpdateEmptyState();
+                        StatusMessage = "已取消输入密码";
+                        return;
+                    }
+
+                    IsBusyLoading = false;
+                    OnPropertyChanged(nameof(HasImages));
+                    OnPropertyChanged(nameof(PositionText));
+                    UpdateEmptyState();
+
+                    StatusMessage = $"已加载 {Images.Count} 张图片，正在生成缩略图...";
+                    _ = LoadThumbnailsAsync();
+                }
+                else
+                {
+                    StatusMessage = "压缩包中没有图片";
+                    IsBusyLoading = false;
+                    UpdateEmptyState();
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                StatusMessage = "加载已取消";
+                IsBusyLoading = false;
+                UpdateEmptyState();
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"加载失败: {ex.Message}";
+                IsBusyLoading = false;
+                UpdateEmptyState();
+            }
         }
 
         /// <summary>
@@ -1066,7 +1232,7 @@ namespace ImageViewer.ViewModels
                     {
                         if (token.IsCancellationRequested) return;
 
-                        var thumbnail = await _imageService.LoadThumbnailAsync(image, Settings.ThumbnailSize);
+                        var thumbnail = await _imageService.LoadThumbnailAsync(image, Settings.ThumbnailSize, token);
 
                         if (thumbnail != null && !token.IsCancellationRequested)
                         {
@@ -1303,6 +1469,10 @@ namespace ImageViewer.ViewModels
                 // 拖入的是图片文件
                 await LoadImageFromPath(first);
             }
+            else if (File.Exists(first) && ImageService.IsSupportedArchive(first))
+            {
+                await LoadImageFromPath(first);
+            }
         }
 
 
@@ -1497,6 +1667,8 @@ namespace ImageViewer.ViewModels
         /// </summary>
         public void Dispose()
         {
+            Settings.PropertyChanged -= OnSettingsPropertyChanged;
+            _imageService.ArchivePasswordCanceled -= OnArchivePasswordCanceled;
 
             // 取消并释放预加载资源
             _preloadCts?.Cancel();

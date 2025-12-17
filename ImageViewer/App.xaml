@@ -16,6 +16,13 @@
             <converters:DoubleToGridLengthConverter x:Key="DoubleToGridLengthConverter"/>
             <converters:DoubleToThicknessConverter x:Key="DoubleToThicknessConverter"/>
             <converters:DoubleToCornerRadiusConverter x:Key="DoubleToCornerRadiusConverter"/>
+
+            <!-- Pixel snapping (reduce Path jitter during resize) -->
+            <Style TargetType="{x:Type Path}">
+                <Setter Property="SnapsToDevicePixels" Value="True"/>
+                <Setter Property="UseLayoutRounding" Value="True"/>
+            </Style>
+
             <!-- Colors -->
             <Color x:Key="PrimaryColor">#3498db</Color>
             <Color x:Key="PrimaryDarkColor">#2980b9</Color>

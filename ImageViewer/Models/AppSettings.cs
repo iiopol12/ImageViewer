@@ -13,6 +13,19 @@ namespace ImageViewer.Models
         DoublePage
     }
 
+    public enum ArchiveLoadStrategy
+    {
+        /// <summary>
+        /// 直接从压缩包条目读取并解码。
+        /// </summary>
+        Stream = 0,
+
+        /// <summary>
+        /// 解压到临时目录并做 LRU 缓存。
+        /// </summary>
+        TempExtractLru = 1
+    }
+
     public enum BackgroundColor
     {
         Black,
@@ -54,6 +67,9 @@ namespace ImageViewer.Models
         private bool _rememberReadingPosition = true;
 
         [ObservableProperty]
+        private bool _freezeDuringResize = true;
+
+        [ObservableProperty]
         private double _windowLeft;
 
         [ObservableProperty]
@@ -88,6 +104,9 @@ namespace ImageViewer.Models
 
         [ObservableProperty]
         private int _mangaDecodeWidth = 1600;
+
+        [ObservableProperty]
+        private ArchiveLoadStrategy _archiveLoadStrategy = ArchiveLoadStrategy.Stream;
 
         // === 瀑布流/漫画总览布局参数 ===
         [ObservableProperty]

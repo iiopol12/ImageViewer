@@ -15,6 +15,9 @@
         WindowStyle="None"
         AllowsTransparency="False"
         ResizeMode="CanResize"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
         AllowDrop="True"
         Drop="Window_Drop"
         DragEnter="Window_DragEnter"
@@ -42,7 +45,8 @@
                             UseAeroCaptionButtons="False"/>
     </WindowChrome.WindowChrome>
 
-    <Grid   >
+    <Grid x:Name="RootGrid" ClipToBounds="True">
+        <Grid x:Name="MainLayout">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -1050,6 +1054,24 @@
                            FontSize="12" VerticalAlignment="Center" MinWidth="80" TextAlignment="Right"/>
             </Grid>
         </Border>
+        </Grid>
+
+        <!-- Resize freeze layer: show snapshot + border during drag -->
+        <Image x:Name="ResizeFreezeImage"
+               Panel.ZIndex="9998"
+               Visibility="Collapsed"
+               IsHitTestVisible="False"
+               HorizontalAlignment="Left"
+               VerticalAlignment="Top"
+               Stretch="None"/>
+        <Border x:Name="ResizeFreezeBorder"
+                Panel.ZIndex="9999"
+                Visibility="Collapsed"
+                IsHitTestVisible="False"
+                BorderBrush="{StaticResource ForegroundDimBrush}"
+                BorderThickness="2"
+                Background="Transparent"
+                Margin="1"/>
 
     </Grid>
 
