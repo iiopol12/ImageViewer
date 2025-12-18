@@ -2,8 +2,12 @@ using ImageViewer.Helpers;
 using ImageViewer.Models;
 using ImageViewer.ViewModels;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -24,9 +28,23 @@ namespace ImageViewer.Views
         // ViewModel 快捷访问属性
         private MainViewModel ViewModel => (MainViewModel)DataContext;
 
+        private const int FolderSwitchMaxVisibleItems = 7;
+        private readonly ObservableCollection<FolderSwitchEntry> _folderSwitchVisibleEntries = new();
+        private List<FolderSwitchEntry> _folderSwitchEntries = new();
+        private string _folderSwitchBaseDirectory = string.Empty;
+        private int _folderSwitchSelectedIndex;
+        private int _folderSwitchWindowStart;
+        private bool _isFolderSwitchOpen;
+        private bool _isFolderSwitchCommitInProgress;
+
         // 鼠标拖拽相关字段
         private Point _lastMousePosition;   // 上次鼠标位置
         private bool _isDragging;           // 是否正在拖拽图片
+
+        // 最大化窗口拖动相关字段
+        private Point _dragStartMousePosition;      // 开始拖动时的鼠标位置
+        private bool _isDraggingMaximizedWindow;    // 是否正在拖动最大化窗口
+        private bool _isNormalWindowDragging;       // 是否正在拖动普通窗口
 
         // 全屏模式前的窗口状态保存
         private WindowState _previousWindowState; // 之前的窗口状态（最大化/正常）
@@ -84,6 +102,8 @@ namespace ImageViewer.Views
         public MainWindow()
         {
             InitializeComponent();
+
+            FolderSwitchListBox.ItemsSource = _folderSwitchVisibleEntries;
 
             // 订阅 ViewModel 属性变化事件
             ViewModel.PropertyChanged += ViewModel_PropertyChanged;
@@ -148,15 +168,15 @@ namespace ImageViewer.Views
             switch (msg)
             {
                 case WM_NCHITTEST:
-                {
-                    var hitResult = HitTestResize(lParam);
-                    if (hitResult != IntPtr.Zero)
                     {
-                        handled = true;
-                        return hitResult;
+                        var hitResult = HitTestResize(lParam);
+                        if (hitResult != IntPtr.Zero)
+                        {
+                            handled = true;
+                            return hitResult;
+                        }
+                        break;
                     }
-                    break;
-                }
                 case WM_ENTERSIZEMOVE:
                     _isInSizeMove = true;
                     _resizeSizingEdge = 0;
@@ -504,6 +524,10 @@ namespace ImageViewer.Views
                 _hotKeyManager.RegisterHotKey(ModifierKeys.Control, Key.F,
                     () => ViewModel.OpenFolderCommand?.Execute(null));
 
+                // === 目录切换 ===
+                _hotKeyManager.RegisterHotKey(ModifierKeys.Control, Key.Tab,
+                    ShowFolderSwitchOverlay);
+
                 // === 导航 - 方向键 ===
                 _hotKeyManager.RegisterHotKey(ModifierKeys.None, Key.Left,
                     () => ViewModel.GoPreviousCommand?.Execute(null));
@@ -601,7 +625,54 @@ namespace ImageViewer.Views
             }
             else
             { // 单击拖动 - 移动窗口
-                DragMove();
+                if (WindowState == WindowState.Maximized)
+                {
+                    // 保存当前鼠标位置（相对于窗口）
+                    _dragStartMousePosition = e.GetPosition(this);
+                    _isDraggingMaximizedWindow = true;
+
+                    // 捕获鼠标以便跟踪移动
+                    TitleBar.CaptureMouse();
+                }
+                else
+                {
+                    _isNormalWindowDragging = true;
+                    DragMove();
+                }
+            }
+        }
+
+        /// <summary>
+        /// 标题栏鼠标释放事件
+        /// </summary>
+        private void TitleBar_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (_isDraggingMaximizedWindow)
+            {
+                _isDraggingMaximizedWindow = false;
+                TitleBar.ReleaseMouseCapture();
+            }
+            _isNormalWindowDragging = false;
+        }
+
+        /// <summary>
+        /// 标题栏鼠标移动事件
+        /// </summary>
+        private void TitleBar_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (_isDraggingMaximizedWindow && e.LeftButton == MouseButtonState.Pressed)
+            {
+                Point currentMousePosition = e.GetPosition(this);
+
+                // 计算鼠标移动距离
+                double deltaX = currentMousePosition.X - _dragStartMousePosition.X;
+                double deltaY = currentMousePosition.Y - _dragStartMousePosition.Y;
+
+                // 当鼠标移动超过一定阈值时，恢复窗口大小并开始拖动
+                if (Math.Abs(deltaX) > 5 || Math.Abs(deltaY) > 5)
+                {
+                    RestoreAndDragMaximizedWindow(currentMousePosition);
+                }
             }
         }
         /// <summary>
@@ -628,7 +699,63 @@ namespace ImageViewer.Views
                 WindowState = WindowState.Maximized;
 
                 MaximizeIcon_Normal.Visibility = Visibility.Collapsed;
-               MaximizeIcon_Restore.Visibility = Visibility.Visible;
+                MaximizeIcon_Restore.Visibility = Visibility.Visible;
+            }
+        }
+
+        /// <summary>
+        /// 恢复最大化窗口并开始拖动
+        /// </summary>
+        private void RestoreAndDragMaximizedWindow(Point currentMousePos)
+        {
+            _isDraggingMaximizedWindow = false;
+            TitleBar.ReleaseMouseCapture();
+
+            // 获取屏幕上的鼠标位置
+            var screenPoint = PointToScreen(currentMousePos);
+
+            // 计算恢复后窗口的合适大小（约为屏幕的75%）
+            var screen = System.Windows.Forms.Screen.FromPoint(new System.Drawing.Point((int)screenPoint.X, (int)screenPoint.Y));
+            double targetWidth = screen.WorkingArea.Width * 0.5;
+            double targetHeight = screen.WorkingArea.Height * 0.75;
+
+            // 计算鼠标在窗口宽度中的相对位置比例
+            double relativeX = currentMousePos.X / ActualWidth;
+
+            // 恢复到正常状态
+            WindowState = WindowState.Normal;
+
+            // 更新最大化按钮图标
+            MaximizeIcon_Normal.Visibility = Visibility.Visible;
+            MaximizeIcon_Restore.Visibility = Visibility.Collapsed;
+
+            // 强制更新布局以获取新的窗口大小
+            UpdateLayout();
+
+            // 设置恢复后的窗口大小
+            Width = targetWidth;
+            Height = targetHeight;
+
+            // 计算新的窗口位置，使鼠标保持在标题栏的相对位置
+            double newLeft = screenPoint.X - (targetWidth * relativeX);
+            double newTop = screenPoint.Y - currentMousePos.Y;
+
+            // 确保窗口不会超出屏幕边界
+            newLeft = Math.Max(screen.WorkingArea.Left, Math.Min(newLeft, screen.WorkingArea.Right - targetWidth));
+            newTop = Math.Max(screen.WorkingArea.Top, Math.Min(newTop, screen.WorkingArea.Bottom - targetHeight));
+
+            // 设置窗口位置
+            Left = newLeft;
+            Top = newTop;
+
+            // 开始拖动窗口
+            try
+            {
+                DragMove();
+            }
+            catch
+            {
+                // DragMove有时可能会抛出异常，忽略即可
             }
         }
 
@@ -697,19 +824,19 @@ namespace ImageViewer.Views
         {
             if (WindowState == WindowState.Maximized)
             {
-               
+
 
                 MaximizeIcon_Normal.Visibility = Visibility.Visible;
                 MaximizeIcon_Restore.Visibility = Visibility.Collapsed;
             }
             else
             {
-              
+
 
                 MaximizeIcon_Normal.Visibility = Visibility.Collapsed;
                 MaximizeIcon_Restore.Visibility = Visibility.Visible;
             }
-          
+
         }
 
         private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -735,6 +862,482 @@ namespace ImageViewer.Views
             }
         }
 
+        private sealed class FolderSwitchEntry
+        {
+            public FolderSwitchEntry(string fullPath, string displayName, bool isParent)
+            {
+                FullPath = fullPath;
+                DisplayName = displayName;
+                IsParent = isParent;
+            }
+
+            public string FullPath { get; }
+            public string DisplayName { get; }
+            public bool IsParent { get; }
+        }
+
+        private void FolderSwitchOverlay_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (!_isFolderSwitchOpen)
+                return;
+
+            CloseFolderSwitchOverlay(restoreHotKeys: true);
+        }
+
+        private void FolderSwitchOverlayContent_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            e.Handled = true;
+        }
+
+        private async void Window_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (!_isFolderSwitchOpen)
+            {
+                if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control) && e.Key == Key.Tab)
+                {
+                    ShowFolderSwitchOverlay();
+                    e.Handled = true;
+                }
+
+                return;
+            }
+
+            switch (e.Key)
+            {
+                case Key.Escape:
+                    CloseFolderSwitchOverlay(restoreHotKeys: true);
+                    e.Handled = true;
+                    break;
+                case Key.Enter:
+                    e.Handled = true;
+                    await CommitFolderSwitchSelectionAsync();
+                    break;
+                case Key.Left:
+                    MoveFolderSwitchSelection(-1);
+                    e.Handled = true;
+                    break;
+                case Key.Right:
+                    MoveFolderSwitchSelection(1);
+                    e.Handled = true;
+                    break;
+                case Key.Up:
+                    BrowseFolderSwitchToParent();
+                    e.Handled = true;
+                    break;
+                case Key.Q:
+                    e.Handled = true;
+                    CloseFolderSwitchOverlay(restoreHotKeys: true);
+                    break;
+                case Key.Down:
+                    BrowseFolderSwitchIntoSelectedFolder();
+                    e.Handled = true;
+                    break;
+                case Key.Tab:
+                    MoveFolderSwitchSelection(Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? -1 : 1);
+                    e.Handled = true;
+                    break;
+            }
+        }
+
+        private async void Window_PreviewKeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (!_isFolderSwitchOpen)
+                return;
+
+            if (e.Key != Key.LeftCtrl && e.Key != Key.RightCtrl)
+                return;
+
+            if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+                return;
+
+            e.Handled = true;
+            await CommitFolderSwitchSelectionAsync();
+        }
+
+        private void ShowFolderSwitchOverlay()
+        {
+            if (_isFolderSwitchOpen)
+                return;
+
+            if (!TryGetFolderSwitchBaseDirectory(out var baseDirectory))
+            {
+                ViewModel.StatusMessage = "当前没有可切换的目录";
+                return;
+            }
+
+            var entries = BuildFolderSwitchEntries(baseDirectory);
+            if (entries.Count == 0)
+            {
+                ViewModel.StatusMessage = "当前目录没有可切换的子文件夹";
+                return;
+            }
+
+            _folderSwitchEntries = entries;
+            _folderSwitchBaseDirectory = baseDirectory;
+            _folderSwitchSelectedIndex = GetFolderSwitchDefaultSelectionIndex(entries);
+            _folderSwitchWindowStart = 0;
+
+            FolderSwitchBasePathText.Text = baseDirectory;
+
+            _isFolderSwitchOpen = true;
+            FolderSwitchOverlay.Visibility = Visibility.Visible;
+
+            // 暂停全局热键，避免方向键等在浮层中仍触发图片导航
+            _hotKeyManager?.UnregisterAll();
+
+            RefreshFolderSwitchVisibleItems();
+            FolderSwitchListBox.Focus();
+        }
+
+        private void CloseFolderSwitchOverlay(bool restoreHotKeys)
+        {
+            if (!_isFolderSwitchOpen)
+                return;
+
+            _isFolderSwitchOpen = false;
+            _isFolderSwitchCommitInProgress = false;
+
+            FolderSwitchOverlay.Visibility = Visibility.Collapsed;
+            FolderSwitchBasePathText.Text = string.Empty;
+
+            FolderSwitchMoreLeft.Visibility = Visibility.Collapsed;
+            FolderSwitchMoreRight.Visibility = Visibility.Collapsed;
+
+            _folderSwitchVisibleEntries.Clear();
+            _folderSwitchEntries = new List<FolderSwitchEntry>();
+            _folderSwitchBaseDirectory = string.Empty;
+            _folderSwitchSelectedIndex = 0;
+            _folderSwitchWindowStart = 0;
+
+            if (restoreHotKeys && IsActive)
+            {
+                RegisterGlobalHotKeys();
+            }
+        }
+
+        private static int GetFolderSwitchDefaultSelectionIndex(List<FolderSwitchEntry> entries)
+        {
+            if (entries.Count <= 0)
+                return 0;
+
+            if (entries[0].IsParent && entries.Count > 1)
+                return 1;
+
+            return 0;
+        }
+
+        private async Task CommitFolderSwitchSelectionAsync()
+        {
+            if (!_isFolderSwitchOpen || _isFolderSwitchCommitInProgress)
+                return;
+
+            _isFolderSwitchCommitInProgress = true;
+
+            try
+            {
+                var entry = GetFolderSwitchSelectedEntry();
+                CloseFolderSwitchOverlay(restoreHotKeys: true);
+
+                if (entry == null)
+                    return;
+
+                if (!Directory.Exists(entry.FullPath))
+                    return;
+
+                await ViewModel.LoadFolder(entry.FullPath);
+            }
+            catch (Exception ex)
+            {
+                ViewModel.StatusMessage = $"切换目录失败: {ex.Message}";
+            }
+            finally
+            {
+                _isFolderSwitchCommitInProgress = false;
+            }
+        }
+
+        private FolderSwitchEntry? GetFolderSwitchSelectedEntry()
+        {
+            if (_folderSwitchEntries.Count == 0)
+                return null;
+
+            if (_folderSwitchSelectedIndex < 0 || _folderSwitchSelectedIndex >= _folderSwitchEntries.Count)
+                return null;
+
+            return _folderSwitchEntries[_folderSwitchSelectedIndex];
+        }
+
+        private void MoveFolderSwitchSelection(int delta)
+        {
+            if (!_isFolderSwitchOpen || _folderSwitchEntries.Count == 0)
+                return;
+
+            var total = _folderSwitchEntries.Count;
+            var nextIndex = _folderSwitchSelectedIndex + delta;
+
+            if (nextIndex < 0)
+                nextIndex = total - 1;
+            else if (nextIndex >= total)
+                nextIndex = 0;
+
+            _folderSwitchSelectedIndex = nextIndex;
+
+            EnsureFolderSwitchSelectionVisible();
+            RefreshFolderSwitchVisibleItems();
+        }
+
+        private void SelectFolderSwitchParent()
+        {
+            if (!_isFolderSwitchOpen || _folderSwitchEntries.Count == 0)
+                return;
+
+            if (!_folderSwitchEntries[0].IsParent)
+                return;
+
+            _folderSwitchSelectedIndex = 0;
+            EnsureFolderSwitchSelectionVisible();
+            RefreshFolderSwitchVisibleItems();
+        }
+
+        private void SelectFolderSwitchFirstChild()
+        {
+            if (!_isFolderSwitchOpen || _folderSwitchEntries.Count == 0)
+                return;
+
+            var childIndex = _folderSwitchEntries[0].IsParent ? 1 : 0;
+            if (childIndex >= _folderSwitchEntries.Count)
+                return;
+
+            _folderSwitchSelectedIndex = childIndex;
+            EnsureFolderSwitchSelectionVisible();
+            RefreshFolderSwitchVisibleItems();
+        }
+
+        private void BrowseFolderSwitchToParent()
+        {
+            if (!_isFolderSwitchOpen || string.IsNullOrWhiteSpace(_folderSwitchBaseDirectory))
+                return;
+
+            string? parentDirectory;
+            try
+            {
+                parentDirectory = Directory.GetParent(_folderSwitchBaseDirectory)?.FullName;
+            }
+            catch
+            {
+                parentDirectory = null;
+            }
+
+            if (string.IsNullOrWhiteSpace(parentDirectory) || !Directory.Exists(parentDirectory))
+                return;
+
+            var previousBaseDirectory = _folderSwitchBaseDirectory;
+
+            _folderSwitchBaseDirectory = parentDirectory;
+            FolderSwitchBasePathText.Text = parentDirectory;
+
+            _folderSwitchEntries = BuildFolderSwitchEntries(parentDirectory);
+
+            var targetIndex = -1;
+            for (var i = 0; i < _folderSwitchEntries.Count; i++)
+            {
+                if (string.Equals(_folderSwitchEntries[i].FullPath, previousBaseDirectory, StringComparison.OrdinalIgnoreCase))
+                {
+                    targetIndex = i;
+                    break;
+                }
+            }
+
+            _folderSwitchSelectedIndex = targetIndex >= 0
+                ? targetIndex
+                : GetFolderSwitchDefaultSelectionIndex(_folderSwitchEntries);
+
+            _folderSwitchWindowStart = 0;
+            RefreshFolderSwitchVisibleItems();
+        }
+
+        private void BrowseFolderSwitchIntoSelectedFolder()
+        {
+            if (!_isFolderSwitchOpen || _folderSwitchEntries.Count == 0)
+                return;
+
+            var entry = GetFolderSwitchSelectedEntry();
+            if (entry == null)
+                return;
+
+            if (!Directory.Exists(entry.FullPath))
+                return;
+
+            var previousBaseDirectory = _folderSwitchBaseDirectory;
+            var nextBaseDirectory = entry.FullPath;
+
+            if (string.Equals(previousBaseDirectory, nextBaseDirectory, StringComparison.OrdinalIgnoreCase))
+                return;
+
+            _folderSwitchBaseDirectory = nextBaseDirectory;
+            FolderSwitchBasePathText.Text = nextBaseDirectory;
+
+            _folderSwitchEntries = BuildFolderSwitchEntries(nextBaseDirectory);
+
+            if (entry.IsParent && !string.IsNullOrWhiteSpace(previousBaseDirectory))
+            {
+                var targetIndex = -1;
+                for (var i = 0; i < _folderSwitchEntries.Count; i++)
+                {
+                    if (string.Equals(_folderSwitchEntries[i].FullPath, previousBaseDirectory, StringComparison.OrdinalIgnoreCase))
+                    {
+                        targetIndex = i;
+                        break;
+                    }
+                }
+
+                _folderSwitchSelectedIndex = targetIndex >= 0
+                    ? targetIndex
+                    : GetFolderSwitchDefaultSelectionIndex(_folderSwitchEntries);
+            }
+            else
+            {
+                _folderSwitchSelectedIndex = GetFolderSwitchDefaultSelectionIndex(_folderSwitchEntries);
+            }
+
+            _folderSwitchWindowStart = 0;
+            RefreshFolderSwitchVisibleItems();
+        }
+
+        private void EnsureFolderSwitchSelectionVisible()
+        {
+            if (_folderSwitchEntries.Count == 0)
+            {
+                _folderSwitchWindowStart = 0;
+                return;
+            }
+
+            var total = _folderSwitchEntries.Count;
+            var windowSize = Math.Min(FolderSwitchMaxVisibleItems, total);
+
+            if (_folderSwitchSelectedIndex < _folderSwitchWindowStart)
+            {
+                _folderSwitchWindowStart = _folderSwitchSelectedIndex;
+            }
+            else if (_folderSwitchSelectedIndex >= _folderSwitchWindowStart + windowSize)
+            {
+                _folderSwitchWindowStart = _folderSwitchSelectedIndex - (windowSize - 1);
+            }
+
+            _folderSwitchWindowStart = Math.Clamp(_folderSwitchWindowStart, 0, Math.Max(0, total - windowSize));
+        }
+
+        private void RefreshFolderSwitchVisibleItems()
+        {
+            _folderSwitchVisibleEntries.Clear();
+
+            if (_folderSwitchEntries.Count == 0)
+            {
+                FolderSwitchMoreLeft.Visibility = Visibility.Collapsed;
+                FolderSwitchMoreRight.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            EnsureFolderSwitchSelectionVisible();
+
+            var total = _folderSwitchEntries.Count;
+            var windowSize = Math.Min(FolderSwitchMaxVisibleItems, total);
+            var windowEndExclusive = Math.Min(total, _folderSwitchWindowStart + windowSize);
+
+            for (var i = _folderSwitchWindowStart; i < windowEndExclusive; i++)
+            {
+                _folderSwitchVisibleEntries.Add(_folderSwitchEntries[i]);
+            }
+
+            FolderSwitchMoreLeft.Visibility = _folderSwitchWindowStart > 0 ? Visibility.Visible : Visibility.Collapsed;
+            FolderSwitchMoreRight.Visibility = windowEndExclusive < total ? Visibility.Visible : Visibility.Collapsed;
+
+            FolderSwitchListBox.SelectedIndex = Math.Clamp(_folderSwitchSelectedIndex - _folderSwitchWindowStart, 0, windowSize - 1);
+        }
+
+        private static List<FolderSwitchEntry> BuildFolderSwitchEntries(string baseDirectory)
+        {
+            var entries = new List<FolderSwitchEntry>();
+
+            try
+            {
+                var parent = Directory.GetParent(baseDirectory)?.FullName;
+                if (!string.IsNullOrWhiteSpace(parent) && Directory.Exists(parent))
+                {
+                    entries.Add(new FolderSwitchEntry(parent, GetFolderDisplayName(parent), isParent: true));
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+
+            IEnumerable<string> subFolders;
+            try
+            {
+                subFolders = Directory.EnumerateDirectories(baseDirectory);
+            }
+            catch
+            {
+                subFolders = Enumerable.Empty<string>();
+            }
+
+            foreach (var folderPath in subFolders
+                         .Select(p => new { Path = p, Name = GetFolderDisplayName(p) })
+                         .OrderBy(x => x.Name, StringComparer.CurrentCultureIgnoreCase)
+                         .ThenBy(x => x.Path, StringComparer.CurrentCultureIgnoreCase)
+                         .Select(x => x.Path))
+            {
+                entries.Add(new FolderSwitchEntry(folderPath, GetFolderDisplayName(folderPath), isParent: false));
+            }
+
+            return entries;
+        }
+
+        private bool TryGetFolderSwitchBaseDirectory(out string baseDirectory)
+        {
+            baseDirectory = string.Empty;
+
+            if (!string.IsNullOrWhiteSpace(ViewModel.CurrentFolderPath))
+            {
+                if (Directory.Exists(ViewModel.CurrentFolderPath))
+                {
+                    baseDirectory = ViewModel.CurrentFolderPath;
+                    return true;
+                }
+
+                if (File.Exists(ViewModel.CurrentFolderPath))
+                {
+                    var dir = Path.GetDirectoryName(ViewModel.CurrentFolderPath);
+                    if (!string.IsNullOrWhiteSpace(dir) && Directory.Exists(dir))
+                    {
+                        baseDirectory = dir;
+                        return true;
+                    }
+                }
+            }
+
+            var currentImagePath = ViewModel.CurrentImage?.FilePath;
+            if (!string.IsNullOrWhiteSpace(currentImagePath))
+            {
+                var dir = Path.GetDirectoryName(currentImagePath);
+                if (!string.IsNullOrWhiteSpace(dir) && Directory.Exists(dir))
+                {
+                    baseDirectory = dir;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static string GetFolderDisplayName(string fullPath)
+        {
+            var normalized = fullPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var name = Path.GetFileName(normalized);
+            return string.IsNullOrWhiteSpace(name) ? fullPath : name;
+        }
+
         /// <summary>
         /// 窗口激活事件 - 窗口获得焦点时触发
         /// </summary>
@@ -751,6 +1354,7 @@ namespace ImageViewer.Views
         private void Window_Deactivated(object sender, EventArgs e)
         {
             // 窗口失焦时释放全局热键
+            CloseFolderSwitchOverlay(restoreHotKeys: false);
             _hotKeyManager?.UnregisterAll();
         }
 
@@ -759,6 +1363,41 @@ namespace ImageViewer.Views
         /// </summary>
         private void Window_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
         {
+            // 处理最大化窗口的拖动
+            if (_isDraggingMaximizedWindow && e.LeftButton == MouseButtonState.Pressed)
+            {
+                Point currentMousePosition = e.GetPosition(this);
+
+                // 计算鼠标移动距离
+                double deltaX = currentMousePosition.X - _dragStartMousePosition.X;
+                double deltaY = currentMousePosition.Y - _dragStartMousePosition.Y;
+
+                // 当鼠标移动超过一定阈值时，恢复窗口大小并开始拖动
+                if (Math.Abs(deltaX) > 5 || Math.Abs(deltaY) > 5)
+                {
+                    RestoreAndDragMaximizedWindow(currentMousePosition);
+                }
+                return;
+            }
+
+            // 处理普通窗口拖动到顶部最大化
+            if (_isNormalWindowDragging && e.LeftButton == MouseButtonState.Pressed && WindowState == WindowState.Normal)
+            {
+                // 获取屏幕坐标
+                var screenPoint = PointToScreen(e.GetPosition(this));
+                var screen = System.Windows.Forms.Screen.FromPoint(new System.Drawing.Point((int)screenPoint.X, (int)screenPoint.Y));
+
+                // 检查是否拖动到屏幕顶部（工作区顶部）
+                if (screenPoint.Y <= screen.WorkingArea.Top + 5)
+                {
+                    // 最大化窗口
+                    WindowState = WindowState.Maximized;
+                    MaximizeIcon_Normal.Visibility = Visibility.Collapsed;
+                    MaximizeIcon_Restore.Visibility = Visibility.Visible;
+                    _isNormalWindowDragging = false;
+                }
+            }
+
             // 移动鼠标时立即显示，并在幻灯片模式下重启隐藏计时器
             ShowCursor();
 
@@ -900,7 +1539,7 @@ namespace ImageViewer.Views
 
             // 计算新的缩放级别
             double currentZoom = ViewModel.ZoomLevel;
-            double delta = e.Delta >0 ? ZOOM_FACTOR : -ZOOM_FACTOR;
+            double delta = e.Delta > 0 ? ZOOM_FACTOR : -ZOOM_FACTOR;
             double newZoom = currentZoom * (1 + delta);
 
             // 限制缩放范围

@@ -7,6 +7,8 @@ namespace ImageViewer.Services
     {
         private FileSystemWatcher? _watcher;
         private string? _currentFolder;
+        private bool _includeSubdirectories;
+        private int _maxSubfolderDepth;
         
         public event EventHandler<FileSystemEventArgs>? FileCreated;
         public event EventHandler<FileSystemEventArgs>? FileDeleted;
@@ -15,17 +17,24 @@ namespace ImageViewer.Services
         
         public void WatchFolder(string folderPath)
         {
+            WatchFolder(folderPath, includeSubfolders: false, maxSubfolderDepth: 0);
+        }
+
+        public void WatchFolder(string folderPath, bool includeSubfolders, int maxSubfolderDepth)
+        {
             StopWatching();
             
             if (!Directory.Exists(folderPath))
                 return;
             
             _currentFolder = folderPath;
+            _includeSubdirectories = includeSubfolders;
+            _maxSubfolderDepth = includeSubfolders ? maxSubfolderDepth : 0;
             _watcher = new FileSystemWatcher(folderPath)
             {
                 NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.CreationTime,
                 EnableRaisingEvents = true,
-                IncludeSubdirectories = false
+                IncludeSubdirectories = includeSubfolders
             };
             
             _watcher.Created += OnFileCreated;
@@ -47,11 +56,59 @@ namespace ImageViewer.Services
                 _watcher = null;
             }
             _currentFolder = null;
+            _includeSubdirectories = false;
+            _maxSubfolderDepth = 0;
+        }
+
+        private bool IsWithinDepth(string path)
+        {
+            if (!_includeSubdirectories)
+            {
+                return true;
+            }
+
+            if (_maxSubfolderDepth < 0)
+            {
+                return true;
+            }
+
+            if (string.IsNullOrWhiteSpace(_currentFolder))
+            {
+                return false;
+            }
+
+            string relative;
+            try
+            {
+                relative = Path.GetRelativePath(_currentFolder, path);
+            }
+            catch
+            {
+                return false;
+            }
+
+            if (relative.StartsWith("..", StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            var relativeDir = Path.GetDirectoryName(relative);
+            if (string.IsNullOrWhiteSpace(relativeDir) || relativeDir == ".")
+            {
+                return 0 <= _maxSubfolderDepth;
+            }
+
+            var depth = relativeDir.Split(
+                    new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar },
+                    StringSplitOptions.RemoveEmptyEntries)
+                .Length;
+
+            return depth <= _maxSubfolderDepth;
         }
         
         private void OnFileCreated(object sender, FileSystemEventArgs e)
         {
-            if (ImageService.IsSupportedImage(e.FullPath))
+            if (ImageService.IsSupportedImage(e.FullPath) && IsWithinDepth(e.FullPath))
             {
                 FileCreated?.Invoke(this, e);
             }
@@ -59,7 +116,7 @@ namespace ImageViewer.Services
         
         private void OnFileDeleted(object sender, FileSystemEventArgs e)
         {
-            if (ImageService.IsSupportedImage(e.FullPath))
+            if (ImageService.IsSupportedImage(e.FullPath) && IsWithinDepth(e.FullPath))
             {
                 FileDeleted?.Invoke(this, e);
             }
@@ -67,7 +124,8 @@ namespace ImageViewer.Services
         
         private void OnFileRenamed(object sender, RenamedEventArgs e)
         {
-            if (ImageService.IsSupportedImage(e.FullPath) || ImageService.IsSupportedImage(e.OldFullPath))
+            if ((ImageService.IsSupportedImage(e.FullPath) || ImageService.IsSupportedImage(e.OldFullPath)) &&
+                (IsWithinDepth(e.FullPath) || IsWithinDepth(e.OldFullPath)))
             {
                 FileRenamed?.Invoke(this, e);
             }
@@ -75,7 +133,7 @@ namespace ImageViewer.Services
         
         private void OnFileChanged(object sender, FileSystemEventArgs e)
         {
-            if (ImageService.IsSupportedImage(e.FullPath))
+            if (ImageService.IsSupportedImage(e.FullPath) && IsWithinDepth(e.FullPath))
             {
                 FileChanged?.Invoke(this, e);
             }

@@ -161,26 +161,32 @@
                                     <TextBlock Text="幻灯片设置" Foreground="{StaticResource ForegroundBrush}"
                                                FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
 
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="150"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
+                                     <Grid>
+                                         <Grid.ColumnDefinitions>
+                                             <ColumnDefinition Width="150"/>
+                                             <ColumnDefinition Width="*"/>
+                                         </Grid.ColumnDefinitions>
+                                         <Grid.RowDefinitions>
+                                             <RowDefinition Height="Auto"/>
+                                             <RowDefinition Height="Auto"/>
+                                         </Grid.RowDefinitions>
+ 
+                                         <TextBlock Grid.Row="0" Grid.Column="0" Text="切换间隔(秒)"
+                                                    Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
+                                         <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
+                                             <Slider x:Name="IntervalSlider" Width="150" Minimum="1" Maximum="30"
+                                                     Value="5" TickFrequency="1" IsSnapToTickEnabled="True"/>
+                                             <TextBlock x:Name="IntervalText" Text="5" Foreground="{StaticResource ForegroundBrush}"
+                                                        VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                         </StackPanel>
 
-                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="切换间隔(秒)"
-                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
-                                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
-                                            <Slider x:Name="IntervalSlider" Width="150" Minimum="1" Maximum="30"
-                                                    Value="5" TickFrequency="1" IsSnapToTickEnabled="True"/>
-                                            <TextBlock x:Name="IntervalText" Text="5" Foreground="{StaticResource ForegroundBrush}"
-                                                       VerticalAlignment="Center" Margin="12,0,0,0"/>
-                                        </StackPanel>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
+                                         <TextBlock Grid.Row="1" Grid.Column="0" Text="随机播放"
+                                                    Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
+                                         <CheckBox Grid.Row="1" Grid.Column="1" x:Name="ShuffleSlideshowCheckBox" Content="启用随机（单图模式）"
+                                                   Foreground="{StaticResource ForegroundBrush}" Margin="0,12,0,0"/>
+                                     </Grid>
+                                 </StackPanel>
+                             </Border>
 
                             <!-- Performance Settings -->
                             <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">
@@ -248,12 +254,26 @@
                                                Foreground="{StaticResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
                                      <CheckBox x:Name="RememberReadingCheckBox" Content="记住上次阅读位置"
                                                Foreground="{StaticResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
-                                     <CheckBox x:Name="FreezeDuringResizeCheckBox" Content="拖动缩放时冻结界面（减少抖动）"
-                                               Foreground="{StaticResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
-                                     <CheckBox x:Name="ShowStatusBarCheckBox" Content="显示底边栏（状态栏）"
-                                               Foreground="{StaticResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
-                                 </StackPanel>
-                             </Border>
+                                      <CheckBox x:Name="FreezeDuringResizeCheckBox" Content="拖动缩放时冻结界面（减少抖动）"
+                                                Foreground="{StaticResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
+                                      <CheckBox x:Name="ShowStatusBarCheckBox" Content="显示底边栏（状态栏）"
+                                                Foreground="{StaticResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
+
+                                      <CheckBox x:Name="ScanSubfoldersCheckBox" Content="启用穿透子文件夹（包含子目录图片）"
+                                                Foreground="{StaticResource ForegroundBrush}" IsChecked="False" Margin="0,12,0,4"/>
+                                      <StackPanel Orientation="Horizontal" Margin="24,0,0,4">
+                                          <TextBlock Text="穿透层数" Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center"/>
+                                          <ComboBox x:Name="ScanSubfoldersDepthComboBox" Width="120" Margin="12,0,0,0"
+                                                    IsEnabled="{Binding IsChecked, ElementName=ScanSubfoldersCheckBox}">
+                                              <ComboBoxItem Content="0（仅当前）" Tag="0"/>
+                                              <ComboBoxItem Content="1" Tag="1"/>
+                                              <ComboBoxItem Content="2" Tag="2"/>
+                                              <ComboBoxItem Content="3" Tag="3"/>
+                                              <ComboBoxItem Content="无限" Tag="-1"/>
+                                          </ComboBox>
+                                      </StackPanel>
+                                  </StackPanel>
+                              </Border>
 
                             <!-- LocalSend -->
                             <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">

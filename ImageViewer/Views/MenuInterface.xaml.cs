@@ -207,6 +207,7 @@ namespace ImageViewer.Views
             // Slideshow
             IntervalSlider.Value = _settings.SlideshowInterval;
             IntervalText.Text = _settings.SlideshowInterval.ToString();
+            ShuffleSlideshowCheckBox.IsChecked = _settings.SlideshowShuffle;
 
             // Performance
             PreloadSlider.Value = _settings.PreloadCount;
@@ -233,6 +234,17 @@ namespace ImageViewer.Views
              FreezeDuringResizeCheckBox.IsChecked = _settings.FreezeDuringResize;
              ShowStatusBarCheckBox.IsChecked = _settings.ShowStatusBar;
 
+             // Subfolder scan
+             ScanSubfoldersCheckBox.IsChecked = _settings.ScanSubfoldersEnabled;
+             foreach (ComboBoxItem item in ScanSubfoldersDepthComboBox.Items)
+             {
+                 if (int.TryParse(item.Tag?.ToString(), out var depth) && depth == _settings.ScanSubfoldersDepth)
+                 {
+                     ScanSubfoldersDepthComboBox.SelectedItem = item;
+                     break;
+                 }
+             }
+ 
              // LocalSend
              LocalSendPathTextBox.Text = _settings.LocalSendPath;
          }
@@ -259,6 +271,7 @@ namespace ImageViewer.Views
 
             // Slideshow
             _settings.SlideshowInterval = (int)IntervalSlider.Value;
+            _settings.SlideshowShuffle = ShuffleSlideshowCheckBox.IsChecked ?? false;
 
             // Performance
             _settings.PreloadCount = (int)PreloadSlider.Value;
@@ -271,14 +284,22 @@ namespace ImageViewer.Views
                 _settings.ArchiveLoadStrategy = strategy;
             }
 
-             // Behavior
-             _settings.RememberWindowPosition = RememberPositionCheckBox.IsChecked ?? true;
-             _settings.RememberReadingPosition = RememberReadingCheckBox.IsChecked ?? true;
-             _settings.FreezeDuringResize = FreezeDuringResizeCheckBox.IsChecked ?? true;
-             _settings.ShowStatusBar = ShowStatusBarCheckBox.IsChecked ?? true;
+              // Behavior
+              _settings.RememberWindowPosition = RememberPositionCheckBox.IsChecked ?? true;
+              _settings.RememberReadingPosition = RememberReadingCheckBox.IsChecked ?? true;
+              _settings.FreezeDuringResize = FreezeDuringResizeCheckBox.IsChecked ?? true;
+              _settings.ShowStatusBar = ShowStatusBarCheckBox.IsChecked ?? true;
 
-             // LocalSend
-             _settings.LocalSendPath = LocalSendPathTextBox.Text ?? string.Empty;
+              // Subfolder scan
+              _settings.ScanSubfoldersEnabled = ScanSubfoldersCheckBox.IsChecked ?? false;
+              if (ScanSubfoldersDepthComboBox.SelectedItem is ComboBoxItem depthItem &&
+                  int.TryParse(depthItem.Tag?.ToString(), out var depth))
+              {
+                  _settings.ScanSubfoldersDepth = depth;
+              }
+ 
+              // LocalSend
+              _settings.LocalSendPath = LocalSendPathTextBox.Text ?? string.Empty;
 
             _settings.Save();
             DialogResult = true;

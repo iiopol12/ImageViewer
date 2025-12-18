@@ -39,6 +39,8 @@ namespace ImageViewer.Models
                 ? $"{ArchivePath}::{ArchiveEntryPath}"
                 : FilePath;
 
+        public string RelativePath { get; set; } = string.Empty;
+
         public long FileSize { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
@@ -126,6 +128,7 @@ namespace ImageViewer.Models
                 SourceKind = ImageSourceKind.ZipEntry,
                 ArchivePath = archivePath,
                 ArchiveEntryPath = entryPath,
+                RelativePath = entryPath,
                 FileSize = uncompressedSize,
                 DateModified = dateModified
             };

@@ -978,16 +978,126 @@ namespace ImageViewer.Services
     
         public IEnumerable<ImageInfo> ScanFolder(string folderPath)
         {
+            return ScanFolder(folderPath, includeSubfolders: false, maxSubfolderDepth: 0);
+        }
+
+        public IEnumerable<ImageInfo> ScanFolder(string folderPath, bool includeSubfolders, int maxSubfolderDepth)
+        {
             if (!Directory.Exists(folderPath))
                 yield break;
-            
-            var files = Directory.GetFiles(folderPath)
-                .Where(f => IsSupportedImage(f))
-                .OrderBy(f => f, new NaturalStringComparer());
-            
-            foreach (var file in files)
+
+            IEnumerable<string> files;
+            try
             {
-                yield return ImageInfo.FromFile(file);
+                files = EnumerateFilesForScan(folderPath, includeSubfolders, maxSubfolderDepth);
+            }
+            catch
+            {
+                yield break;
+            }
+
+            var comparer = new NaturalStringComparer();
+            foreach (var item in files
+                         .Where(IsSupportedImage)
+                         .Select(file => new { File = file, SortKey = GetRelativeSortKey(folderPath, file) })
+                         .OrderBy(x => x.SortKey, comparer)
+                         .ThenBy(x => x.File, StringComparer.OrdinalIgnoreCase))
+            {
+                var info = ImageInfo.FromFile(item.File);
+                info.RelativePath = item.SortKey;
+                yield return info;
+            }
+        }
+
+        private static IEnumerable<string> EnumerateFilesForScan(string folderPath, bool includeSubfolders, int maxSubfolderDepth)
+        {
+            var baseOptions = new EnumerationOptions
+            {
+                IgnoreInaccessible = true,
+                AttributesToSkip = FileAttributes.ReparsePoint
+            };
+
+            if (!includeSubfolders || maxSubfolderDepth == 0)
+            {
+                return Directory.EnumerateFiles(folderPath, "*", baseOptions);
+            }
+
+            if (maxSubfolderDepth < 0)
+            {
+                var recursiveOptions = new EnumerationOptions
+                {
+                    RecurseSubdirectories = true,
+                    IgnoreInaccessible = true,
+                    AttributesToSkip = FileAttributes.ReparsePoint
+                };
+
+                return Directory.EnumerateFiles(folderPath, "*", recursiveOptions);
+            }
+
+            return EnumerateFilesWithDepthLimit(folderPath, maxSubfolderDepth, baseOptions);
+        }
+
+        private static IEnumerable<string> EnumerateFilesWithDepthLimit(string rootFolder, int maxSubfolderDepth, EnumerationOptions options)
+        {
+            var pending = new Stack<(string Folder, int Depth)>();
+            pending.Push((rootFolder, 0));
+
+            while (pending.Count > 0)
+            {
+                var (folder, depth) = pending.Pop();
+
+                IEnumerable<string> files;
+                try
+                {
+                    files = Directory.EnumerateFiles(folder, "*", options);
+                }
+                catch
+                {
+                    continue;
+                }
+
+                foreach (var file in files)
+                {
+                    yield return file;
+                }
+
+                if (depth >= maxSubfolderDepth)
+                {
+                    continue;
+                }
+
+                IEnumerable<string> subFolders;
+                try
+                {
+                    subFolders = Directory.EnumerateDirectories(folder, "*", options);
+                }
+                catch
+                {
+                    continue;
+                }
+
+                foreach (var subFolder in subFolders)
+                {
+                    pending.Push((subFolder, depth + 1));
+                }
+            }
+        }
+
+        private static string GetRelativeSortKey(string rootFolder, string filePath)
+        {
+            try
+            {
+                var relative = Path.GetRelativePath(rootFolder, filePath);
+                if (relative.StartsWith("..", StringComparison.Ordinal))
+                {
+                    return filePath;
+                }
+
+                return relative;
+            }
+            catch
+            {
+                return filePath;
             }
         }
 

@@ -28,6 +28,10 @@ namespace ImageViewer.ViewModels
         private readonly FileWatcherService _fileWatcher; // 文件系统监视服务
         private readonly LocalSendService _localSendService; // LocalSend 分享服务
         private readonly DispatcherTimer _slideshowTimer;// 幻灯片播放定时器
+        private readonly Random _slideshowRandom = new();
+        private List<int>? _slideshowShuffleOrder;
+        private int[]? _slideshowShufflePositionByIndex;
+        private int _slideshowShufflePosition;
 
         // === 取消令牌 ===
         private CancellationTokenSource? _preloadCts;   // 预加载取消令牌
@@ -253,6 +257,9 @@ namespace ImageViewer.ViewModels
             // 检查索引有效性
             if (value < 0 || value >= Images.Count)
                 return;
+
+            SyncSlideshowShufflePositionToIndex(value);
+
             // 异步加载当前图片
             _ = LoadCurrentImage();
         }
@@ -1148,11 +1155,14 @@ namespace ImageViewer.ViewModels
 
 
                 // ✓ 批量添加图片，减少 UI 线程切换
-                var imageList = new List<ImageInfo>();
-                await Task.Run(() =>
-                {
-                    imageList.AddRange(_imageService.ScanFolder(folderPath));
-                });
+                 var imageList = new List<ImageInfo>();
+                 await Task.Run(() =>
+                 {
+                     imageList.AddRange(_imageService.ScanFolder(
+                         folderPath,
+                         includeSubfolders: Settings.ScanSubfoldersEnabled,
+                         maxSubfolderDepth: Settings.ScanSubfoldersDepth));
+                 });
 
                 // 一次性添加到 ObservableCollection
                 foreach (var img in imageList)
@@ -1163,8 +1173,11 @@ namespace ImageViewer.ViewModels
 
                 CurrentFolderPath = folderPath;
 
-                // 启动文件监视
-                _fileWatcher.WatchFolder(folderPath);
+                 // 启动文件监视
+                 _fileWatcher.WatchFolder(
+                     folderPath,
+                     includeSubfolders: Settings.ScanSubfoldersEnabled,
+                     maxSubfolderDepth: Settings.ScanSubfoldersDepth);
 
                 if (Images.Count > 0)
                 {
@@ -1585,6 +1598,120 @@ namespace ImageViewer.ViewModels
                     GoNext();
             }
         }
+
+        private bool IsShuffleSlideshowEnabled => Settings.SlideshowShuffle && IsSingleMode;
+
+        private void ResetSlideshowShuffleState()
+        {
+            _slideshowShuffleOrder = null;
+            _slideshowShufflePositionByIndex = null;
+            _slideshowShufflePosition = 0;
+        }
+
+        private void InitializeSlideshowShuffleOrder(int anchorIndex)
+        {
+            ResetSlideshowShuffleState();
+
+            var count = Images.Count;
+            if (count <= 0)
+                return;
+
+            if (anchorIndex < 0 || anchorIndex >= count)
+                anchorIndex = 0;
+
+            var order = new List<int>(count);
+            for (var i = 0; i < count; i++)
+            {
+                if (i != anchorIndex)
+                    order.Add(i);
+            }
+
+            ShuffleInPlace(order);
+            order.Insert(0, anchorIndex);
+
+            _slideshowShuffleOrder = order;
+            _slideshowShufflePosition = 0;
+
+            var positionByIndex = new int[count];
+            for (var position = 0; position < order.Count; position++)
+            {
+                positionByIndex[order[position]] = position;
+            }
+
+            _slideshowShufflePositionByIndex = positionByIndex;
+        }
+
+        private void ShuffleInPlace(List<int> list)
+        {
+            for (var i = list.Count - 1; i > 0; i--)
+            {
+                var j = _slideshowRandom.Next(i + 1);
+                (list[i], list[j]) = (list[j], list[i]);
+            }
+        }
+
+        private void SyncSlideshowShufflePositionToIndex(int index)
+        {
+            if (!_slideshowTimer.IsEnabled || !IsSlideShowActive || !IsShuffleSlideshowEnabled)
+                return;
+
+            var count = Images.Count;
+            if (count <= 0)
+                return;
+
+            if (_slideshowShuffleOrder == null ||
+                _slideshowShufflePositionByIndex == null ||
+                _slideshowShuffleOrder.Count != count ||
+                _slideshowShufflePositionByIndex.Length != count)
+            {
+                InitializeSlideshowShuffleOrder(index);
+                return;
+            }
+
+            if (index < 0 || index >= count)
+                return;
+
+            _slideshowShufflePosition = _slideshowShufflePositionByIndex[index];
+        }
+
+        private void AdvanceSlideshowShuffle()
+        {
+            var count = Images.Count;
+            if (count <= 1)
+                return;
+
+            if (_slideshowShuffleOrder == null ||
+                _slideshowShufflePositionByIndex == null ||
+                _slideshowShuffleOrder.Count != count ||
+                _slideshowShufflePositionByIndex.Length != count)
+            {
+                InitializeSlideshowShuffleOrder(CurrentIndex);
+            }
+
+            if (_slideshowShuffleOrder == null || _slideshowShuffleOrder.Count <= 1)
+                return;
+
+            if (_slideshowShufflePositionByIndex != null &&
+                CurrentIndex >= 0 &&
+                CurrentIndex < _slideshowShufflePositionByIndex.Length)
+            {
+                _slideshowShufflePosition = _slideshowShufflePositionByIndex[CurrentIndex];
+            }
+
+            var nextPosition = _slideshowShufflePosition + 1;
+            if (nextPosition >= _slideshowShuffleOrder.Count)
+            {
+                InitializeSlideshowShuffleOrder(CurrentIndex);
+
+                if (_slideshowShuffleOrder == null || _slideshowShuffleOrder.Count <= 1)
+                    return;
+
+                nextPosition = 1;
+            }
+
+            _slideshowShufflePosition = nextPosition;
+            CurrentIndex = _slideshowShuffleOrder[nextPosition];
+        }
         /// <summary>
         /// 开始幻灯片播放
         /// </summary>
@@ -1592,6 +1719,15 @@ namespace ImageViewer.ViewModels
         {
             if (!HasImages)
                 return;
+
+            if (IsShuffleSlideshowEnabled)
+            {
+                InitializeSlideshowShuffleOrder(CurrentIndex);
+            }
+            else
+            {
+                ResetSlideshowShuffleState();
+            }
 
             IsSlideShowActive = true;
 
@@ -1614,6 +1750,7 @@ namespace ImageViewer.ViewModels
 
             _slideshowTimer.Stop();
             IsSlideShowActive = false;
+            ResetSlideshowShuffleState();
             StatusMessage = "幻灯片已停止";
         }
 
@@ -1623,6 +1760,12 @@ namespace ImageViewer.ViewModels
         /// </summary>
         private void SlideshowTimer_Tick(object? sender, EventArgs e)
         {
+            if (IsShuffleSlideshowEnabled)
+            {
+                AdvanceSlideshowShuffle();
+                return;
+            }
+
             if (CanGoNext)
             {// 播放下一张
                 GoNext();
@@ -1635,16 +1778,51 @@ namespace ImageViewer.ViewModels
         /// <summary>
         /// 文件创建事件 - 新图片添加到文件夹
         /// </summary>
+        private string GetFolderScanRelativePath(string filePath)
+        {
+            if (string.IsNullOrWhiteSpace(CurrentFolderPath))
+            {
+                return filePath;
+            }
+
+            try
+            {
+                var relative = Path.GetRelativePath(CurrentFolderPath, filePath);
+                if (relative.StartsWith("..", StringComparison.Ordinal))
+                {
+                    return filePath;
+                }
+
+                return relative;
+            }
+            catch
+            {
+                return filePath;
+            }
+        }
+
+        private string GetFolderScanSortKey(ImageInfo image)
+        {
+            if (!string.IsNullOrWhiteSpace(image.RelativePath))
+            {
+                return image.RelativePath;
+            }
+
+            return GetFolderScanRelativePath(image.FilePath);
+        }
+
         private void OnFileCreated(object? sender, FileSystemEventArgs e)
         {
             Application.Current.Dispatcher.Invoke(async () =>
             {
                 var newImage = ImageInfo.FromFile(e.FullPath);
+                newImage.RelativePath = GetFolderScanRelativePath(e.FullPath);
+                var newSortKey = newImage.RelativePath;
 
                 // 使用自然排序查找正确的插入位置
                 var index = 0;
                 var comparer = new NaturalStringComparer();
-                while (index < Images.Count && comparer.Compare(Images[index].FilePath, e.FullPath) < 0)
+                while (index < Images.Count && comparer.Compare(GetFolderScanSortKey(Images[index]), newSortKey) < 0)
                 {
                     index++;
                 }

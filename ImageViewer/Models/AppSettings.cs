@@ -61,6 +61,15 @@ namespace ImageViewer.Models
         private int _slideshowInterval = 5;
 
         [ObservableProperty]
+        private bool _slideshowShuffle;
+
+        [ObservableProperty]
+        private bool _scanSubfoldersEnabled;
+
+        [ObservableProperty]
+        private int _scanSubfoldersDepth = 1;
+
+        [ObservableProperty]
         private bool _rememberWindowPosition = true;
 
         [ObservableProperty]
