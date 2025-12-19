@@ -8,7 +8,8 @@ namespace ImageViewer.Models
     public enum ImageSourceKind
     {
         File = 0,
-        ZipEntry = 1
+        ZipEntry = 1, // 压缩包内图片
+        PdfPage = 2   //PDF 页面
     }
 
     public partial class ImageInfo : ObservableObject
@@ -19,25 +20,46 @@ namespace ImageViewer.Models
         public string? ArchivePath { get; set; }
         public string? ArchiveEntryPath { get; set; }
 
+        /// <summary>
+        /// PDF 页码索引（从 0 开始，仅 PdfPage 类型有效）
+        /// </summary>
+        public int PdfPageIndex { get; set; }
+
+
+
         public string FileName =>
-            SourceKind == ImageSourceKind.ZipEntry
-                ? Path.GetFileName(ArchiveEntryPath ?? string.Empty)
-                : Path.GetFileName(FilePath);
+       SourceKind switch
+       {
+           ImageSourceKind.ZipEntry => Path.GetFileName(ArchiveEntryPath ?? string.Empty),
+           ImageSourceKind.PdfPage => $"第 {PdfPageIndex + 1} 页",
+           _ => Path.GetFileName(FilePath)
+       };
 
         public string FileExtension =>
-            SourceKind == ImageSourceKind.ZipEntry
-                ? Path.GetExtension(ArchiveEntryPath ?? string.Empty).ToLowerInvariant()
-                : Path.GetExtension(FilePath).ToLowerInvariant();
+         SourceKind switch
+         {
+             ImageSourceKind.ZipEntry => Path.GetExtension(ArchiveEntryPath ?? string.Empty).ToLowerInvariant(),
+             ImageSourceKind.PdfPage => ".pdf",
+             _ => Path.GetExtension(FilePath).ToLowerInvariant()
+         };
 
         public string CacheKey =>
-            SourceKind == ImageSourceKind.ZipEntry
-                ? $"zip:{ArchivePath}|{ArchiveEntryPath}"
-                : FilePath;
+         SourceKind switch
+         {
+             ImageSourceKind.ZipEntry => $"zip:{ArchivePath}|{ArchiveEntryPath}",
+             ImageSourceKind.PdfPage => $"pdf:{FilePath}|page={PdfPageIndex}",
+             _ => FilePath
+         };
 
         public string DisplayPath =>
-            SourceKind == ImageSourceKind.ZipEntry
-                ? $"{ArchivePath}::{ArchiveEntryPath}"
-                : FilePath;
+       SourceKind switch
+       {
+           ImageSourceKind.ZipEntry => $"{ArchivePath}::{ArchiveEntryPath}",
+           ImageSourceKind.PdfPage => $"{FilePath} - 第 {PdfPageIndex + 1} 页",
+           _ => FilePath
+       };
+
+
 
         public string RelativePath { get; set; } = string.Empty;
 
@@ -162,5 +184,24 @@ namespace ImageViewer.Models
             }
             OnPropertyChanged(nameof(IsAnimatedGif));
         }
+
+        public static ImageInfo FromPdfPage(string pdfPath, int pageIndex, int width, int height, long estimatedSize, DateTime dateModified)
+        {
+            return new ImageInfo
+            {
+                FilePath = pdfPath,
+                SourceKind = ImageSourceKind.PdfPage,
+                PdfPageIndex = pageIndex,
+                Width = width,
+                Height = height,
+                FileSize = estimatedSize,
+                DateModified = dateModified,
+                RelativePath = $"Page {pageIndex + 1}"
+            };
+        }
+
+
+
+
     }
 }

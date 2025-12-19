@@ -102,6 +102,16 @@ namespace ImageViewer.ViewModels
             }
         }
 
+        private static bool IsFolderPath(string path)
+        {
+            return !string.IsNullOrWhiteSpace(path) && Directory.Exists(path);
+        }
+
+        private ImageFilterOptions GetFilterOptions()
+        {
+            return ImageFilterOptions.FromSettings(Settings);
+        }
+
         #region 属性定义
         // === 应用设置 ===
         [ObservableProperty]
@@ -504,6 +514,32 @@ namespace ImageViewer.ViewModels
         }
 
         [RelayCommand]
+        private async Task ToggleFilter()
+        {
+            if (!IsFolderPath(CurrentFolderPath))
+            {
+                StatusMessage = "过滤仅对普通文件夹生效";
+                return;
+            }
+
+            var previousCount = Images.Count;
+            Settings.FiltersEnabled = !Settings.FiltersEnabled;
+            Settings.Save();
+
+            await LoadFolder(CurrentFolderPath);
+
+            if (Settings.FiltersEnabled)
+            {
+                var hiddenCount = Math.Max(0, previousCount - Images.Count);
+                StatusMessage = $"过滤已启用：隐藏 {hiddenCount} 张";
+            }
+            else
+            {
+                StatusMessage = "过滤已关闭";
+            }
+        }
+
+        [RelayCommand]
         private void SetViewMode(ViewMode mode)
         {
             // 切换到指定模式时关闭瀑布流视图
@@ -787,20 +823,26 @@ namespace ImageViewer.ViewModels
             {
                 CurrentImage.IsBookmarked = !CurrentImage.IsBookmarked;
 
+                var bookmarkKey = CurrentImage.CacheKey;
                 if (CurrentImage.IsBookmarked)
                 {
-                    // 添加书签
-                    Settings.Bookmarks.Add(new Bookmark
+                    // 添加书签（检查是否已存在）
+                    if (!Settings.Bookmarks.Any(b => b.FilePath == bookmarkKey))
                     {
-                        FilePath = CurrentImage.FilePath,
-                        Name = CurrentImage.FileName
-                    });
+                        Settings.Bookmarks.Add(new Bookmark
+                        {
+                            FilePath = bookmarkKey,
+                            Name = CurrentImage.SourceKind == ImageSourceKind.PdfPage
+                                ? $"{Path.GetFileName(CurrentImage.FilePath)} - {CurrentImage.FileName}"
+                                : CurrentImage.FileName,
+                            PageIndex = CurrentImage.PdfPageIndex // 新增：保存页码
+                        });
+                    }
                     StatusMessage = "已添加书签";
                 }
                 else
                 {
-                    // 移除书签
-                    Settings.Bookmarks.RemoveAll(b => b.FilePath == CurrentImage.FilePath);
+                    Settings.Bookmarks.RemoveAll(b => b.FilePath == bookmarkKey);
                     StatusMessage = "已移除书签";
                 }
 
@@ -964,6 +1006,13 @@ namespace ImageViewer.ViewModels
                 return;
             }
 
+            // PDF 文件处理
+            if (ImageService.IsSupportedPdf(filePath))
+            {
+                await LoadPdf(filePath);
+                AddToRecentFiles(filePath);
+                return;
+            }
             if (ImageService.IsSupportedArchive(filePath))
             {
                 await LoadArchive(filePath);
@@ -1010,6 +1059,109 @@ namespace ImageViewer.ViewModels
             Settings.Save();
         }
 
+
+
+        //提取添加最近文件
+        private void AddToRecentFiles(string filePath)
+        {
+            Settings.RecentFiles.Remove(filePath);
+            Settings.RecentFiles.Insert(0, filePath);
+            if (Settings.RecentFiles.Count > 20)
+            {
+                Settings.RecentFiles = Settings.RecentFiles.Take(20).ToList();
+            }
+            Settings.Save();
+        }
+        public async Task LoadPdf(string pdfPath)
+        {
+            if (!File.Exists(pdfPath)) return;
+
+            try
+            {
+                IsBusyLoading = true;
+                StatusMessage = "正在加载 PDF...";
+
+                // 取消旧缩略图任务，避免关闭 PDF 时仍在后台渲染
+                _thumbnailCts?.Cancel();
+
+                // 如果之前打开过 PDF，先关闭缓存，避免文件占用/内容不刷新
+                if (!string.IsNullOrWhiteSpace(CurrentFolderPath) && ImageService.IsSupportedPdf(CurrentFolderPath))
+                {
+                    _imageService.ClosePdf(CurrentFolderPath);
+                }
+
+                _preloadCts?.Cancel();
+                _preloadCts = new CancellationTokenSource();
+
+                _fileWatcher.StopWatching();
+
+                Images.Clear();
+                CurrentImage = null;
+                DisplayImage = null;
+                SecondImage = null;
+                SecondDisplayImage = null;
+                CurrentIndex = -1;
+
+                // 扫描 PDF 页面
+                var pageList = new List<ImageInfo>();
+                await Task.Run(() =>
+                {
+                    pageList.AddRange(_imageService.ScanPdf(pdfPath));
+                });
+
+                foreach (var page in pageList)
+                {
+                    Images.Add(page);
+                }
+
+                CurrentFolderPath = pdfPath;
+
+                if (Images.Count > 0)
+                {
+                    var targetIndex = 0;
+
+                    // 恢复上次阅读位置
+                    if (Settings.RememberReadingPosition &&
+                        Settings.ReadingPositions.TryGetValue(pdfPath, out var lastIndex))
+                    {
+                        targetIndex = Math.Min(lastIndex, Images.Count - 1);
+                    }
+
+                    try
+                    {
+                        _suppressIndexChangeHandling = true;
+                        CurrentIndex = targetIndex;
+                    }
+                    finally
+                    {
+                        _suppressIndexChangeHandling = false;
+                    }
+
+                    await LoadCurrentImage();
+
+                    IsBusyLoading = false;
+                    OnPropertyChanged(nameof(HasImages));
+                    OnPropertyChanged(nameof(PositionText));
+                    UpdateEmptyState();
+
+                    StatusMessage = $"已加载 PDF，共 {Images.Count} 页，正在生成缩略图...";
+                    _ = LoadThumbnailsAsync();
+                }
+                else
+                {
+                    StatusMessage = "PDF 中没有可显示的页面";
+                    IsBusyLoading = false;
+                    UpdateEmptyState();
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"加载 PDF 失败: {ex.Message}";
+                IsBusyLoading = false;
+                UpdateEmptyState();
+            }
+        }
+
         /// <summary>
         /// 加载压缩包中的所有图片
         /// </summary>
@@ -1019,6 +1171,13 @@ namespace ImageViewer.ViewModels
 
             try
             {
+                // 如果之前打开的是 PDF，先关闭文档缓存，避免文件占用
+                _thumbnailCts?.Cancel();
+                if (!string.IsNullOrWhiteSpace(CurrentFolderPath) && ImageService.IsSupportedPdf(CurrentFolderPath))
+                {
+                    _imageService.ClosePdf(CurrentFolderPath);
+                }
+
                 _imageService.ResetArchivePasswordCancellation(archivePath);
                 IsBusyLoading = true;
 
@@ -1133,6 +1292,12 @@ namespace ImageViewer.ViewModels
 
             try
             {
+                // 如果之前打开的是 PDF，先关闭文档缓存，避免文件占用
+                _thumbnailCts?.Cancel();
+                if (!string.IsNullOrWhiteSpace(CurrentFolderPath) && ImageService.IsSupportedPdf(CurrentFolderPath))
+                {
+                    _imageService.ClosePdf(CurrentFolderPath);
+                }
 
 
                 IsBusyLoading = true;
@@ -1161,7 +1326,8 @@ namespace ImageViewer.ViewModels
                      imageList.AddRange(_imageService.ScanFolder(
                          folderPath,
                          includeSubfolders: Settings.ScanSubfoldersEnabled,
-                         maxSubfolderDepth: Settings.ScanSubfoldersDepth));
+                         maxSubfolderDepth: Settings.ScanSubfoldersDepth,
+                         filterOptions: GetFilterOptions()));
                  });
 
                 // 一次性添加到 ObservableCollection
@@ -1329,11 +1495,11 @@ namespace ImageViewer.ViewModels
                 CurrentImage.IsCurrent = true;
 
                 // 检查书签状态
-                CurrentImage.IsBookmarked = Settings.Bookmarks.Any(b => b.FilePath == CurrentImage.FilePath);
+               // CurrentImage.IsBookmarked = Settings.Bookmarks.Any(b => b.FilePath == CurrentImage.FilePath);
+                CurrentImage.IsBookmarked = Settings.Bookmarks.Any(b => b.FilePath == CurrentImage.CacheKey);
 
-
-                 // 在后台加载新图，但不立即替换
-                 int? maxSize = null;
+                // 在后台加载新图，但不立即替换
+                int? maxSize = null;
                  if (IsMangaMode)
                  {
                      maxSize = Math.Max(400, Settings.MangaDecodeWidth);
@@ -1553,17 +1719,25 @@ namespace ImageViewer.ViewModels
 
             if (Directory.Exists(first))
             {
-                // 拖入的是文件夹
                 await LoadFolder(first);
             }
-            else if (File.Exists(first) && ImageService.IsSupportedImage(first))
+            else if (File.Exists(first))
             {
-                // 拖入的是图片文件
-                await LoadImageFromPath(first);
-            }
-            else if (File.Exists(first) && ImageService.IsSupportedArchive(first))
-            {
-                await LoadImageFromPath(first);
+                // PDF 文件
+                if (ImageService.IsSupportedPdf(first))
+                {
+                    await LoadPdf(first);
+                }
+                // 压缩包
+                else if (ImageService.IsSupportedArchive(first))
+                {
+                    await LoadImageFromPath(first);
+                }
+                // 普通图片
+                else if (ImageService.IsSupportedImage(first))
+                {
+                    await LoadImageFromPath(first);
+                }
             }
         }
 
@@ -1815,6 +1989,12 @@ namespace ImageViewer.ViewModels
         {
             Application.Current.Dispatcher.Invoke(async () =>
             {
+                var filterOptions = GetFilterOptions();
+                if (!_imageService.PassesFolderFilters(e.FullPath, filterOptions, out _))
+                {
+                    return;
+                }
+
                 var newImage = ImageInfo.FromFile(e.FullPath);
                 newImage.RelativePath = GetFolderScanRelativePath(e.FullPath);
                 var newSortKey = newImage.RelativePath;
@@ -1891,6 +2071,40 @@ namespace ImageViewer.ViewModels
                 var image = Images.FirstOrDefault(i => i.FilePath == e.OldFullPath);
                 if (image != null)
                 {
+                    var filterOptions = GetFilterOptions();
+                    if (!_imageService.PassesFolderFilters(e.FullPath, filterOptions, out _))
+                    {
+                        var wasCurrentIndex = Images.IndexOf(image);
+                        Images.Remove(image);
+
+                        if (wasCurrentIndex == CurrentIndex && Images.Count > 0)
+                        {
+                            try
+                            {
+                                _suppressIndexChangeHandling = true;
+                                CurrentIndex = Math.Min(wasCurrentIndex, Images.Count - 1);
+                            }
+                            finally
+                            {
+                                _suppressIndexChangeHandling = false;
+                            }
+
+                            _ = LoadCurrentImage();
+                        }
+                        else if (Images.Count == 0)
+                        {
+                            CurrentImage = null;
+                            DisplayImage = null;
+                            CurrentIndex = -1;
+                        }
+
+                        OnPropertyChanged(nameof(HasImages));
+                        OnPropertyChanged(nameof(PositionText));
+                        UpdateEmptyState();
+                        StatusMessage = $"文件已重命名并被过滤: {Path.GetFileName(e.FullPath)}";
+                        return;
+                    }
+
                     // 创建新的图片信息
                     var newImage = ImageInfo.FromFile(e.FullPath);
                     newImage.Thumbnail = image.Thumbnail;
@@ -1926,7 +2140,11 @@ namespace ImageViewer.ViewModels
         {
             Settings.PropertyChanged -= OnSettingsPropertyChanged;
             _imageService.ArchivePasswordCanceled -= OnArchivePasswordCanceled;
-
+            // 如果当前打开的是 PDF，关闭文档缓存
+             if (!string.IsNullOrEmpty(CurrentFolderPath) && ImageService.IsSupportedPdf(CurrentFolderPath))
+            {
+                _imageService.ClosePdf(CurrentFolderPath);
+            }
             // 取消并释放预加载资源
             _preloadCts?.Cancel();
             _preloadCts?.Dispose();

@@ -524,6 +524,9 @@ namespace ImageViewer.Views
                 _hotKeyManager.RegisterHotKey(ModifierKeys.Control, Key.F,
                     () => ViewModel.OpenFolderCommand?.Execute(null));
 
+                _hotKeyManager.RegisterHotKey(ModifierKeys.Control | ModifierKeys.Shift, Key.F,
+                    () => ViewModel.ToggleFilterCommand?.Execute(null));
+
                 // === 目录切换 ===
                 _hotKeyManager.RegisterHotKey(ModifierKeys.Control, Key.Tab,
                     ShowFolderSwitchOverlay);

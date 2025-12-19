@@ -244,6 +244,80 @@
                                  </StackPanel>
                              </Border>
 
+                            <!-- Filter Settings -->
+                            <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="过滤设置" Foreground="{StaticResource ForegroundBrush}"
+                                               FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                    <TextBlock Text="0 表示不限制，快捷键 Ctrl+Shift+F 启用/关闭过滤"
+                                               Foreground="{StaticResource ForegroundDimBrush}"
+                                               FontSize="12" Margin="0,0,0,12"/>
+
+                                    <CheckBox x:Name="EnableFiltersCheckBox" Content="启用过滤（仅对文件夹生效）"
+                                              Foreground="{StaticResource ForegroundBrush}" Margin="0,4"/>
+
+                                    <CheckBox x:Name="SizeFilterCheckBox" Content="启用尺寸过滤"
+                                              Foreground="{StaticResource ForegroundBrush}" Margin="0,12,0,4"/>
+                                    <Grid Margin="24,0,0,0"
+                                          IsEnabled="{Binding IsChecked, ElementName=SizeFilterCheckBox}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="150"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="最小宽度"
+                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Row="0" Grid.Column="1" x:Name="MinWidthTextBox"
+                                                 Width="120" Height="28" Margin="0,6,0,0" VerticalContentAlignment="Center"/>
+
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="最小高度"
+                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                        <TextBox Grid.Row="1" Grid.Column="1" x:Name="MinHeightTextBox"
+                                                 Width="120" Height="28" Margin="0,12,0,0" VerticalContentAlignment="Center"/>
+
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="最大宽度"
+                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                        <TextBox Grid.Row="2" Grid.Column="1" x:Name="MaxWidthTextBox"
+                                                 Width="120" Height="28" Margin="0,12,0,0" VerticalContentAlignment="Center"/>
+
+                                        <TextBlock Grid.Row="3" Grid.Column="0" Text="最大高度"
+                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                        <TextBox Grid.Row="3" Grid.Column="1" x:Name="MaxHeightTextBox"
+                                                 Width="120" Height="28" Margin="0,12,0,0" VerticalContentAlignment="Center"/>
+                                    </Grid>
+
+                                    <CheckBox x:Name="FileSizeFilterCheckBox" Content="启用文件大小过滤"
+                                              Foreground="{StaticResource ForegroundBrush}" Margin="0,16,0,4"/>
+                                    <Grid Margin="24,0,0,0"
+                                          IsEnabled="{Binding IsChecked, ElementName=FileSizeFilterCheckBox}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="150"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="最小大小(KB)"
+                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Row="0" Grid.Column="1" x:Name="MinFileSizeTextBox"
+                                                 Width="120" Height="28" Margin="0,6,0,0" VerticalContentAlignment="Center"/>
+
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="最大大小(MB)"
+                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                        <TextBox Grid.Row="1" Grid.Column="1" x:Name="MaxFileSizeTextBox"
+                                                 Width="120" Height="28" Margin="0,12,0,0" VerticalContentAlignment="Center"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
                             <!-- Behavior Settings -->
                              <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">
                                  <StackPanel>

@@ -117,6 +117,33 @@ namespace ImageViewer.Models
         [ObservableProperty]
         private ArchiveLoadStrategy _archiveLoadStrategy = ArchiveLoadStrategy.Stream;
 
+        [ObservableProperty]
+        private bool _filtersEnabled;
+
+        [ObservableProperty]
+        private bool _sizeFilterEnabled;
+
+        [ObservableProperty]
+        private int _minWidth;
+
+        [ObservableProperty]
+        private int _minHeight;
+
+        [ObservableProperty]
+        private int _maxWidth;
+
+        [ObservableProperty]
+        private int _maxHeight;
+
+        [ObservableProperty]
+        private bool _fileSizeFilterEnabled;
+
+        [ObservableProperty]
+        private int _minFileSizeKB;
+
+        [ObservableProperty]
+        private int _maxFileSizeMB;
+
         // === 瀑布流/漫画总览布局参数 ===
         [ObservableProperty]
         private double _MangaGap = 4;
@@ -164,8 +191,30 @@ namespace ImageViewer.Models
 
     public class Bookmark
     {
+        /// <summary>
+        /// 文件路径或 CacheKey（PDF 页面使用 CacheKey）
+        /// </summary>
+
         public string FilePath { get; set; } = string.Empty;
+
+
+        /// <summary>
+        /// 显示名称
+        /// </summary>
         public string Name { get; set; } = string.Empty;
+
+
+        /// <summary>
+        /// 添加时间
+        /// </summary>
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+
+        /// <summary>
+        /// PDF 页码（仅 PDF 有效，-1 表示非 PDF）
+        /// </summary>
+        public int PageIndex { get; set; } = -1;
+
+
     }
 }

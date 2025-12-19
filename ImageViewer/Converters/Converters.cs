@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using ImageViewer.Models;
 
 namespace ImageViewer.Converters
@@ -242,6 +243,88 @@ namespace ImageViewer.Converters
                 return cr.TopLeft;
             }
             return 0.0;
+        }
+    }
+
+    public class MangaPlaceholderHeightConverter : IMultiValueConverter
+    {
+        private const double DefaultAspectRatio = 1.4;
+        private const double MinPlaceholderHeight = 120;
+        private const double DefaultDecodeWidth = 1600;
+
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (values.Length < 3)
+            {
+                return 0d;
+            }
+
+            if (values[0] != null)
+            {
+                return 0d;
+            }
+
+            double decodeWidth = GetDouble(values[2], DefaultDecodeWidth);
+            if (decodeWidth <= 0)
+            {
+                decodeWidth = DefaultDecodeWidth;
+            }
+
+            if (values[1] is BitmapSource thumb && thumb.PixelWidth > 0 && thumb.PixelHeight > 0)
+            {
+                double ratio = (double)thumb.PixelHeight / thumb.PixelWidth;
+                return Math.Max(MinPlaceholderHeight, decodeWidth * ratio);
+            }
+
+            return Math.Max(MinPlaceholderHeight, decodeWidth * DefaultAspectRatio);
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static double GetDouble(object value, double fallback)
+        {
+            if (value is double d)
+            {
+                return d;
+            }
+
+            if (value is int i)
+            {
+                return i;
+            }
+
+            if (value != null && double.TryParse(value.ToString(), out var parsed))
+            {
+                return parsed;
+            }
+
+            return fallback;
+        }
+    }
+
+    public class MangaImageSourceConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (values.Length > 0 && values[0] is BitmapSource full)
+            {
+                return full;
+            }
+
+            if (values.Length > 1 && values[1] is BitmapSource thumb)
+            {
+                return thumb;
+            }
+
+            return null;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
         }
     }
 

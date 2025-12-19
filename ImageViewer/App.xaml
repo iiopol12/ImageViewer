@@ -17,6 +17,8 @@
             <converters:DoubleToThicknessConverter x:Key="DoubleToThicknessConverter"/>
             <converters:DoubleToCornerRadiusConverter x:Key="DoubleToCornerRadiusConverter"/>
             <converters:GifVisibilityConverter x:Key="GifVisibilityConverter"/>
+            <converters:MangaPlaceholderHeightConverter x:Key="MangaPlaceholderHeightConverter"/>
+            <converters:MangaImageSourceConverter x:Key="MangaImageSourceConverter"/>
 
             <!-- Pixel snapping (reduce Path jitter during resize) -->
             <Style TargetType="{x:Type Path}">

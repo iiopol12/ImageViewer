@@ -228,6 +228,17 @@ namespace ImageViewer.Views
                 }
             }
 
+            // Filters
+            EnableFiltersCheckBox.IsChecked = _settings.FiltersEnabled;
+            SizeFilterCheckBox.IsChecked = _settings.SizeFilterEnabled;
+            MinWidthTextBox.Text = _settings.MinWidth.ToString();
+            MinHeightTextBox.Text = _settings.MinHeight.ToString();
+            MaxWidthTextBox.Text = _settings.MaxWidth.ToString();
+            MaxHeightTextBox.Text = _settings.MaxHeight.ToString();
+            FileSizeFilterCheckBox.IsChecked = _settings.FileSizeFilterEnabled;
+            MinFileSizeTextBox.Text = _settings.MinFileSizeKB.ToString();
+            MaxFileSizeTextBox.Text = _settings.MaxFileSizeMB.ToString();
+
              // Behavior
              RememberPositionCheckBox.IsChecked = _settings.RememberWindowPosition;
              RememberReadingCheckBox.IsChecked = _settings.RememberReadingPosition;
@@ -283,6 +294,17 @@ namespace ImageViewer.Views
             {
                 _settings.ArchiveLoadStrategy = strategy;
             }
+
+            // Filters
+            _settings.FiltersEnabled = EnableFiltersCheckBox.IsChecked ?? false;
+            _settings.SizeFilterEnabled = SizeFilterCheckBox.IsChecked ?? false;
+            _settings.MinWidth = ParseNonNegativeInt(MinWidthTextBox.Text);
+            _settings.MinHeight = ParseNonNegativeInt(MinHeightTextBox.Text);
+            _settings.MaxWidth = ParseNonNegativeInt(MaxWidthTextBox.Text);
+            _settings.MaxHeight = ParseNonNegativeInt(MaxHeightTextBox.Text);
+            _settings.FileSizeFilterEnabled = FileSizeFilterCheckBox.IsChecked ?? false;
+            _settings.MinFileSizeKB = ParseNonNegativeInt(MinFileSizeTextBox.Text);
+            _settings.MaxFileSizeMB = ParseNonNegativeInt(MaxFileSizeTextBox.Text);
 
               // Behavior
               _settings.RememberWindowPosition = RememberPositionCheckBox.IsChecked ?? true;
@@ -424,6 +446,21 @@ namespace ImageViewer.Views
             {
                 LocalSendPathTextBox.Text = dialog.FileName;
             }
+        }
+
+        private static int ParseNonNegativeInt(string? text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return 0;
+            }
+
+            if (int.TryParse(text.Trim(), out var value))
+            {
+                return Math.Max(0, value);
+            }
+
+            return 0;
         }
 
 

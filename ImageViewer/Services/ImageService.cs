@@ -63,8 +63,11 @@ namespace ImageViewer.Services
             ".cbr",
         };
 
+
+        private static readonly string[] PdfExtensions = { ".pdf" };
         // HashSet用于O(1)查找效率
 
+        private static readonly HashSet<string> PdfExtensionSet = new(PdfExtensions, StringComparer.OrdinalIgnoreCase);
         private static readonly HashSet<string> BitmapImageExtensionSet = new(BitmapImageExtensions, StringComparer.OrdinalIgnoreCase);
         private static readonly HashSet<string> SupportedExtensionSet = new(BitmapImageExtensions.Concat(MagickNetExtensions), StringComparer.OrdinalIgnoreCase);
         private static readonly HashSet<string> ArchiveExtensionSet = new(ArchiveExtensions, StringComparer.OrdinalIgnoreCase);
@@ -72,17 +75,34 @@ namespace ImageViewer.Services
         public static IReadOnlyList<string> SupportedExtensions { get; } = SupportedExtensionSet.OrderBy(e => e).ToArray();
         public static IReadOnlyList<string> SupportedArchiveExtensions { get; } = ArchiveExtensionSet.OrderBy(e => e).ToArray();
 
+
+        private readonly PdfService _pdfService = new();
+
         public static string OpenFileDialogFilter
         {
             get
             {
                 var imagePatterns = string.Join(';', SupportedExtensions.Select(ext => $"*{ext}"));
                 var archivePatterns = string.Join(';', SupportedArchiveExtensions.Select(ext => $"*{ext}"));
-                var combinedPatterns = string.Join(';', new[] { imagePatterns, archivePatterns }.Where(p => !string.IsNullOrWhiteSpace(p)));
+                var pdfPatterns = "*.pdf";
+                var combinedPatterns = string.Join(';', new[] { imagePatterns, archivePatterns, pdfPatterns }
+                    .Where(p => !string.IsNullOrWhiteSpace(p)));
 
-                return $"图片/压缩包|{combinedPatterns}|图片文件|{imagePatterns}|压缩包|{archivePatterns}|所有文件|*.*";
+                return $"所有支持的文件|{combinedPatterns}|图片文件|{imagePatterns}|压缩包|{archivePatterns}|PDF 文档|{pdfPatterns}|所有文件|*.*";
             }
         }
+
+
+        public static bool IsSupportedPdf(string filePath)
+        {
+            var ext = Path.GetExtension(filePath);
+            return !string.IsNullOrWhiteSpace(ext) && PdfExtensionSet.Contains(ext);
+        }
+        public IEnumerable<ImageInfo> ScanPdf(string pdfPath)
+        {
+            return _pdfService.ScanPdf(pdfPath);
+        }
+
 
         public ArchiveLoadStrategy ArchiveLoadStrategy { get; set; } = ArchiveLoadStrategy.Stream;
 
@@ -143,6 +163,9 @@ namespace ImageViewer.Services
         private readonly object _cacheLock = new();
         private readonly object _imageCacheLock = new();
         private readonly object _thumbCacheLock = new();
+
+     
+
         /// <summary>
         /// 判断文件是否为支持的图片格式
         /// </summary>
@@ -318,6 +341,155 @@ namespace ImageViewer.Services
             var bitmapSource = image.ToBitmapSource();
             bitmapSource.Freeze();
             return bitmapSource;
+        }
+
+        private static bool PassesFileSizeFilter(long sizeBytes, ImageFilterOptions options)
+        {
+            if (!options.ShouldCheckFileSize)
+            {
+                return true;
+            }
+
+            if (options.MinFileSizeBytes > 0 && sizeBytes < options.MinFileSizeBytes)
+            {
+                return false;
+            }
+
+            if (options.MaxFileSizeBytes < long.MaxValue && sizeBytes > options.MaxFileSizeBytes)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool PassesDimensionFilter(int width, int height, ImageFilterOptions options)
+        {
+            if (!options.ShouldCheckDimensions)
+            {
+                return true;
+            }
+
+            if (options.MinWidth > 0 && width < options.MinWidth)
+            {
+                return false;
+            }
+
+            if (options.MinHeight > 0 && height < options.MinHeight)
+            {
+                return false;
+            }
+
+            if (options.MaxWidth > 0 && width > options.MaxWidth)
+            {
+                return false;
+            }
+
+            if (options.MaxHeight > 0 && height > options.MaxHeight)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool TryGetImageDimensions(string filePath, out int width, out int height)
+        {
+            width = 0;
+            height = 0;
+
+            if (PreferBitmapImage(filePath))
+            {
+                try
+                {
+                    using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    var decoder = BitmapDecoder.Create(stream, BitmapCreateOptions.DelayCreation, BitmapCacheOption.None);
+                    if (decoder.Frames.Count > 0)
+                    {
+                        var frame = decoder.Frames[0];
+                        width = frame.PixelWidth;
+                        height = frame.PixelHeight;
+                        if (width > 0 && height > 0)
+                        {
+                            return true;
+                        }
+                    }
+                }
+                catch
+                {
+                    // fall back to Magick.NET
+                }
+            }
+
+            try
+            {
+                var info = new MagickImageInfo(filePath);
+                width = (int)info.Width;
+                height = (int)info.Height;
+                return width > 0 && height > 0;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static ImageInfo CreateImageInfoFromFileInfo(string filePath, FileInfo fileInfo)
+        {
+            return new ImageInfo
+            {
+                FilePath = filePath,
+                SourceKind = ImageSourceKind.File,
+                FileSize = fileInfo.Exists ? fileInfo.Length : 0,
+                DateModified = fileInfo.Exists ? fileInfo.LastWriteTime : DateTime.MinValue
+            };
+        }
+
+        public bool PassesFolderFilters(string filePath, ImageFilterOptions options, out FileInfo? fileInfo)
+        {
+            fileInfo = null;
+
+            if (!IsSupportedImage(filePath))
+            {
+                return false;
+            }
+
+            if (!options.ShouldCheckFileSize && !options.ShouldCheckDimensions)
+            {
+                return true;
+            }
+
+            if (options.ShouldCheckFileSize)
+            {
+                try
+                {
+                    fileInfo = new FileInfo(filePath);
+                }
+                catch
+                {
+                    return false;
+                }
+
+                if (!fileInfo.Exists || !PassesFileSizeFilter(fileInfo.Length, options))
+                {
+                    return false;
+                }
+            }
+
+            if (options.ShouldCheckDimensions)
+            {
+                if (!TryGetImageDimensions(filePath, out var width, out var height))
+                {
+                    return false;
+                }
+
+                if (!PassesDimensionFilter(width, height, options))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
 
@@ -866,6 +1038,14 @@ namespace ImageViewer.Services
         // 核心加载逻辑
         private BitmapSource? LoadBitmap(ImageInfo imageInfo, int? decodePixelWidth)
         {
+
+            // PDF 页面渲染
+            if (imageInfo.SourceKind == ImageSourceKind.PdfPage)
+            {
+                return _pdfService.RenderPage(imageInfo, decodePixelWidth);
+            }
+
+
             if (imageInfo.SourceKind == ImageSourceKind.ZipEntry)
             {
                 return ArchiveLoadStrategy switch
@@ -978,10 +1158,10 @@ namespace ImageViewer.Services
     
         public IEnumerable<ImageInfo> ScanFolder(string folderPath)
         {
-            return ScanFolder(folderPath, includeSubfolders: false, maxSubfolderDepth: 0);
+            return ScanFolder(folderPath, includeSubfolders: false, maxSubfolderDepth: 0, filterOptions: null);
         }
 
-        public IEnumerable<ImageInfo> ScanFolder(string folderPath, bool includeSubfolders, int maxSubfolderDepth)
+        public IEnumerable<ImageInfo> ScanFolder(string folderPath, bool includeSubfolders, int maxSubfolderDepth, ImageFilterOptions? filterOptions = null)
         {
             if (!Directory.Exists(folderPath))
                 yield break;
@@ -997,13 +1177,23 @@ namespace ImageViewer.Services
             }
 
             var comparer = new NaturalStringComparer();
+            var shouldApplyFilters = filterOptions != null &&
+                                     (filterOptions.ShouldCheckFileSize || filterOptions.ShouldCheckDimensions);
             foreach (var item in files
                          .Where(IsSupportedImage)
                          .Select(file => new { File = file, SortKey = GetRelativeSortKey(folderPath, file) })
                          .OrderBy(x => x.SortKey, comparer)
                          .ThenBy(x => x.File, StringComparer.OrdinalIgnoreCase))
             {
-                var info = ImageInfo.FromFile(item.File);
+                FileInfo? fileInfo = null;
+                if (shouldApplyFilters && filterOptions != null && !PassesFolderFilters(item.File, filterOptions, out fileInfo))
+                {
+                    continue;
+                }
+
+                var info = fileInfo != null
+                    ? CreateImageInfoFromFileInfo(item.File, fileInfo)
+                    : ImageInfo.FromFile(item.File);
                 info.RelativePath = item.SortKey;
                 yield return info;
             }
@@ -1263,7 +1453,17 @@ namespace ImageViewer.Services
                     {
                         try
                         {
-                            var bitmap = LoadBitmap(imageInfo, size);
+                            BitmapSource? bitmap;
+
+                            // PDF 页面使用专门的缩略图渲染
+                            if (imageInfo.SourceKind == ImageSourceKind.PdfPage)
+                            {
+                                bitmap = _pdfService.RenderThumbnail(imageInfo, size);
+                            }
+                            else
+                            {
+                                bitmap = LoadBitmap(imageInfo, size);
+                            }
 
                             if (bitmap == null)
                             {
@@ -1788,6 +1988,8 @@ namespace ImageViewer.Services
             }
             _loadingTasks.Clear();
             _loadSemaphore.Dispose();
+
+            _pdfService.Dispose();
             ClearCache();
         }
 
@@ -1814,6 +2016,12 @@ namespace ImageViewer.Services
             }
         }
 
+
+        // 关闭 PDF 文档的方法
+        public void ClosePdf(string pdfPath)
+        {
+            _pdfService.CloseDocument(pdfPath);
+        }
         /// <summary>
         /// 从字节数组检测 GIF 帧数
         /// </summary>

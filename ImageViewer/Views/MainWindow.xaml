@@ -719,6 +719,13 @@
                                             BorderThickness="0"
                                             MouseLeftButtonUp="WaterfallItem_Click"
                                             Tag="{Binding}">
+                                            <Border.MinHeight>
+                                                <MultiBinding Converter="{StaticResource MangaPlaceholderHeightConverter}">
+                                                    <Binding Path="FullImage"/>
+                                                    <Binding Path="Thumbnail"/>
+                                                    <Binding ElementName="RootWindow" Path="DataContext.Settings.MangaDecodeWidth"/>
+                                                </MultiBinding>
+                                            </Border.MinHeight>
                                             <Border.Style>
                                                 <Style TargetType="Border">
                                                     <Setter Property="BorderBrush" Value="Transparent"/>
@@ -730,10 +737,16 @@
                                                 </Style>
                                             </Border.Style>
 
-                                            <Image Source="{Binding FullImage, TargetNullValue={x:Null}}" 
-                                               Stretch="Uniform" 
+                                            <Image Stretch="Uniform" 
                                                RenderOptions.BitmapScalingMode="HighQuality"
-                                               MaxWidth="{Binding ElementName=RootWindow, Path=DataContext.Settings.MangaDecodeWidth, FallbackValue=1600}"/>
+                                               MaxWidth="{Binding ElementName=RootWindow, Path=DataContext.Settings.MangaDecodeWidth, FallbackValue=1600}">
+                                                <Image.Source>
+                                                    <MultiBinding Converter="{StaticResource MangaImageSourceConverter}">
+                                                        <Binding Path="FullImage"/>
+                                                        <Binding Path="Thumbnail"/>
+                                                    </MultiBinding>
+                                                </Image.Source>
+                                            </Image>
                                         </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
@@ -876,6 +889,7 @@
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="←/→ 或 A/D" Foreground="{StaticResource ForegroundDimBrush}" FontSize="12"/>
@@ -892,6 +906,9 @@
 
                                     <TextBlock Grid.Row="4" Grid.Column="0" Text="ESC" Foreground="{StaticResource ForegroundDimBrush}" FontSize="12" Margin="0,4,0,0"/>
                                     <TextBlock Grid.Row="4" Grid.Column="2" Text="退出全屏/关闭" Foreground="{StaticResource ForegroundBrush}" FontSize="12" Margin="0,4,0,0"/>
+
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Ctrl+Shift+F" Foreground="{StaticResource ForegroundDimBrush}" FontSize="12" Margin="0,4,0,0"/>
+                                    <TextBlock Grid.Row="5" Grid.Column="2" Text="启用/关闭过滤" Foreground="{StaticResource ForegroundBrush}" FontSize="12" Margin="0,4,0,0"/>
                                 </Grid>
                             </StackPanel>
                         </Border>
