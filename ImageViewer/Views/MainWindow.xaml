@@ -872,46 +872,307 @@
                                 Command="{Binding OpenFolderCommand}"/>
                         </StackPanel>
 
-                        <Border Background="{StaticResource BackgroundMediumBrush}" 
-                            CornerRadius="8" Padding="20" Margin="0,40,0,0">
+                        
+                        
+                        <!-- 快捷键指南 - 分组美化版 -->
+                        <Border Background=" #29292c"
+                                CornerRadius="8"
+                                Padding="24,16"
+                                Margin="0,32,0,0"
+                                BorderBrush="{StaticResource ForegroundDimBrush}"
+                                BorderThickness="1"
+                                MaxWidth="800">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#80000000" 
+                                          Opacity="0.3" 
+                                          BlurRadius="10" 
+                                          ShadowDepth="3"/>
+                            </Border.Effect>
+
                             <StackPanel>
-                                <TextBlock Text="快捷键指南" Foreground="{StaticResource ForegroundBrush}"
-                                       FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                                <!-- 标题 -->
+                                <TextBlock Text="快捷键指南"
+                                   Foreground="{StaticResource ForegroundBrush}"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,0,0,12"/>
+
+                                <!-- 主分隔线 -->
+                                <Border Height="1"
+                                        Background="{StaticResource ForegroundDimBrush}"
+                                        Opacity="0.3"
+                                        Margin="0,0,0,16"/>
+
+                                <!-- 两列布局 -->
                                 <Grid>
+                                    <Grid.Resources>
+                                        <!-- 按键样式 -->
+                                        <Style x:Key="KeyStyle" TargetType="Border">
+                                            <Setter Property="Background" Value="#FF3A3A3A"/>
+                                            <Setter Property="CornerRadius" Value="3"/>
+                                            <Setter Property="Padding" Value="6,3"/>
+                                            <Setter Property="Margin" Value="0,0,4,0"/>
+                                        </Style>
+
+                                        <Style x:Key="KeyTextStyle" TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="#FF4A9EFF"/>
+                                            <Setter Property="FontSize" Value="11"/>
+                                            <Setter Property="FontFamily" Value="Consolas"/>
+                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                        </Style>
+
+                                        <Style x:Key="DescTextStyle" TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+                                            <Setter Property="FontSize" Value="12"/>
+                                            <Setter Property="VerticalAlignment" Value="Center"/>
+                                        </Style>
+
+                                        <Style x:Key="CategoryStyle" TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="#FF4A9EFF"/>
+                                            <Setter Property="FontSize" Value="11"/>
+                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                            <Setter Property="Margin" Value="0,0,0,6"/>
+                                        </Style>
+                                    </Grid.Resources>
+
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="20"/>
-                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="24"/>
+                                        <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
 
-                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="←/→ 或 A/D" Foreground="{StaticResource ForegroundDimBrush}" FontSize="12"/>
-                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="上一张/下一张" Foreground="{StaticResource ForegroundBrush}" FontSize="12"/>
+                                    <!-- 左列 -->
+                                    <StackPanel Grid.Column="0">
+                                        <!-- 文件操作 -->
+                                        <TextBlock Text="文件操作" Style="{StaticResource CategoryStyle}"/>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                <Border Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="Ctrl+O" Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                                <Border Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="Ctrl+F" Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="2" Text="打开文件/文件夹" Style="{StaticResource DescTextStyle}"/>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                <Border Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="Ctrl+Tab" Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="2" Text="收藏文件夹切换" Style="{StaticResource DescTextStyle}"/>
+                                        </Grid>
 
-                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="F11" Foreground="{StaticResource ForegroundDimBrush}" FontSize="12" Margin="0,4,0,0"/>
-                                    <TextBlock Grid.Row="1" Grid.Column="2" Text="全屏切换" Foreground="{StaticResource ForegroundBrush}" FontSize="12" Margin="0,4,0,0"/>
+                                        <!-- 图片导航 -->
+                                        <TextBlock Text="图片导航" Style="{StaticResource CategoryStyle}" Margin="0,12,0,6"/>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                <Border Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="← →" Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                                <Border Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="A D" Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="2" Text="上一张/下一张" Style="{StaticResource DescTextStyle}"/>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
+                                                <TextBlock Text="Space" Style="{StaticResource KeyTextStyle}"/>
+                                            </Border>
+                                            <TextBlock Grid.Column="2" Text="下一张" Style="{StaticResource DescTextStyle}"/>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                <Border Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="PgUp" Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                                <Border Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="PgDn" Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="2" Text="上一张/下一张" Style="{StaticResource DescTextStyle}"/>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                <Border Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="Home" Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                                <Border Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="End" Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="2" Text="首张/末张" Style="{StaticResource DescTextStyle}"/>
+                                        </Grid>
 
-                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="M" Foreground="{StaticResource ForegroundDimBrush}" FontSize="12" Margin="0,4,0,0"/>
-                                    <TextBlock Grid.Row="2" Grid.Column="2" Text="切换浏览模式" Foreground="{StaticResource ForegroundBrush}" FontSize="12" Margin="0,4,0,0"/>
+                                        <!-- 视图控制 -->
+                                        <TextBlock Text="视图控制" Style="{StaticResource CategoryStyle}" Margin="0,12,0,6"/>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
+                                                <TextBlock Text="F11" Style="{StaticResource KeyTextStyle}"/>
+                                            </Border>
+                                            <TextBlock Grid.Column="2" Text="全屏切换" Style="{StaticResource DescTextStyle}"/>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
+                                                <TextBlock Text="ESC" Style="{StaticResource KeyTextStyle}"/>
+                                            </Border>
+                                            <TextBlock Grid.Column="2" Text="退出全屏/关闭" Style="{StaticResource DescTextStyle}"/>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                <Border Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="+" Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                                <Border Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="-" Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="2" Text="放大/缩小" Style="{StaticResource DescTextStyle}"/>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
+                                                <TextBlock Text="Ctrl+0" Style="{StaticResource KeyTextStyle}"/>
+                                            </Border>
+                                            <TextBlock Grid.Column="2" Text="适应/原始尺寸切换" Style="{StaticResource DescTextStyle}"/>
+                                        </Grid>
+                                    </StackPanel>
 
-                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="+/-" Foreground="{StaticResource ForegroundDimBrush}" FontSize="12" Margin="0,4,0,0"/>
-                                    <TextBlock Grid.Row="3" Grid.Column="2" Text="放大/缩小" Foreground="{StaticResource ForegroundBrush}" FontSize="12" Margin="0,4,0,0"/>
+                                    <!-- 中间分隔线 -->
+                                    <Border Grid.Column="1" Width="1" 
+                                            Background="{StaticResource ForegroundDimBrush}"
+                                            Opacity="0.3"
+                                            Margin="12,0"/>
 
-                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="ESC" Foreground="{StaticResource ForegroundDimBrush}" FontSize="12" Margin="0,4,0,0"/>
-                                    <TextBlock Grid.Row="4" Grid.Column="2" Text="退出全屏/关闭" Foreground="{StaticResource ForegroundBrush}" FontSize="12" Margin="0,4,0,0"/>
-
-                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Ctrl+Shift+F" Foreground="{StaticResource ForegroundDimBrush}" FontSize="12" Margin="0,4,0,0"/>
-                                    <TextBlock Grid.Row="5" Grid.Column="2" Text="启用/关闭过滤" Foreground="{StaticResource ForegroundBrush}" FontSize="12" Margin="0,4,0,0"/>
+                                    <!-- 右列 -->
+                                    <StackPanel Grid.Column="2">
+                                        <!-- 功能操作 -->
+                                        <TextBlock Text="功能操作" Style="{StaticResource CategoryStyle}"/>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
+                                                <TextBlock Text="M" Style="{StaticResource KeyTextStyle}"/>
+                                            </Border>
+                                            <TextBlock Grid.Column="2" Text="切换浏览模式" Style="{StaticResource DescTextStyle}"/>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
+                                                <TextBlock Text="S" Style="{StaticResource KeyTextStyle}"/>
+                                            </Border>
+                                            <TextBlock Grid.Column="2" Text="开始/停止幻灯片" Style="{StaticResource DescTextStyle}"/>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
+                                                <TextBlock Text="B" Style="{StaticResource KeyTextStyle}"/>
+                                            </Border>
+                                            <TextBlock Grid.Column="2" Text="收藏/取消收藏" Style="{StaticResource DescTextStyle}"/>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
+                                                <TextBlock Text="Ctrl+C" Style="{StaticResource KeyTextStyle}"/>
+                                            </Border>
+                                            <TextBlock Grid.Column="2" Text="复制到剪贴板" Style="{StaticResource DescTextStyle}"/>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
+                                                <TextBlock Text="Delete" Style="{StaticResource KeyTextStyle}"/>
+                                            </Border>
+                                            <TextBlock Grid.Column="2" Text="删除当前图片" Style="{StaticResource DescTextStyle}"/>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
+                                                <TextBlock Text="Ctrl+Shift+F" Style="{StaticResource KeyTextStyle}"/>
+                                            </Border>
+                                            <TextBlock Grid.Column="2" Text="启用/关闭过滤" Style="{StaticResource DescTextStyle}"/>
+                                        </Grid>
+                                    </StackPanel>
                                 </Grid>
                             </StackPanel>
                         </Border>
+              
+
                     </StackPanel>
 
                     <!-- Image Info Panel -->
@@ -1105,7 +1366,7 @@
         </Grid>
 
         <!-- Resize freeze layer: show snapshot + border during drag -->
-        <!-- Folder switch overlay (Ctrl+Tab) -->
+        <!-- Favorite folder switch overlay (Ctrl+Tab) -->
         <Grid x:Name="FolderSwitchOverlay"
               Panel.ZIndex="10000"
               Visibility="Collapsed"
@@ -1123,6 +1384,7 @@
                     <Style x:Key="FolderSwitchListBoxItemStyle" TargetType="ListBoxItem">
                         <Setter Property="Padding" Value="0"/>
                         <Setter Property="Margin" Value="4"/>
+                        <Setter Property="IsEnabled" Value="{Binding Exists}"/>
                         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                         <Setter Property="VerticalContentAlignment" Value="Stretch"/>
                         <Setter Property="Template">
@@ -1154,7 +1416,7 @@
                 </Border.Resources>
 
                 <StackPanel>
-                    <TextBlock Text="切换目录"
+                    <TextBlock Text="切换收藏文件夹"
                                Foreground="{StaticResource ForegroundBrush}"
                                FontSize="14"
                                FontWeight="SemiBold"
@@ -1201,19 +1463,29 @@
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel Margin="8,6" HorizontalAlignment="Center">
-                                        <Grid Width="22" Height="22">
-                                            <Path x:Name="FolderIcon"
-                                                  Data="M4 4 L10 4 L12 6 L20 6 L20 10 M2 10 L22 10 L20 20 L4 20 L2 10"
-                                                  Stroke="{StaticResource ForegroundBrush}"
-                                                  StrokeThickness="2"
-                                                  Stretch="Uniform"/>
-                                            <Path x:Name="ParentIcon"
-                                                  Data="M12 4 L6 10 H10 V20 H14 V10 H18 Z"
-                                                  Stroke="{StaticResource ForegroundBrush}"
-                                                  StrokeThickness="2"
-                                                  Fill="Transparent"
-                                                  Stretch="Uniform"
-                                                  Visibility="Collapsed"/>
+                                        <Grid Width="36" Height="36">
+                                            <Border x:Name="CoverBorder"
+                                                    Background="{StaticResource BackgroundDarkBrush}"
+                                                    CornerRadius="4"
+                                                    ClipToBounds="True"
+                                                    Visibility="{Binding CoverThumbnail, Converter={StaticResource NullToVisibilityConverter}}">
+                                                <Image Source="{Binding CoverThumbnail}" Stretch="UniformToFill"/>
+                                            </Border>
+                                            <Grid x:Name="FolderIconGrid"
+                                                  Visibility="{Binding CoverThumbnail, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=Invert}">
+                                                <Path x:Name="FolderIcon"
+                                                      Data="M4 4 L10 4 L12 6 L20 6 L20 10 M2 10 L22 10 L20 20 L4 20 L2 10"
+                                                      Stroke="{StaticResource ForegroundBrush}"
+                                                      StrokeThickness="2"
+                                                      Stretch="Uniform"/>
+                                                <Path x:Name="ParentIcon"
+                                                      Data="M12 4 L6 10 H10 V20 H14 V10 H18 Z"
+                                                      Stroke="{StaticResource ForegroundBrush}"
+                                                      StrokeThickness="2"
+                                                      Fill="Transparent"
+                                                      Stretch="Uniform"
+                                                      Visibility="Collapsed"/>
+                                            </Grid>
                                         </Grid>
                                         <TextBlock Text="{Binding DisplayName}"
                                                    Foreground="{StaticResource ForegroundBrush}"
@@ -1243,7 +1515,7 @@
                                    Visibility="Collapsed"/>
                     </Grid>
 
-                    <TextBlock Text="←/→选择，↓浏览子目录，↑返回上级，Enter/松开Ctrl进入，Q取消"
+                    <TextBlock Text="←/→或Tab选择，Enter/松开Ctrl进入，Esc/Q取消"
                                Foreground="{StaticResource ForegroundDimBrush}"
                                FontSize="11"
                                Margin="0,12,0,0"

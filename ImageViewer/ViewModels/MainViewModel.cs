@@ -782,7 +782,7 @@ namespace ImageViewer.ViewModels
                     {
                         var existing = new HashSet<string>(
                             Settings.Bookmarks
-                                .Where(b => !string.IsNullOrWhiteSpace(b.FilePath))
+                                .Where(b => b.Type == BookmarkType.Image && !string.IsNullOrWhiteSpace(b.FilePath))
                                 .Select(b => b.FilePath),
                             StringComparer.OrdinalIgnoreCase);
 
@@ -794,7 +794,9 @@ namespace ImageViewer.ViewModels
                                 Settings.Bookmarks.Add(new Bookmark
                                 {
                                     FilePath = img.FilePath,
-                                    Name = img.FileName
+                                    Name = img.FileName,
+                                    Type = BookmarkType.Image,
+                                    SortKey = img.FileName
                                 });
                             }
                         }
@@ -808,7 +810,9 @@ namespace ImageViewer.ViewModels
                             img.IsBookmarked = false;
                         }
 
-                        Settings.Bookmarks.RemoveAll(b => !string.IsNullOrWhiteSpace(b.FilePath) && selectedPaths.Contains(b.FilePath));
+                        Settings.Bookmarks.RemoveAll(b => b.Type == BookmarkType.Image &&
+                                                          !string.IsNullOrWhiteSpace(b.FilePath) &&
+                                                          selectedPaths.Contains(b.FilePath));
                         StatusMessage = $"已取消收藏 {selectedImages.Count} 张";
                     }
 
@@ -827,14 +831,18 @@ namespace ImageViewer.ViewModels
                 if (CurrentImage.IsBookmarked)
                 {
                     // 添加书签（检查是否已存在）
-                    if (!Settings.Bookmarks.Any(b => b.FilePath == bookmarkKey))
+                    if (!Settings.Bookmarks.Any(b => b.Type == BookmarkType.Image && b.FilePath == bookmarkKey))
                     {
+                        var displayName = CurrentImage.SourceKind == ImageSourceKind.PdfPage
+                            ? $"{Path.GetFileName(CurrentImage.FilePath)} - {CurrentImage.FileName}"
+                            : CurrentImage.FileName;
+
                         Settings.Bookmarks.Add(new Bookmark
                         {
                             FilePath = bookmarkKey,
-                            Name = CurrentImage.SourceKind == ImageSourceKind.PdfPage
-                                ? $"{Path.GetFileName(CurrentImage.FilePath)} - {CurrentImage.FileName}"
-                                : CurrentImage.FileName,
+                            Name = displayName,
+                            Type = BookmarkType.Image,
+                            SortKey = displayName,
                             PageIndex = CurrentImage.PdfPageIndex // 新增：保存页码
                         });
                     }
@@ -842,7 +850,7 @@ namespace ImageViewer.ViewModels
                 }
                 else
                 {
-                    Settings.Bookmarks.RemoveAll(b => b.FilePath == bookmarkKey);
+                    Settings.Bookmarks.RemoveAll(b => b.Type == BookmarkType.Image && b.FilePath == bookmarkKey);
                     StatusMessage = "已移除书签";
                 }
 
@@ -1496,7 +1504,8 @@ namespace ImageViewer.ViewModels
 
                 // 检查书签状态
                // CurrentImage.IsBookmarked = Settings.Bookmarks.Any(b => b.FilePath == CurrentImage.FilePath);
-                CurrentImage.IsBookmarked = Settings.Bookmarks.Any(b => b.FilePath == CurrentImage.CacheKey);
+                CurrentImage.IsBookmarked = Settings.Bookmarks.Any(b => b.Type == BookmarkType.Image &&
+                                                                        b.FilePath == CurrentImage.CacheKey);
 
                 // 在后台加载新图，但不立即替换
                 int? maxSize = null;

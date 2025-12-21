@@ -94,459 +94,964 @@
 
             <!-- 设置页 -->
             <Grid x:Name="SettingsPage" Margin="0,50,0,0">
-                <Grid Margin="20">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="20">
+                    <Border Background="{StaticResource BackgroundMediumBrush}"
+                CornerRadius="10"
+                Padding="20"
+                Margin="0,0,40,0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
 
-                    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
-                        <StackPanel>
-                        
+                            <StackPanel Grid.Row="0">
 
-                             <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,0,40,16">
-                                 <Grid>
-                                     <Grid.ColumnDefinitions>
-                                         <ColumnDefinition Width="150"/>
-                                         <ColumnDefinition Width="*"/>
-                                     </Grid.ColumnDefinitions>
-                                     <Grid.RowDefinitions>
-                                         <RowDefinition Height="Auto"/>
-                                         <RowDefinition Height="Auto"/>
-                                         <RowDefinition Height="Auto"/>
-                                         <RowDefinition Height="Auto"/>
-                                         <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
 
-                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="默认浏览模式"
-                                                Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center"/>
-                                     <ComboBox Grid.Row="0" Grid.Column="1" x:Name="ViewModeComboBox" Margin="0,4">
-                                         <ComboBoxItem Content="单图模式" Tag="{x:Static models:ViewMode.Single}"/>
-                                         <ComboBoxItem Content="漫画模式" Tag="{x:Static models:ViewMode.Manga}"/>
-                                         <ComboBoxItem Content="双页模式" Tag="{x:Static models:ViewMode.DoublePage}"/>
-                                     </ComboBox>
-
-                                     <TextBlock Grid.Row="1" Grid.Column="0" Text="背景颜色"
-                                                Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
-                                     <ComboBox Grid.Row="1" Grid.Column="1" x:Name="BackgroundComboBox" Margin="0,12,0,4">
-                                         <ComboBoxItem Content="黑色" Tag="{x:Static models:BackgroundColor.Black}"/>
-                                         <ComboBoxItem Content="白色" Tag="{x:Static models:BackgroundColor.White}"/>
-                                         <ComboBoxItem Content="灰色" Tag="{x:Static models:BackgroundColor.Gray}"/>
-                                         <ComboBoxItem Content="深灰" Tag="{x:Static models:BackgroundColor.DarkGray}"/>
-                                   
-                                     </ComboBox>
-
-                                     <TextBlock Grid.Row="2" Grid.Column="0" Text="滚轮行为"
-                                                Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
-                                     <ComboBox Grid.Row="2" Grid.Column="1" x:Name="ScrollWheelComboBox" Margin="0,12,0,4">
-                                         <ComboBoxItem Content="缩放" Tag="{x:Static models:ScrollWheelBehavior.Zoom}"/>
-                                         <ComboBoxItem Content="翻页" Tag="{x:Static models:ScrollWheelBehavior.Navigate}"/>
-                                     </ComboBox>
-
-                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="漫画模式间隔(px)"
-                                      Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
-                                    <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
-                                        <Slider x:Name="MangaGapSlider" Width="150" Minimum="0" Maximum="30"
-                                 Value="4" TickFrequency="1" IsSnapToTickEnabled="True"/>
-                                        <TextBlock x:Name="MangaGapText" Text="4" Foreground="{StaticResource ForegroundBrush}"
-                                     VerticalAlignment="Center" Margin="12,0,0,0"/>
-                                    </StackPanel>
-
-                                </Grid>
-                             </Border>
-
-                            <!-- Slideshow Settings -->
-                            <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">
-                                <StackPanel>
-                                    <TextBlock Text="幻灯片设置" Foreground="{StaticResource ForegroundBrush}"
-                                               FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
-
-                                     <Grid>
-                                         <Grid.ColumnDefinitions>
-                                             <ColumnDefinition Width="150"/>
-                                             <ColumnDefinition Width="*"/>
-                                         </Grid.ColumnDefinitions>
-                                         <Grid.RowDefinitions>
-                                             <RowDefinition Height="Auto"/>
-                                             <RowDefinition Height="Auto"/>
-                                         </Grid.RowDefinitions>
- 
-                                         <TextBlock Grid.Row="0" Grid.Column="0" Text="切换间隔(秒)"
-                                                    Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
-                                         <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
-                                             <Slider x:Name="IntervalSlider" Width="150" Minimum="1" Maximum="30"
-                                                     Value="5" TickFrequency="1" IsSnapToTickEnabled="True"/>
-                                             <TextBlock x:Name="IntervalText" Text="5" Foreground="{StaticResource ForegroundBrush}"
-                                                        VerticalAlignment="Center" Margin="12,0,0,0"/>
-                                         </StackPanel>
-
-                                         <TextBlock Grid.Row="1" Grid.Column="0" Text="随机播放"
-                                                    Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
-                                         <CheckBox Grid.Row="1" Grid.Column="1" x:Name="ShuffleSlideshowCheckBox" Content="启用随机（单图模式）"
-                                                   Foreground="{StaticResource ForegroundBrush}" Margin="0,12,0,0"/>
-                                     </Grid>
-                                 </StackPanel>
-                             </Border>
-
-                            <!-- Performance Settings -->
-                            <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">
-                                <StackPanel>
-                                    <TextBlock Text="性能设置" Foreground="{StaticResource ForegroundBrush}"
-                                               FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
-
+                                <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,0,40,16">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="150"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                     <Grid.RowDefinitions>
-                                         <RowDefinition Height="Auto"/>
-                                         <RowDefinition Height="Auto"/>
-                                         <RowDefinition Height="Auto"/>
-                                         <RowDefinition Height="Auto"/>
-                                     </Grid.RowDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
 
-                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="预加载数量"
-                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
-                                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
-                                            <Slider x:Name="PreloadSlider" Width="150" Minimum="1" Maximum="10"
-                                                    Value="3" TickFrequency="1" IsSnapToTickEnabled="True"/>
-                                            <TextBlock x:Name="PreloadText" Text="3" Foreground="{StaticResource ForegroundBrush}"
-                                                       VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="默认浏览模式"
+                                                Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center"/>
+                                        <ComboBox Grid.Row="0" Grid.Column="1" x:Name="ViewModeComboBox" Margin="0,4">
+                                            <ComboBoxItem Content="单图模式" Tag="{x:Static models:ViewMode.Single}"/>
+                                            <ComboBoxItem Content="漫画模式" Tag="{x:Static models:ViewMode.Manga}"/>
+                                            <ComboBoxItem Content="双页模式" Tag="{x:Static models:ViewMode.DoublePage}"/>
+                                        </ComboBox>
+
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="背景颜色"
+                                                Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                        <ComboBox Grid.Row="1" Grid.Column="1" x:Name="BackgroundComboBox" Margin="0,12,0,4">
+                                            <ComboBoxItem Content="黑色" Tag="{x:Static models:BackgroundColor.Black}"/>
+                                            <ComboBoxItem Content="白色" Tag="{x:Static models:BackgroundColor.White}"/>
+                                            <ComboBoxItem Content="灰色" Tag="{x:Static models:BackgroundColor.Gray}"/>
+                                            <ComboBoxItem Content="深灰" Tag="{x:Static models:BackgroundColor.DarkGray}"/>
+
+                                        </ComboBox>
+
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="滚轮行为"
+                                                Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                        <ComboBox Grid.Row="2" Grid.Column="1" x:Name="ScrollWheelComboBox" Margin="0,12,0,4">
+                                            <ComboBoxItem Content="缩放" Tag="{x:Static models:ScrollWheelBehavior.Zoom}"/>
+                                            <ComboBoxItem Content="翻页" Tag="{x:Static models:ScrollWheelBehavior.Navigate}"/>
+                                        </ComboBox>
+
+                                        <TextBlock Grid.Row="3" Grid.Column="0" Text="漫画模式间隔(px)"
+                                      Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
+                                        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
+                                            <Slider x:Name="MangaGapSlider" Width="150" Minimum="0" Maximum="30"
+                                 Value="4" TickFrequency="1" IsSnapToTickEnabled="True"/>
+                                            <TextBlock x:Name="MangaGapText" Text="4" Foreground="{StaticResource ForegroundBrush}"
+                                     VerticalAlignment="Center" Margin="12,0,0,0"/>
                                         </StackPanel>
 
-                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="缩略图大小(px)"
-                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
-                                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
-                                            <Slider x:Name="ThumbnailSlider" Width="150" Minimum="40" Maximum="240"
-                                                    Value="120" TickFrequency="20" IsSnapToTickEnabled="True"/>
-                                            <TextBlock x:Name="ThumbnailText" Text="120" Foreground="{StaticResource ForegroundBrush}"
-                                                       VerticalAlignment="Center" Margin="12,0,0,0"/>
-                                        </StackPanel>
+                                    </Grid>
+                                </Border>
 
-                                      
-                                         <TextBlock Grid.Row="2" Grid.Column="0" Text="漫画解码宽度(px)" Visibility="Hidden"
+                                <!-- Slideshow Settings -->
+                                <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="幻灯片设置" Foreground="{StaticResource ForegroundBrush}"
+                                               FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
+
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="150"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="切换间隔(秒)"
                                                     Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
-                                         <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0" Visibility="Hidden">
-                                             <Slider x:Name="MangaDecodeSlider" Width="150" Minimum="800" Maximum="4000"
-                                                     Value="1600" TickFrequency="200" IsSnapToTickEnabled="True"/>
-                                             <TextBlock x:Name="MangaDecodeText" Text="1600" Foreground="{StaticResource ForegroundBrush}"
+                                            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
+                                                <Slider x:Name="IntervalSlider" Width="150" Minimum="1" Maximum="30"
+                                                     Value="5" TickFrequency="1" IsSnapToTickEnabled="True"/>
+                                                <TextBlock x:Name="IntervalText" Text="5" Foreground="{StaticResource ForegroundBrush}"
                                                         VerticalAlignment="Center" Margin="12,0,0,0"/>
-                                         </StackPanel>
+                                            </StackPanel>
 
-                                         <TextBlock Grid.Row="3" Grid.Column="0" Text="压缩包读取"
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="随机播放"
                                                     Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
-                                         <ComboBox Grid.Row="3" Grid.Column="1" x:Name="ArchiveStrategyComboBox" Margin="0,12,40,0">
-                                             <ComboBoxItem Content="内存流（默认）" Tag="{x:Static models:ArchiveLoadStrategy.Stream}"/>
-                                             <ComboBoxItem Content="解压到临时目录" Tag="{x:Static models:ArchiveLoadStrategy.TempExtractLru}"/>
-                                         </ComboBox>
-                                     </Grid>
-                                 </StackPanel>
-                             </Border>
+                                            <CheckBox Grid.Row="1" Grid.Column="1" x:Name="ShuffleSlideshowCheckBox" Content="启用随机（单图模式）"
+                                                   Foreground="{StaticResource ForegroundBrush}" Margin="0,12,0,0"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
 
-                            <!-- Filter Settings -->
-                            <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">
-                                <StackPanel>
-                                    <TextBlock Text="过滤设置" Foreground="{StaticResource ForegroundBrush}"
+                                <!-- Performance Settings -->
+                                <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="性能设置" Foreground="{StaticResource ForegroundBrush}"
+                                               FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
+
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="150"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="预加载数量"
+                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
+                                            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
+                                                <Slider x:Name="PreloadSlider" Width="150" Minimum="1" Maximum="10"
+                                                    Value="3" TickFrequency="1" IsSnapToTickEnabled="True"/>
+                                                <TextBlock x:Name="PreloadText" Text="3" Foreground="{StaticResource ForegroundBrush}"
+                                                       VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                            </StackPanel>
+
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="缩略图大小(px)"
+                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
+                                            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
+                                                <Slider x:Name="ThumbnailSlider" Width="150" Minimum="40" Maximum="240"
+                                                    Value="120" TickFrequency="20" IsSnapToTickEnabled="True"/>
+                                                <TextBlock x:Name="ThumbnailText" Text="120" Foreground="{StaticResource ForegroundBrush}"
+                                                       VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                            </StackPanel>
+
+
+                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="漫画解码宽度(px)" Visibility="Hidden"
+                                                    Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
+                                            <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0" Visibility="Hidden">
+                                                <Slider x:Name="MangaDecodeSlider" Width="150" Minimum="800" Maximum="4000"
+                                                     Value="1600" TickFrequency="200" IsSnapToTickEnabled="True"/>
+                                                <TextBlock x:Name="MangaDecodeText" Text="1600" Foreground="{StaticResource ForegroundBrush}"
+                                                        VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                            </StackPanel>
+
+                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="压缩包读取"
+                                                    Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
+                                            <ComboBox Grid.Row="3" Grid.Column="1" x:Name="ArchiveStrategyComboBox" Margin="0,12,40,0">
+                                                <ComboBoxItem Content="内存流（默认）" Tag="{x:Static models:ArchiveLoadStrategy.Stream}"/>
+                                                <ComboBoxItem Content="解压到临时目录" Tag="{x:Static models:ArchiveLoadStrategy.TempExtractLru}"/>
+                                            </ComboBox>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Filter Settings -->
+                                <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="过滤设置" Foreground="{StaticResource ForegroundBrush}"
                                                FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                                    <TextBlock Text="0 表示不限制，快捷键 Ctrl+Shift+F 启用/关闭过滤"
+                                        <TextBlock Text="0 表示不限制，快捷键 Ctrl+Shift+F 启用/关闭过滤"
                                                Foreground="{StaticResource ForegroundDimBrush}"
                                                FontSize="12" Margin="0,0,0,12"/>
 
-                                    <CheckBox x:Name="EnableFiltersCheckBox" Content="启用过滤（仅对文件夹生效）"
+                                        <CheckBox x:Name="EnableFiltersCheckBox" Content="启用过滤（仅对文件夹生效）"
                                               Foreground="{StaticResource ForegroundBrush}" Margin="0,4"/>
 
-                                    <CheckBox x:Name="SizeFilterCheckBox" Content="启用尺寸过滤"
+                                        <CheckBox x:Name="SizeFilterCheckBox" Content="启用尺寸过滤"
                                               Foreground="{StaticResource ForegroundBrush}" Margin="0,12,0,4"/>
-                                    <Grid Margin="24,0,0,0"
+                                        <Grid Margin="24,0,0,0"
                                           IsEnabled="{Binding IsChecked, ElementName=SizeFilterCheckBox}">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="150"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="150"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
 
-                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="最小宽度"
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="最小宽度"
                                                    Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center"/>
-                                        <TextBox Grid.Row="0" Grid.Column="1" x:Name="MinWidthTextBox"
+                                            <TextBox Grid.Row="0" Grid.Column="1" x:Name="MinWidthTextBox"
                                                  Width="120" Height="28" Margin="0,6,0,0" VerticalContentAlignment="Center"/>
 
-                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="最小高度"
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="最小高度"
                                                    Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
-                                        <TextBox Grid.Row="1" Grid.Column="1" x:Name="MinHeightTextBox"
+                                            <TextBox Grid.Row="1" Grid.Column="1" x:Name="MinHeightTextBox"
                                                  Width="120" Height="28" Margin="0,12,0,0" VerticalContentAlignment="Center"/>
 
-                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="最大宽度"
+                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="最大宽度"
                                                    Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
-                                        <TextBox Grid.Row="2" Grid.Column="1" x:Name="MaxWidthTextBox"
+                                            <TextBox Grid.Row="2" Grid.Column="1" x:Name="MaxWidthTextBox"
                                                  Width="120" Height="28" Margin="0,12,0,0" VerticalContentAlignment="Center"/>
 
-                                        <TextBlock Grid.Row="3" Grid.Column="0" Text="最大高度"
+                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="最大高度"
                                                    Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
-                                        <TextBox Grid.Row="3" Grid.Column="1" x:Name="MaxHeightTextBox"
+                                            <TextBox Grid.Row="3" Grid.Column="1" x:Name="MaxHeightTextBox"
                                                  Width="120" Height="28" Margin="0,12,0,0" VerticalContentAlignment="Center"/>
-                                    </Grid>
+                                        </Grid>
 
-                                    <CheckBox x:Name="FileSizeFilterCheckBox" Content="启用文件大小过滤"
+                                        <CheckBox x:Name="FileSizeFilterCheckBox" Content="启用文件大小过滤"
                                               Foreground="{StaticResource ForegroundBrush}" Margin="0,16,0,4"/>
-                                    <Grid Margin="24,0,0,0"
+                                        <Grid Margin="24,0,0,0"
                                           IsEnabled="{Binding IsChecked, ElementName=FileSizeFilterCheckBox}">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="150"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="150"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
 
-                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="最小大小(KB)"
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="最小大小(KB)"
                                                    Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center"/>
-                                        <TextBox Grid.Row="0" Grid.Column="1" x:Name="MinFileSizeTextBox"
+                                            <TextBox Grid.Row="0" Grid.Column="1" x:Name="MinFileSizeTextBox"
                                                  Width="120" Height="28" Margin="0,6,0,0" VerticalContentAlignment="Center"/>
 
-                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="最大大小(MB)"
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="最大大小(MB)"
                                                    Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
-                                        <TextBox Grid.Row="1" Grid.Column="1" x:Name="MaxFileSizeTextBox"
+                                            <TextBox Grid.Row="1" Grid.Column="1" x:Name="MaxFileSizeTextBox"
                                                  Width="120" Height="28" Margin="0,12,0,0" VerticalContentAlignment="Center"/>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
 
-                            <!-- Behavior Settings -->
-                             <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">
-                                 <StackPanel>
-                                     <TextBlock Text="行为设置" Foreground="{StaticResource ForegroundBrush}"
+                                <!-- Behavior Settings -->
+                                <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="行为设置" Foreground="{StaticResource ForegroundBrush}"
                                                 FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
- 
-                                     <CheckBox x:Name="RememberPositionCheckBox" Content="记住窗口位置和大小"
+
+                                        <CheckBox x:Name="RememberPositionCheckBox" Content="记住窗口位置和大小"
                                                Foreground="{StaticResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
-                                     <CheckBox x:Name="RememberReadingCheckBox" Content="记住上次阅读位置"
+                                        <CheckBox x:Name="RememberReadingCheckBox" Content="记住上次阅读位置"
                                                Foreground="{StaticResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
-                                      <CheckBox x:Name="FreezeDuringResizeCheckBox" Content="拖动缩放时冻结界面（减少抖动）"
+                                        <CheckBox x:Name="FreezeDuringResizeCheckBox" Content="拖动缩放时冻结界面（减少抖动）"
                                                 Foreground="{StaticResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
-                                      <CheckBox x:Name="ShowStatusBarCheckBox" Content="显示底边栏（状态栏）"
+                                        <CheckBox x:Name="ShowStatusBarCheckBox" Content="显示底边栏（状态栏）"
                                                 Foreground="{StaticResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
 
-                                      <CheckBox x:Name="ScanSubfoldersCheckBox" Content="启用穿透子文件夹（包含子目录图片）"
+                                        <CheckBox x:Name="ScanSubfoldersCheckBox" Content="启用穿透子文件夹（包含子目录图片）"
                                                 Foreground="{StaticResource ForegroundBrush}" IsChecked="False" Margin="0,12,0,4"/>
-                                      <StackPanel Orientation="Horizontal" Margin="24,0,0,4">
-                                          <TextBlock Text="穿透层数" Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center"/>
-                                          <ComboBox x:Name="ScanSubfoldersDepthComboBox" Width="120" Margin="12,0,0,0"
+                                        <StackPanel Orientation="Horizontal" Margin="24,0,0,4">
+                                            <TextBlock Text="穿透层数" Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center"/>
+                                            <ComboBox x:Name="ScanSubfoldersDepthComboBox" Width="120" Margin="12,0,0,0"
                                                     IsEnabled="{Binding IsChecked, ElementName=ScanSubfoldersCheckBox}">
-                                              <ComboBoxItem Content="0（仅当前）" Tag="0"/>
-                                              <ComboBoxItem Content="1" Tag="1"/>
-                                              <ComboBoxItem Content="2" Tag="2"/>
-                                              <ComboBoxItem Content="3" Tag="3"/>
-                                              <ComboBoxItem Content="无限" Tag="-1"/>
-                                          </ComboBox>
-                                      </StackPanel>
-                                  </StackPanel>
-                              </Border>
-
-                            <!-- LocalSend -->
-                            <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">
-                                <StackPanel>
-                                    <TextBlock Text="LocalSend 分享设置" Foreground="{StaticResource ForegroundBrush}" FontWeight="SemiBold"/>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-
-                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="可执行文件路径" Width="100"
-                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
-                                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0">
-                                            <TextBox x:Name="LocalSendPathTextBox" Width="200" Height="30"
-                                                     IsReadOnly="True" VerticalContentAlignment="Center"/>
-                                            <Button Content="浏览..." Style="{StaticResource ModernButtonStyle}" Margin="8,0,0,0"
-                                                    Click="BrowseLocalSendButton_Click"/>
+                                                <ComboBoxItem Content="0（仅当前）" Tag="0"/>
+                                                <ComboBoxItem Content="1" Tag="1"/>
+                                                <ComboBoxItem Content="2" Tag="2"/>
+                                                <ComboBoxItem Content="3" Tag="3"/>
+                                                <ComboBoxItem Content="无限" Tag="-1"/>
+                                            </ComboBox>
                                         </StackPanel>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
-                            
-                            <!-- 版本更新和交流 -->
-                            <Border Background="#E3F2FD" CornerRadius="8" Padding="20" Margin="0,16,0,15">
-                                <StackPanel>
-                                    <TextBlock Text="版本更新和交流" FontWeight="Bold" Margin="0,0,0,15"/>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="150"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
+                                    </StackPanel>
+                                </Border>
 
-                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="当前版本：" VerticalAlignment="Center" FontWeight="Medium"/>
-                                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding AppVersion, StringFormat=v{0}}" VerticalAlignment="Center"/>
+                                <!-- LocalSend -->
+                                <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="LocalSend 分享设置" Foreground="{StaticResource ForegroundBrush}" FontWeight="SemiBold"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
 
-                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="交流地址：" VerticalAlignment="Center" FontWeight="Medium" Margin="0,12,0,0"/>
-                                        <Button Grid.Row="1" Grid.Column="1" Content="打开网址"
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="可执行文件路径" Width="100"
+                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0">
+                                                <TextBox x:Name="LocalSendPathTextBox" Width="200" Height="30"
+                                                     IsReadOnly="True" VerticalContentAlignment="Center"/>
+                                                <Button Content="浏览..." Style="{StaticResource ModernButtonStyle}" Margin="8,0,0,0"
+                                                    Click="BrowseLocalSendButton_Click"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- 版本更新和交流 -->
+                                <Border Background="#E3F2FD" CornerRadius="8" Padding="20" Margin="0,16,0,15">
+                                    <StackPanel>
+                                        <TextBlock Text="版本更新和交流" FontWeight="Bold" Margin="0,0,0,15"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="150"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="当前版本：" VerticalAlignment="Center" FontWeight="Medium"/>
+                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding AppVersion, StringFormat=v{0}}" VerticalAlignment="Center"/>
+
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="交流地址：" VerticalAlignment="Center" FontWeight="Medium" Margin="0,12,0,0"/>
+                                            <Button Grid.Row="1" Grid.Column="1" Content="打开网址"
                                                 HorizontalAlignment="Left"
                                                 Width="200"
                                                 Background="#2196F3" Foreground="White" BorderThickness="0"
                                                 Click="OpenWebsite_Click"
                                                 ToolTip="在默认浏览器中打开网站"
                                                 Margin="0,12,0,0"/>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
-                         </StackPanel>
-                     </ScrollViewer>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
 
-                    <!-- Buttons -->
-                    <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-                        <Button Content="取消" Style="{StaticResource ModernButtonStyle}"
-                                Click="CancelButton_Click" Width="80" Margin="0,0,8,0"/>
-                        <Button Content="保存" Style="{StaticResource ModernButtonStyle}"
-                                Click="SaveButton_Click" Width="80" Margin="0,0,40,0"/>
-                    </StackPanel>
-                </Grid>
+                            <!-- 底部按钮 -->
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                                <Button Content="取消" Style="{StaticResource ModernButtonStyle}"
+                                  Click="CancelButton_Click" Width="80" Margin="0,0,8,0"/>
+                                <Button Content="保存" Style="{StaticResource ModernButtonStyle}"
+                                  Click="SaveButton_Click" Width="80" Margin="0,0,40,0"/>
+
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </ScrollViewer>
             </Grid>
+       
 
-            <!-- 收藏页（占位） -->
-            <Grid x:Name="FavoritesPage" Visibility="Collapsed" Margin="0,50,0,0">
+            <!-- 收藏页 -->
+            <Grid x:Name="FavoritesPage" Visibility="Collapsed" Margin="0,50,0,0" ClipToBounds="True">
                 <Grid Margin="20">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
+                    <Grid.Resources>
+                        <LinearGradientBrush x:Key="FavoritesHeaderBrush" StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#243B55" Offset="0"/>
+                            <GradientStop Color="#1F2C3B" Offset="0.55"/>
+                            <GradientStop Color="#20252F" Offset="1"/>
+                        </LinearGradientBrush>
+                        <SolidColorBrush x:Key="FavoritePillBrush" Color="#2B3946"/>
+                        <SolidColorBrush x:Key="FavoriteWarnBrush" Color="#3C2A29"/>
+                        <Style x:Key="FavoritePillStyle" TargetType="Border">
+                            <Setter Property="Background" Value="{StaticResource FavoritePillBrush}"/>
+                            <Setter Property="CornerRadius" Value="999"/>
+                            <Setter Property="Padding" Value="10,4"/>
+                        </Style>
+                        <DataTemplate x:Key="FavoriteImageItemTemplate">
+                            <Border Background="{StaticResource BackgroundMediumBrush}"
+                                    CornerRadius="6"
+                                    Padding="8"
+                                    Margin="0,0,12,12"
+                                    Width="210"
+                                    ToolTip="{Binding DisplayPath}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="120"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0"
-                               Text="{Binding FavoriteItems.Count, StringFormat=共 {0} 项}"
-                               Foreground="{StaticResource ForegroundDimBrush}"
-                               Margin="0,0,0,12"/>
+                                    <Border Grid.Row="0" Background="{StaticResource BackgroundDarkBrush}" CornerRadius="4">
+                                        <Grid>
+                                            <Image Source="{Binding Thumbnail}" Stretch="Uniform"
+                                                   RenderOptions.BitmapScalingMode="HighQuality"/>
 
-                    <Grid Grid.Row="1">
-                        <TextBlock Text="暂无收藏"
-                                   Foreground="{StaticResource ForegroundDimBrush}"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding ElementName=FavoritesItemsControl, Path=HasItems}" Value="False">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
+                                            <Border Background="#80000000"
+                                                    Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                <TextBlock Text="加载中..." Foreground="White"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
 
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                            <ItemsControl x:Name="FavoritesItemsControl" ItemsSource="{Binding FavoriteItems}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <WrapPanel/>
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Background="{StaticResource BackgroundMediumBrush}"
+                                            <Border Background="#80000000">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <MultiDataTrigger>
+                                                                <MultiDataTrigger.Conditions>
+                                                                    <Condition Binding="{Binding Thumbnail}" Value="{x:Null}"/>
+                                                                    <Condition Binding="{Binding IsLoading}" Value="False"/>
+                                                                    <Condition Binding="{Binding Exists}" Value="True"/>
+                                                                </MultiDataTrigger.Conditions>
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </MultiDataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <TextBlock Text="无预览" Foreground="White"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+
+                                            <Border Background="#80000000"
+                                                    Visibility="{Binding Exists, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
+                                                <TextBlock Text="文件不存在" Foreground="White"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+
+                                            <CheckBox HorizontalAlignment="Left"
+                                                      VerticalAlignment="Top"
+                                                      Margin="6"
+                                                      IsChecked="{Binding IsSelected}"
+                                                      Visibility="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=Tag.IsChecked, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                        </Grid>
+                                    </Border>
+
+                                    <TextBlock Grid.Row="1" Text="{Binding Name}"
+                                               Foreground="{StaticResource ForegroundBrush}"
+                                               FontSize="12"
+                                               Margin="0,8,0,0"
+                                               TextTrimming="CharacterEllipsis"/>
+
+                                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+                                        <Button Content="打开" Style="{StaticResource ModernButtonStyle}" Padding="8,4" Margin="0,0,6,0"
+                                                IsEnabled="{Binding Exists}"
+                                                Click="OpenFavoriteInViewer_Click"/>
+                                        <Button Content="定位" Style="{StaticResource ModernButtonStyle}" Padding="8,4" Margin="0,0,6,0"
+                                                IsEnabled="{Binding Exists}"
+                                                Click="OpenFavoriteInExplorer_Click"/>
+                                        <Button Content="取消收藏" Style="{StaticResource ModernButtonStyle}" Padding="8,4"
+                                                Click="RemoveFavorite_Click"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                        <DataTemplate x:Key="FavoriteFolderImageItemTemplate">
+                            <Border Background="{StaticResource BackgroundDarkBrush}"
+                                    CornerRadius="4"
+                                    Padding="6"
+                                    Margin="0,0,0,6"
+                                    ToolTip="{Binding DisplayPath}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="48"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Border Grid.Column="0" Background="{StaticResource BackgroundMediumBrush}" CornerRadius="3" Width="48" Height="36">
+                                        <Image Source="{Binding Thumbnail}" Stretch="UniformToFill"/>
+                                    </Border>
+
+                                    <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                                        <TextBlock Text="{Binding Name}"
+                                                   Foreground="{StaticResource ForegroundBrush}"
+                                                   FontSize="11"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding DisplayPath}"
+                                                   Foreground="{StaticResource ForegroundDimBrush}"
+                                                   FontSize="10"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <Button Content="打开" Style="{StaticResource ModernButtonStyle}" Padding="6,3" Margin="0,0,6,0"
+                                                IsEnabled="{Binding Exists}"
+                                                Click="OpenFavoriteInViewer_Click"/>
+                                        <Button Content="定位" Style="{StaticResource ModernButtonStyle}" Padding="6,3" Margin="0,0,6,0"
+                                                IsEnabled="{Binding Exists}"
+                                                Click="OpenFavoriteInExplorer_Click"/>
+                                        <Button Content="取消" Style="{StaticResource ModernButtonStyle}" Padding="6,3"
+                                                Click="RemoveFavorite_Click"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                        <DataTemplate x:Key="FavoriteFolderItemTemplate">
+                            <Border Background="{StaticResource BackgroundMediumBrush}"
+                                    BorderBrush="{StaticResource BackgroundLightBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="10"
+                                    Padding="12"
+                                    Margin="0,0,12,12"
+                                    Width="260"
+                                    ToolTip="{Binding FolderPath}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <Grid Grid.Row="0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0"
+                                                Background="{StaticResource BackgroundDarkBrush}"
                                                 CornerRadius="6"
-                                                Padding="8"
-                                                Margin="0,0,12,12"
-                                                Width="180"
-                                                ToolTip="{Binding FilePath}">
-                                            <Grid>
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="120"/>
-                                                    <RowDefinition Height="Auto"/>
-                                                    <RowDefinition Height="Auto"/>
-                                                </Grid.RowDefinitions>
+                                                Padding="6"
+                                                Margin="0,0,8,0">
+                                            <Path Data="M4 4 L10 4 L12 6 L20 6 L20 10 M2 10 L22 10 L20 20 L4 20 L2 10"
+                                                  Stroke="{StaticResource ForegroundBrush}"
+                                                  StrokeThickness="2"
+                                                  Width="16" Height="16"
+                                                  Stretch="Uniform"/>
+                                        </Border>
+                                        <StackPanel Grid.Column="1" Margin="0,0,8,0">
+                                            <TextBlock Text="{Binding Name}"
+                                                       Foreground="{StaticResource ForegroundBrush}"
+                                                       FontSize="13"
+                                                       FontWeight="SemiBold"
+                                                       TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding FolderPath}"
+                                                       Foreground="{StaticResource ForegroundDimBrush}"
+                                                       FontSize="10"
+                                                       TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+                                        <Button Grid.Column="2"
+                                                Style="{StaticResource ModernButtonStyle}"
+                                                Padding="6,2"
+                                                Margin="0,0,0,0"
+                                                Click="ToggleFavoriteFolderExpanded_Click"
+                                                ToolTip="展开/收起收藏图片">
+                                            <TextBlock>
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text" Value="收起"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsExpanded}" Value="False">
+                                                                <Setter Property="Text" Value="展开"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Button>
+                                        <CheckBox Grid.Column="3"
+                                                  Margin="8,0,0,0"
+                                                  IsChecked="{Binding IsSelected}"
+                                                  Visibility="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=Tag.IsChecked, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                    </Grid>
 
-                                                <Border Grid.Row="0" Background="{StaticResource BackgroundDarkBrush}" CornerRadius="4">
-                                                    <Grid>
-                                                        <Image Source="{Binding Thumbnail}" Stretch="Uniform"
-                                                               RenderOptions.BitmapScalingMode="HighQuality"/>
-
-                                                        <Border Background="#80000000"
-                                                                Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}">
-                                                            <TextBlock Text="加载中..." Foreground="White"
-                                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                        </Border>
-
-                                                        <Border Background="#80000000">
-                                                            <Border.Style>
-                                                                <Style TargetType="Border">
-                                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                                    <Style.Triggers>
-                                                                        <MultiDataTrigger>
-                                                                            <MultiDataTrigger.Conditions>
-                                                                                <Condition Binding="{Binding Thumbnail}" Value="{x:Null}"/>
-                                                                                <Condition Binding="{Binding IsLoading}" Value="False"/>
-                                                                                <Condition Binding="{Binding Exists}" Value="True"/>
-                                                                            </MultiDataTrigger.Conditions>
-                                                                            <Setter Property="Visibility" Value="Visible"/>
-                                                                        </MultiDataTrigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </Border.Style>
-                                                            <TextBlock Text="无预览" Foreground="White"
-                                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                        </Border>
-
-                                                        <Border Background="#80000000"
-                                                                Visibility="{Binding Exists, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
-                                                            <TextBlock Text="文件不存在" Foreground="White"
-                                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                        </Border>
-                                                    </Grid>
-                                                </Border>
-
-                                                <TextBlock Grid.Row="1" Text="{Binding Name}"
+                                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,8,0,0">
+                                        <Border Style="{StaticResource FavoritePillStyle}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="收藏" Foreground="{StaticResource ForegroundDimBrush}" FontSize="10" Margin="0,0,6,0"/>
+                                                <TextBlock Text="{Binding FavoriteImageCount}"
                                                            Foreground="{StaticResource ForegroundBrush}"
                                                            FontSize="12"
-                                                           Margin="0,8,0,0"
-                                                           TextTrimming="CharacterEllipsis"/>
-
-                                                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
-                                                    <Button Content="定位" Style="{StaticResource ModernButtonStyle}" Padding="10,6" Margin="0,0,8,0"
-                                                            IsEnabled="{Binding Exists}"
-                                                            Click="OpenFavoriteInExplorer_Click"/>
-                                                    <Button Content="取消收藏" Style="{StaticResource ModernButtonStyle}" Padding="10,6"
-                                                            Click="RemoveFavorite_Click"/>
-                                                </StackPanel>
-                                            </Grid>
+                                                           FontWeight="SemiBold"/>
+                                            </StackPanel>
                                         </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
+                                        <Border Background="{StaticResource FavoriteWarnBrush}"
+                                                CornerRadius="999"
+                                                Padding="8,2"
+                                                Margin="8,0,0,0"
+                                                Visibility="{Binding Exists, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
+                                            <TextBlock Text="路径无效"
+                                                       Foreground="{StaticResource ForegroundBrush}"
+                                                       FontSize="10"/>
+                                        </Border>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                                        <Button Content="打开" Style="{StaticResource ModernButtonStyle}" Padding="8,4" Margin="0,0,6,0"
+                                                IsEnabled="{Binding Exists}"
+                                                Click="OpenFavoriteFolderInViewer_Click"/>
+                                        <Button Content="定位" Style="{StaticResource ModernButtonStyle}" Padding="8,4" Margin="0,0,6,0"
+                                                IsEnabled="{Binding Exists}"
+                                                Click="OpenFavoriteFolderInExplorer_Click"/>
+                                        <Button Content="移除" Style="{StaticResource ModernButtonStyle}" Padding="8,4"
+                                                Click="RemoveFavoriteFolder_Click"/>
+                                    </StackPanel>
+
+                                    <Border Grid.Row="3"
+                                            Background="{StaticResource BackgroundDarkBrush}"
+                                            CornerRadius="4"
+                                            Padding="6"
+                                            Margin="0,10,0,0"
+                                            Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <StackPanel>
+                                            <TextBlock Text="该文件夹暂无收藏图片"
+                                                       Foreground="{StaticResource ForegroundDimBrush}"
+                                                       FontSize="11"
+                                                       Margin="0,0,0,6">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Images.Count}" Value="0">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+
+                                            <ScrollViewer MaxHeight="220"
+                                                          VerticalScrollBarVisibility="Auto"
+                                                          HorizontalScrollBarVisibility="Disabled">
+                                                <ItemsControl ItemsSource="{Binding Images}"
+                                                              ItemTemplate="{StaticResource FavoriteFolderImageItemTemplate}"/>
+                                            </ScrollViewer>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </Grid.Resources>
+                    <Grid>
+                        <Grid x:Name="FavoriteFoldersPanel">
+                            <Grid x:Name="FavoriteFoldersListPanel" Visibility="Visible">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <Border Grid.Row="0"
+                                        Background="{StaticResource FavoritesHeaderBrush}"
+                                        CornerRadius="12"
+                                        Padding="16"
+                                        Margin="0,0,0,12">
+                                    <Grid>
+                                        <Ellipse Fill="#22FFFFFF"
+                                                 Width="180"
+                                                 Height="180"
+                                                 HorizontalAlignment="Right"
+                                                 VerticalAlignment="Top"
+                                                 Margin="0,-80,-60,0"
+                                                 IsHitTestVisible="False"/>
+                                        <Ellipse Fill="#14FFFFFF"
+                                                 Width="140"
+                                                 Height="140"
+                                                 HorizontalAlignment="Right"
+                                                 VerticalAlignment="Bottom"
+                                                 Margin="0,0,-80,-70"
+                                                 IsHitTestVisible="False"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Border Background="#2A3F55" CornerRadius="6" Padding="6" Margin="0,0,10,0">
+                                                        <Path Data="M4 4 L10 4 L12 6 L20 6 L20 10 M2 10 L22 10 L20 20 L4 20 L2 10"
+                                                              Stroke="{StaticResource ForegroundBrush}"
+                                                              StrokeThickness="2"
+                                                              Width="18" Height="18"
+                                                              Stretch="Uniform"/>
+                                                    </Border>
+                                                    <StackPanel>
+                                                        <TextBlock Text="收藏文件夹"
+                                                                   Foreground="{StaticResource ForegroundBrush}"
+                                                                   FontSize="16"
+                                                                   FontWeight="SemiBold"/>
+                                                        <TextBlock Text="在卡片内展开查看收藏图片，Ctrl+Tab 快速切换"
+                                                                   Foreground="{StaticResource ForegroundDimBrush}"
+                                                                   FontSize="11"
+                                                                   Margin="0,4,0,0"
+                                                                   TextWrapping="Wrap"/>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Border Style="{StaticResource FavoritePillStyle}" Margin="0,0,8,0">
+                                                    <StackPanel>
+                                                        <TextBlock Text="文件夹" Foreground="{StaticResource ForegroundDimBrush}" FontSize="10" HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding FavoriteFolderItems.Count}"
+                                                                   Foreground="{StaticResource ForegroundBrush}"
+                                                                   FontSize="16"
+                                                                   FontWeight="SemiBold"
+                                                                   HorizontalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Border>
+                                                <Border Style="{StaticResource FavoritePillStyle}">
+                                                    <StackPanel>
+                                                        <TextBlock Text="图片" Foreground="{StaticResource ForegroundDimBrush}" FontSize="10" HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding FavoriteImageItems.Count}"
+                                                                   Foreground="{StaticResource ForegroundBrush}"
+                                                                   FontSize="16"
+                                                                   FontWeight="SemiBold"
+                                                                   HorizontalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+
+                                <Border Grid.Row="1"
+                                        Background="{StaticResource BackgroundMediumBrush}"
+                                        CornerRadius="10"
+                                        Padding="12"
+                                        Margin="0,0,0,12">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="排序" Foreground="{StaticResource ForegroundDimBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                            <ComboBox x:Name="FavoriteFolderSortComboBox" Width="140"   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                      SelectionChanged="FavoriteFolderSort_SelectionChanged">
+                                                <ComboBoxItem Content="按添加时间" Tag="AddedAt" IsSelected="True"/>
+                                                <ComboBoxItem Content="按名称" Tag="Name"/>
+                                            </ComboBox>
+                                            <Border Background="{StaticResource BackgroundLightBrush}" Width="1" Height="18" Margin="12,0" Opacity="0.6"/>
+                                            <Button Content="添加文件夹" Style="{StaticResource ModernButtonStyle}" Padding="10,6" Margin="0,0,8,0"
+                                                    Click="AddFavoriteFolder_Click"/>
+                                            <Button Content="收藏当前目录" Style="{StaticResource ModernButtonStyle}" Padding="10,6"
+                                                    Click="AddCurrentFolder_Click"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <CheckBox x:Name="FavoriteFoldersBatchToggle" Content="批量移除" VerticalAlignment="Center"
+                                                      Foreground="{StaticResource ForegroundDimBrush}"
+                                                      Margin="0,0,8,0"/>
+                                            <Button Content="移除选中" Style="{StaticResource ModernButtonStyle}" Padding="10,6" Margin="0,0,8,0"
+                                                    IsEnabled="{Binding ElementName=FavoriteFoldersBatchToggle, Path=IsChecked}"
+                                                    Click="RemoveSelectedFavoriteFolders_Click"/>
+                                            <Button Content="清空" Style="{StaticResource ModernButtonStyle}" Padding="10,6"
+                                                    Click="ClearFavoriteFolders_Click"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+
+                                <Grid Grid.Row="2">
+                                    <StackPanel HorizontalAlignment="Center"
+                                                VerticalAlignment="Center">
+                                        <StackPanel.Style>
+                                            <Style TargetType="StackPanel">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ElementName=FavoriteFoldersItemsControl, Path=HasItems}" Value="False">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </StackPanel.Style>
+                                        <Border Background="{StaticResource BackgroundDarkBrush}" CornerRadius="10" Padding="12" Margin="0,0,0,8">
+                                            <Path Data="M4 4 L10 4 L12 6 L20 6 L20 10 M2 10 L22 10 L20 20 L4 20 L2 10"
+                                                  Stroke="{StaticResource ForegroundBrush}"
+                                                  StrokeThickness="2"
+                                                  Width="26" Height="26"
+                                                  Stretch="Uniform"/>
+                                        </Border>
+                                        <TextBlock Text="暂无收藏文件夹"
+                                                   Foreground="{StaticResource ForegroundBrush}"
+                                                   FontSize="13"
+                                                   HorizontalAlignment="Center"/>
+                                        <TextBlock Text="点击“添加文件夹”或“收藏当前目录”开始整理"
+                                                   Foreground="{StaticResource ForegroundDimBrush}"
+                                                   FontSize="11"
+                                                   Margin="0,4,0,0"
+                                                   HorizontalAlignment="Center"/>
+                                    </StackPanel>
+
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                        <ItemsControl x:Name="FavoriteFoldersItemsControl"
+                                                      ItemsSource="{Binding FavoriteFolderItems}"
+                                                      ItemTemplate="{StaticResource FavoriteFolderItemTemplate}"
+                                                      Tag="{Binding ElementName=FavoriteFoldersBatchToggle}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapPanel/>
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Grid>
+                            </Grid>
+
+                            <Grid x:Name="FavoriteFolderImagesPanel" Visibility="Collapsed">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12" VerticalAlignment="Center">
+                                    <Button Content="返回" Style="{StaticResource ModernButtonStyle}" Padding="10,6"
+                                            Click="BackToFavoriteFolders_Click"/>
+                                    <TextBlock x:Name="FavoriteFolderImagesTitle"
+                                               Text="收藏文件夹"
+                                               Foreground="{StaticResource ForegroundBrush}"
+                                               FontSize="13"
+                                               Margin="12,0,0,0"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding FavoriteFolderImageItems.Count, StringFormat=共 {0} 项}"
+                                               Foreground="{StaticResource ForegroundDimBrush}"
+                                               Margin="12,0,0,0"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+
+                                <Grid Grid.Row="1">
+                                    <TextBlock Text="该文件夹暂无收藏图片"
+                                               Foreground="{StaticResource ForegroundDimBrush}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ElementName=FavoriteFolderImagesItemsControl, Path=HasItems}" Value="False">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                        <ItemsControl x:Name="FavoriteFolderImagesItemsControl"
+                                                      ItemsSource="{Binding FavoriteFolderImageItems}"
+                                                      ItemTemplate="{StaticResource FavoriteImageItemTemplate}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapPanel/>
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Grid>
+                            </Grid>
+                        </Grid>
                     </Grid>
                 </Grid>
             </Grid>
 
             <!-- 关联页 -->
             <Grid x:Name="AssociationsPage" Visibility="Collapsed" Margin="0,50,0,0">
+                <Grid.Resources>
+                    <LinearGradientBrush x:Key="AssociationsHeaderBrush" StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#2B3E50" Offset="0"/>
+                        <GradientStop Color="#22303E" Offset="0.6"/>
+                        <GradientStop Color="#1E252E" Offset="1"/>
+                    </LinearGradientBrush>
+                    <SolidColorBrush x:Key="AssociationPillBrush" Color="#2B3946"/>
+                    <Style x:Key="AssociationPillStyle" TargetType="Border">
+                        <Setter Property="Background" Value="{StaticResource AssociationPillBrush}"/>
+                        <Setter Property="CornerRadius" Value="999"/>
+                        <Setter Property="Padding" Value="10,4"/>
+                    </Style>
+                </Grid.Resources>
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="20">
-                     
-                         <TextBlock Text="选择要关联的图片格式，勾选后写入注册表，将所选格式默认打开方式改为 ImageViewer；如未生效，可重启资源管理器或手动检查默认应用。"
-                                    TextWrapping="Wrap" Foreground="{StaticResource ForegroundDimBrush}"
-                                    Margin="0,0,0,12"/>
-                        <TextBlock Text="RAW 格式优先使用系统 WIC 解码（建议从微软商店安装 Raw Image Extension）；若系统不支持则自动回退到 Magick.NET。"
-                                   TextWrapping="Wrap" Foreground="{StaticResource ForegroundDimBrush}"
-                                   Margin="0,0,0,12"/>
- 
-                         <StackPanel x:Name="AssociationsPanel" Margin="0,8,0,0">
-                             <TextBlock Text="选择要关联的图片格式"
-                                        Foreground="{StaticResource ForegroundBrush}"
-                                        FontSize="14"
-                                       FontWeight="SemiBold"
-                                       Margin="0,0,0,8"/>
+                        <Border Background="{StaticResource AssociationsHeaderBrush}"
+                                CornerRadius="12"
+                                Padding="16"
+                                Margin="0,0,0,12">
+                            <Grid>
+                                <Ellipse Fill="#22FFFFFF"
+                                         Width="180"
+                                         Height="180"
+                                         HorizontalAlignment="Right"
+                                         VerticalAlignment="Top"
+                                         Margin="0,-80,-60,0"/>
+                                <Ellipse Fill="#18FFFFFF"
+                                         Width="130"
+                                         Height="130"
+                                         HorizontalAlignment="Right"
+                                         VerticalAlignment="Bottom"
+                                         Margin="0,0,-70,-60"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="关联设置"
+                                                   Foreground="{StaticResource ForegroundBrush}"
+                                                   FontSize="16"
+                                                   FontWeight="SemiBold"/>
+                                        <TextBlock Text="选择要关联的图片格式，系统将默认用 ImageViewer 打开"
+                                                   Foreground="{StaticResource ForegroundDimBrush}"
+                                                   FontSize="11"
+                                                   Margin="0,6,0,0"
+                                                   TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Border Style="{StaticResource AssociationPillStyle}" Margin="0,0,8,0">
+                                            <StackPanel>
+                                                <TextBlock Text="普通" Foreground="{StaticResource ForegroundDimBrush}" FontSize="10" HorizontalAlignment="Center"/>
+                                                <TextBlock Text="{Binding AssociationNormalOptions.Count}"
+                                                           Foreground="{StaticResource ForegroundBrush}"
+                                                           FontSize="16"
+                                                           FontWeight="SemiBold"
+                                                           HorizontalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource AssociationPillStyle}">
+                                            <StackPanel>
+                                                <TextBlock Text="RAW" Foreground="{StaticResource ForegroundDimBrush}" FontSize="10" HorizontalAlignment="Center"/>
+                                                <TextBlock Text="{Binding AssociationRawOptions.Count}"
+                                                           Foreground="{StaticResource ForegroundBrush}"
+                                                           FontSize="16"
+                                                           FontWeight="SemiBold"
+                                                           HorizontalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </Grid>
+                            </Grid>
+                        </Border>
 
-                            <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="200">
-                                <ItemsControl ItemsSource="{Binding AssociationOptions}">
+                        <Border Background="{StaticResource BackgroundMediumBrush}"
+                                CornerRadius="10"
+                                Padding="12"
+                                Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock Text="说明"
+                                           Foreground="{StaticResource ForegroundBrush}"
+                                           FontSize="13"
+                                           FontWeight="SemiBold"/>
+                                <TextBlock Text="PDF RAR/CAR ZIP/CAZ可在应用内打开，但不提供文件关联。"
+                                           TextWrapping="Wrap"
+                                           Foreground="{StaticResource ForegroundDimBrush}"
+                                           Margin="0,8,0,0"/>
+                                <TextBlock Text="RAW 格式优先使用系统 WIC 解码（建议从微软商店安装 Raw Image Extension）；若系统不支持则自动回退到 Magick.NET。"
+                                           TextWrapping="Wrap"
+                                           Foreground="{StaticResource ForegroundDimBrush}"
+                                           Margin="0,6,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="{StaticResource BackgroundMediumBrush}"
+                                CornerRadius="10"
+                                Padding="12"
+                                Margin="0,0,0,12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="格式选择" Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <Border Style="{StaticResource AssociationPillStyle}">
+                                        <TextBlock Text="{Binding AssociationOptions.Count, StringFormat=总计 {0}}"
+                                                   Foreground="{StaticResource ForegroundBrush}"
+                                                   FontSize="11"/>
+                                    </Border>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button Content="全选" Style="{StaticResource ModernButtonStyle}" Width="70" Margin="0,0,8,0"
+                                            Click="SelectAllAssociations_Click"/>
+                                    <Button Content="取消全选" Style="{StaticResource ModernButtonStyle}" Width="80"
+                                            Click="ClearAllAssociations_Click"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <Border Background="{StaticResource BackgroundMediumBrush}"
+                                CornerRadius="10"
+                                Padding="12"
+                                Margin="0,0,0,12">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Text="普通格式"
+                                               Foreground="{StaticResource ForegroundBrush}"
+                                               FontSize="13"
+                                               FontWeight="SemiBold"
+                                               Margin="0,0,8,0"/>
+                                    <Border Style="{StaticResource AssociationPillStyle}">
+                                        <TextBlock Text="{Binding AssociationNormalOptions.Count}"
+                                                   Foreground="{StaticResource ForegroundBrush}"
+                                                   FontSize="11"/>
+                                    </Border>
+                                </StackPanel>
+                                <ItemsControl ItemsSource="{Binding AssociationNormalOptions}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <WrapPanel/>
@@ -561,22 +1066,49 @@
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
-                            </ScrollViewer>
-
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,8,0,0">
-                                <Button Content="全选" Style="{StaticResource ModernButtonStyle}" Width="70" Margin="0,0,8,0"
-                                        Click="SelectAllAssociations_Click"/>
-                                <Button Content="取消全选" Style="{StaticResource ModernButtonStyle}" Width="80"
-                                        Click="ClearAllAssociations_Click"/>
                             </StackPanel>
-                        </StackPanel>
+                        </Border>
+
+                        <Border Background="{StaticResource BackgroundMediumBrush}"
+                                CornerRadius="10"
+                                Padding="12"
+                                Margin="0,0,0,12">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Text="RAW 格式"
+                                               Foreground="{StaticResource ForegroundBrush}"
+                                               FontSize="13"
+                                               FontWeight="SemiBold"
+                                               Margin="0,0,8,0"/>
+                                    <Border Style="{StaticResource AssociationPillStyle}">
+                                        <TextBlock Text="{Binding AssociationRawOptions.Count}"
+                                                   Foreground="{StaticResource ForegroundBrush}"
+                                                   FontSize="11"/>
+                                    </Border>
+                                </StackPanel>
+                                <ItemsControl ItemsSource="{Binding AssociationRawOptions}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <CheckBox Content="{Binding DisplayName}"
+                                                      IsChecked="{Binding IsSelected}"
+                                                      Foreground="{StaticResource ForegroundBrush}"
+                                                      Margin="0,0,12,8"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
 
                         <Button x:Name="ApplyAssociationsButton"
                                 Content="关联所选格式"
                                 Style="{StaticResource ModernButtonStyle}"
                                 Click="ApplyAssociationsButton_Click"
-                                HorizontalAlignment="Left"
-                                Margin="0,8,0,0"/>
+                                HorizontalAlignment="Left"/>
                     </StackPanel>
                 </ScrollViewer>
             </Grid>

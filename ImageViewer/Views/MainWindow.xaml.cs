@@ -1,12 +1,15 @@
 using ImageViewer.Helpers;
 using ImageViewer.Models;
+using ImageViewer.Services;
 using ImageViewer.ViewModels;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -36,6 +39,8 @@ namespace ImageViewer.Views
         private int _folderSwitchWindowStart;
         private bool _isFolderSwitchOpen;
         private bool _isFolderSwitchCommitInProgress;
+        private readonly ImageService _folderSwitchImageService = new();
+        private CancellationTokenSource? _folderSwitchThumbnailCts;
 
         // 鼠标拖拽相关字段
         private Point _lastMousePosition;   // 上次鼠标位置
@@ -527,7 +532,7 @@ namespace ImageViewer.Views
                 _hotKeyManager.RegisterHotKey(ModifierKeys.Control | ModifierKeys.Shift, Key.F,
                     () => ViewModel.ToggleFilterCommand?.Execute(null));
 
-                // === 目录切换 ===
+                // === 收藏文件夹切换 ===
                 _hotKeyManager.RegisterHotKey(ModifierKeys.Control, Key.Tab,
                     ShowFolderSwitchOverlay);
 
@@ -594,10 +599,7 @@ namespace ImageViewer.Views
                     () => ViewModel.ZoomOutCommand?.Execute(null));
 
                 _hotKeyManager.RegisterHotKey(ModifierKeys.Control, Key.D0,
-                    () => ViewModel.ZoomToFitCommand?.Execute(null));
-
-                _hotKeyManager.RegisterHotKey(ModifierKeys.Control, Key.D1,
-                    () => ViewModel.ZoomToActualCommand?.Execute(null));
+                    () => ViewModel.ToggleFitToActualCommand?.Execute(null));
 
                 // === 其他操作 ===
                 _hotKeyManager.RegisterHotKey(ModifierKeys.Control, Key.C,
@@ -808,6 +810,9 @@ namespace ImageViewer.Views
 
             // 注销所有快捷键
             _hotKeyManager?.Dispose();
+            _folderSwitchThumbnailCts?.Cancel();
+            _folderSwitchThumbnailCts?.Dispose();
+            _folderSwitchImageService.Dispose();
 
             // 保存当前窗口位置和大小
             if (ViewModel.Settings.RememberWindowPosition)
@@ -865,18 +870,34 @@ namespace ImageViewer.Views
             }
         }
 
-        private sealed class FolderSwitchEntry
+        private sealed partial class FolderSwitchEntry : ObservableObject
         {
-            public FolderSwitchEntry(string fullPath, string displayName, bool isParent)
+            public FolderSwitchEntry(string fullPath, string displayName, bool exists, bool isParent, string? coverPath)
             {
                 FullPath = fullPath;
                 DisplayName = displayName;
+                Exists = exists;
                 IsParent = isParent;
+                CoverPath = coverPath;
             }
 
             public string FullPath { get; }
             public string DisplayName { get; }
+            public bool Exists { get; }
             public bool IsParent { get; }
+            public string? CoverPath { get; }
+
+            [ObservableProperty]
+            private BitmapSource? _coverThumbnail;
+
+            [ObservableProperty]
+            private bool _isCoverLoading;
+        }
+
+        private int GetFolderSwitchCoverSize()
+        {
+            var size = ViewModel.Settings?.ThumbnailSize ?? 48;
+            return Math.Clamp(size, 40, 64);
         }
 
         private void FolderSwitchOverlay_MouseDown(object sender, MouseButtonEventArgs e)
@@ -924,7 +945,7 @@ namespace ImageViewer.Views
                     e.Handled = true;
                     break;
                 case Key.Up:
-                    BrowseFolderSwitchToParent();
+                    MoveFolderSwitchSelection(-1);
                     e.Handled = true;
                     break;
                 case Key.Q:
@@ -932,7 +953,7 @@ namespace ImageViewer.Views
                     CloseFolderSwitchOverlay(restoreHotKeys: true);
                     break;
                 case Key.Down:
-                    BrowseFolderSwitchIntoSelectedFolder();
+                    MoveFolderSwitchSelection(1);
                     e.Handled = true;
                     break;
                 case Key.Tab:
@@ -962,28 +983,26 @@ namespace ImageViewer.Views
             if (_isFolderSwitchOpen)
                 return;
 
-            if (!TryGetFolderSwitchBaseDirectory(out var baseDirectory))
-            {
-                ViewModel.StatusMessage = "当前没有可切换的目录";
-                return;
-            }
-
-            var entries = BuildFolderSwitchEntries(baseDirectory);
+            var entries = BuildFavoriteFolderSwitchEntries();
             if (entries.Count == 0)
             {
-                ViewModel.StatusMessage = "当前目录没有可切换的子文件夹";
+                ViewModel.StatusMessage = "暂无收藏文件夹";
                 return;
             }
 
             _folderSwitchEntries = entries;
-            _folderSwitchBaseDirectory = baseDirectory;
-            _folderSwitchSelectedIndex = GetFolderSwitchDefaultSelectionIndex(entries);
+            _folderSwitchBaseDirectory = string.Empty;
+            _folderSwitchSelectedIndex = GetFavoriteFolderSelectionIndex(entries);
             _folderSwitchWindowStart = 0;
 
-            FolderSwitchBasePathText.Text = baseDirectory;
+            FolderSwitchBasePathText.Text = $"共 {entries.Count} 个收藏文件夹";
 
             _isFolderSwitchOpen = true;
             FolderSwitchOverlay.Visibility = Visibility.Visible;
+
+            _folderSwitchThumbnailCts?.Cancel();
+            _folderSwitchThumbnailCts?.Dispose();
+            _folderSwitchThumbnailCts = new CancellationTokenSource();
 
             // 暂停全局热键，避免方向键等在浮层中仍触发图片导航
             _hotKeyManager?.UnregisterAll();
@@ -1011,6 +1030,10 @@ namespace ImageViewer.Views
             _folderSwitchBaseDirectory = string.Empty;
             _folderSwitchSelectedIndex = 0;
             _folderSwitchWindowStart = 0;
+
+            _folderSwitchThumbnailCts?.Cancel();
+            _folderSwitchThumbnailCts?.Dispose();
+            _folderSwitchThumbnailCts = null;
 
             if (restoreHotKeys && IsActive)
             {
@@ -1044,8 +1067,11 @@ namespace ImageViewer.Views
                 if (entry == null)
                     return;
 
-                if (!Directory.Exists(entry.FullPath))
+                if (!entry.Exists || !Directory.Exists(entry.FullPath))
+                {
+                    ViewModel.StatusMessage = "收藏文件夹不存在";
                     return;
+                }
 
                 await ViewModel.LoadFolder(entry.FullPath);
             }
@@ -1249,13 +1275,67 @@ namespace ImageViewer.Views
 
             for (var i = _folderSwitchWindowStart; i < windowEndExclusive; i++)
             {
-                _folderSwitchVisibleEntries.Add(_folderSwitchEntries[i]);
+                var entry = _folderSwitchEntries[i];
+                _folderSwitchVisibleEntries.Add(entry);
+                EnsureFolderSwitchCoverThumbnail(entry);
             }
 
             FolderSwitchMoreLeft.Visibility = _folderSwitchWindowStart > 0 ? Visibility.Visible : Visibility.Collapsed;
             FolderSwitchMoreRight.Visibility = windowEndExclusive < total ? Visibility.Visible : Visibility.Collapsed;
 
             FolderSwitchListBox.SelectedIndex = Math.Clamp(_folderSwitchSelectedIndex - _folderSwitchWindowStart, 0, windowSize - 1);
+        }
+
+        private void EnsureFolderSwitchCoverThumbnail(FolderSwitchEntry entry)
+        {
+            if (_folderSwitchThumbnailCts == null || _folderSwitchThumbnailCts.IsCancellationRequested)
+            {
+                return;
+            }
+
+            if (entry.CoverThumbnail != null || entry.IsCoverLoading)
+            {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(entry.CoverPath) || !File.Exists(entry.CoverPath))
+            {
+                return;
+            }
+
+            _ = LoadFolderSwitchCoverThumbnailAsync(entry, _folderSwitchThumbnailCts.Token);
+        }
+
+        private async Task LoadFolderSwitchCoverThumbnailAsync(FolderSwitchEntry entry, CancellationToken token)
+        {
+            entry.IsCoverLoading = true;
+            try
+            {
+                var coverPath = entry.CoverPath;
+                if (string.IsNullOrWhiteSpace(coverPath) || !File.Exists(coverPath))
+                {
+                    return;
+                }
+
+                var imageInfo = ImageInfo.FromFile(coverPath);
+                var thumbnail = await _folderSwitchImageService.LoadThumbnailAsync(imageInfo, GetFolderSwitchCoverSize(), token);
+                if (thumbnail != null && !token.IsCancellationRequested)
+                {
+                    entry.CoverThumbnail = thumbnail;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // ignore
+            }
+            catch
+            {
+                // ignore
+            }
+            finally
+            {
+                entry.IsCoverLoading = false;
+            }
         }
 
         private static List<FolderSwitchEntry> BuildFolderSwitchEntries(string baseDirectory)
@@ -1267,7 +1347,7 @@ namespace ImageViewer.Views
                 var parent = Directory.GetParent(baseDirectory)?.FullName;
                 if (!string.IsNullOrWhiteSpace(parent) && Directory.Exists(parent))
                 {
-                    entries.Add(new FolderSwitchEntry(parent, GetFolderDisplayName(parent), isParent: true));
+                    entries.Add(new FolderSwitchEntry(parent, GetFolderDisplayName(parent), exists: true, isParent: true, coverPath: null));
                 }
             }
             catch
@@ -1291,10 +1371,131 @@ namespace ImageViewer.Views
                          .ThenBy(x => x.Path, StringComparer.CurrentCultureIgnoreCase)
                          .Select(x => x.Path))
             {
-                entries.Add(new FolderSwitchEntry(folderPath, GetFolderDisplayName(folderPath), isParent: false));
+                entries.Add(new FolderSwitchEntry(folderPath, GetFolderDisplayName(folderPath), exists: true, isParent: false, coverPath: null));
             }
 
             return entries;
+        }
+
+        private List<FolderSwitchEntry> BuildFavoriteFolderSwitchEntries()
+        {
+            var entries = new List<FolderSwitchEntry>();
+            var unique = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var comparer = new NaturalStringComparer();
+            var favoriteImages = ViewModel.Settings.Bookmarks
+                .Where(b => b.Type == BookmarkType.Image && !string.IsNullOrWhiteSpace(b.FilePath))
+                .Select(b => TryResolveFavoriteImagePath(b.FilePath))
+                .Where(path => !string.IsNullOrWhiteSpace(path))
+                .Select(path => path!)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Where(File.Exists)
+                .ToList();
+
+            foreach (var bookmark in ViewModel.Settings.Bookmarks
+                         .Where(b => b.Type == BookmarkType.Folder && !string.IsNullOrWhiteSpace(b.FilePath))
+                         .OrderByDescending(b => b.CreatedAt))
+            {
+                var folderPath = bookmark.FilePath;
+                if (!unique.Add(folderPath))
+                {
+                    continue;
+                }
+
+                var displayName = string.IsNullOrWhiteSpace(bookmark.Name)
+                    ? GetFolderDisplayName(folderPath)
+                    : bookmark.Name;
+                var exists = Directory.Exists(folderPath);
+                var coverPath = favoriteImages
+                    .Where(path => IsPathUnderFolder(path, folderPath))
+                    .OrderBy(path => GetFolderRelativePath(folderPath, path), comparer)
+                    .ThenBy(path => path, StringComparer.OrdinalIgnoreCase)
+                    .FirstOrDefault();
+                entries.Add(new FolderSwitchEntry(folderPath, displayName, exists, isParent: false, coverPath));
+            }
+
+            return entries;
+        }
+
+        private static string? TryResolveFavoriteImagePath(string bookmarkKey)
+        {
+            if (string.IsNullOrWhiteSpace(bookmarkKey))
+            {
+                return null;
+            }
+
+            if (bookmarkKey.StartsWith("pdf:", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            if (bookmarkKey.StartsWith("zip:", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            return bookmarkKey;
+        }
+
+        private static bool IsPathUnderFolder(string filePath, string folderPath)
+        {
+            if (string.IsNullOrWhiteSpace(filePath) || string.IsNullOrWhiteSpace(folderPath))
+            {
+                return false;
+            }
+
+            try
+            {
+                var itemPath = Path.GetFullPath(filePath);
+                var folderFullPath = Path.GetFullPath(folderPath);
+                if (!folderFullPath.EndsWith(Path.DirectorySeparatorChar))
+                {
+                    folderFullPath += Path.DirectorySeparatorChar;
+                }
+
+                return itemPath.StartsWith(folderFullPath, StringComparison.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static string GetFolderRelativePath(string folderPath, string filePath)
+        {
+            if (string.IsNullOrWhiteSpace(folderPath))
+            {
+                return filePath;
+            }
+
+            try
+            {
+                return Path.GetRelativePath(folderPath, filePath);
+            }
+            catch
+            {
+                return filePath;
+            }
+        }
+
+        private int GetFavoriteFolderSelectionIndex(List<FolderSwitchEntry> entries)
+        {
+            if (entries.Count == 0)
+            {
+                return 0;
+            }
+
+            if (TryGetFolderSwitchBaseDirectory(out var currentFolder))
+            {
+                var index = entries.FindIndex(entry =>
+                    string.Equals(entry.FullPath, currentFolder, StringComparison.OrdinalIgnoreCase));
+                if (index >= 0)
+                {
+                    return index;
+                }
+            }
+
+            var firstExisting = entries.FindIndex(entry => entry.Exists);
+            return firstExisting >= 0 ? firstExisting : 0;
         }
 
         private bool TryGetFolderSwitchBaseDirectory(out string baseDirectory)

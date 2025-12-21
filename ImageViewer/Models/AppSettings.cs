@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace ImageViewer.Models
@@ -40,6 +41,12 @@ namespace ImageViewer.Models
     {
         Zoom,
         Navigate
+    }
+
+    public enum BookmarkType
+    {
+        Image,
+        Folder
     }
 
     public partial class AppSettings : ObservableObject
@@ -194,7 +201,6 @@ namespace ImageViewer.Models
         /// <summary>
         /// 文件路径或 CacheKey（PDF 页面使用 CacheKey）
         /// </summary>
-
         public string FilePath { get; set; } = string.Empty;
 
 
@@ -209,6 +215,50 @@ namespace ImageViewer.Models
         /// </summary>
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
+        /// <summary>
+        /// 书签类型
+        /// </summary>
+        public BookmarkType Type { get; set; } = BookmarkType.Image;
+
+        /// <summary>
+        /// 收藏文件夹是否展开
+        /// </summary>
+        public bool IsExpanded { get; set; } = true;
+
+        /// <summary>
+        /// 自定义排序键（可用于名称/自定义排序）
+        /// </summary>
+        public string SortKey { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 兼容字段：Path
+        /// </summary>
+        [JsonIgnore]
+        public string Path
+        {
+            get => FilePath;
+            set => FilePath = value;
+        }
+
+        /// <summary>
+        /// 兼容字段：DisplayName
+        /// </summary>
+        [JsonIgnore]
+        public string DisplayName
+        {
+            get => Name;
+            set => Name = value;
+        }
+
+        /// <summary>
+        /// 兼容字段：AddedAt
+        /// </summary>
+        [JsonIgnore]
+        public DateTime AddedAt
+        {
+            get => CreatedAt;
+            set => CreatedAt = value;
+        }
 
         /// <summary>
         /// PDF 页码（仅 PDF 有效，-1 表示非 PDF）
