@@ -122,19 +122,22 @@ namespace ImageViewer.Views
             _cursorHideTimer.Tick += CursorHideTimer_Tick;
 
             // 使用 ContentRendered 代替 Loaded，确保内容已渲染完成
-            ContentRendered += async (s, e) =>
+            ContentRendered += (s, e) =>
             {
                 // 注册全局快捷键
                 RegisterGlobalHotKeys();
 
-                Opacity = 1;
-                // 如果有启动参数传入的文件，则加载该文件
-                if (System.Windows.Application.Current.Properties["StartupFile"] is string filePath)
+                if (Opacity < 1)
                 {
-                    await ViewModel.LoadImageFromPath(filePath);
+                    FadeInWindow();
                 }
 
             };
+        }
+
+        internal Task LoadStartupFileAsync(string filePath)
+        {
+            return ViewModel.LoadImageFromPath(filePath);
         }
 
 

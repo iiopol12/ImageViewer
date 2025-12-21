@@ -52,7 +52,7 @@ namespace ImageViewer.Services
 
         private static readonly string[] MagickNetExtensions =
         {
-            ".avif", ".heic", ".heif", ".jxl"
+            ".avif", ".heic", ".heif", ".jxl", ".psd", ".tga", ".exr", ".dds", ".wp2"
         };
 
         private static readonly string[] ArchiveExtensions =

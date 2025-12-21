@@ -1,23 +1,48 @@
+using System.IO;
 using System.Windows;
+using ImageViewer.Views;
 
 namespace ImageViewer
 {
     public partial class App : Application
     {
-        protected override void OnStartup(StartupEventArgs e)
+        protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
-            
-            // Handle startup arguments
+
+            string? startupFile = null;
             if (e.Args.Length > 0)
             {
                 var filePath = e.Args[0];
-                if (System.IO.File.Exists(filePath))
+                if (File.Exists(filePath))
                 {
-                    // Store the path to load after window is ready
-                    Current.Properties["StartupFile"] = filePath;
+                    startupFile = filePath;
                 }
             }
+
+            var mainWindow = new MainWindow();
+            MainWindow = mainWindow;
+
+            if (!string.IsNullOrWhiteSpace(startupFile))
+            {
+                mainWindow.ShowInTaskbar = false;
+                mainWindow.Opacity = 0;
+
+                try
+                {
+                    await mainWindow.LoadStartupFileAsync(startupFile);
+                }
+                finally
+                {
+                    mainWindow.Show();
+                    mainWindow.ShowInTaskbar = true;
+                    mainWindow.Activate();
+                }
+
+                return;
+            }
+
+            mainWindow.Show();
         }
     }
 }

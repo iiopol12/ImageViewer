@@ -1039,23 +1039,7 @@ namespace ImageViewer.ViewModels
             var folder = Path.GetDirectoryName(filePath);
             if (string.IsNullOrEmpty(folder)) return;
 
-            await LoadFolder(folder);
-            // 查找并跳转到该图片
-            var index = Images.ToList().FindIndex(i => i.FilePath == filePath);
-            if (index >= 0)
-            {
-                try
-                {
-                    _suppressIndexChangeHandling = true;
-                    CurrentIndex = index;
-                }
-                finally
-                {
-                    _suppressIndexChangeHandling = false;
-                }
-
-                await LoadCurrentImage();
-            }
+            await LoadFolder(folder, filePath);
 
             // Add to recent files
             Settings.RecentFiles.Remove(filePath);
@@ -1293,7 +1277,7 @@ namespace ImageViewer.ViewModels
         /// <summary>
         /// 加载文件夹中的所有图片
         /// </summary>
-        public async Task LoadFolder(string folderPath)
+        public async Task LoadFolder(string folderPath, string? preferredFilePath = null)
         {
             if (!Directory.Exists(folderPath)) return;
 
@@ -1348,17 +1332,29 @@ namespace ImageViewer.ViewModels
                 CurrentFolderPath = folderPath;
 
                  // 启动文件监视
-                 _fileWatcher.WatchFolder(
-                     folderPath,
-                     includeSubfolders: Settings.ScanSubfoldersEnabled,
-                     maxSubfolderDepth: Settings.ScanSubfoldersDepth);
+                _fileWatcher.WatchFolder(
+                    folderPath,
+                    includeSubfolders: Settings.ScanSubfoldersEnabled,
+                    maxSubfolderDepth: Settings.ScanSubfoldersDepth);
 
                 if (Images.Count > 0)
                 {
                     var targetIndex = 0;
+                    var hasPreferredIndex = false;
+
+                    if (!string.IsNullOrWhiteSpace(preferredFilePath))
+                    {
+                        targetIndex = imageList.FindIndex(img =>
+                            string.Equals(img.FilePath, preferredFilePath, StringComparison.OrdinalIgnoreCase));
+                        hasPreferredIndex = targetIndex >= 0;
+                        if (!hasPreferredIndex)
+                        {
+                            targetIndex = 0;
+                        }
+                    }
 
                     // 恢复上次浏览位置
-                    if (Settings.RememberReadingPosition &&
+                    if (!hasPreferredIndex && Settings.RememberReadingPosition &&
                         Settings.ReadingPositions.TryGetValue(folderPath, out var lastIndex))
                     {
                         targetIndex = Math.Min(lastIndex, Images.Count - 1);
