@@ -37,19 +37,17 @@
 - 设置文件：`%APPDATA%\ImageViewer\settings.json`
 - 文件关联：在“设置 → 关联设置”中为图片格式写入用户级注册表（PDF/压缩包仅支持应用内打开）。
 
-
-
 - LocalSend：在设置中指定 LocalSend 可执行文件路径后可一键分享图片。
 - 过滤器：仅对普通文件夹扫描生效，压缩包/PDF 不适用。
+
+
+
+## PDF 说明
+PDF 渲染依赖 `pdfium.dll`。如果启动后提示缺失或架构不匹配，请将正确架构的 `pdfium.dll` 放在可执行文件同目录。
+
 多种主题
 <img width="960" height="780" alt="PixPin_2025-12-22_19-57-10" src="https://github.com/user-attachments/assets/7248f015-fa8a-4fb4-9016-13e5535e570d" />
 <img width="960" height="780" alt="PixPin_2025-12-22_19-57-39" src="https://github.com/user-attachments/assets/dd95349e-f9b1-4cb2-bf7b-52bd51fafc24" />
 <img width="960" height="780" alt="PixPin_2025-12-22_19-57-31" src="https://github.com/user-attachments/assets/ab38fee6-1f41-4978-919a-c15a956e8cae" />
 <img width="960" height="780" alt="PixPin_2025-12-22_19-57-25" src="https://github.com/user-attachments/assets/c888b1e5-8cfc-4f4c-9241-71bc225384db" />
 <img width="960" height="780" alt="PixPin_2025-12-22_19-57-17" src="https://github.com/user-attachments/assets/ebd2b06f-53b3-47bf-8f6c-fbdd137c2599" />
-
-
-
-
-## PDF 说明
-PDF 渲染依赖 `pdfium.dll`。如果启动后提示缺失或架构不匹配，请将正确架构的 `pdfium.dll` 放在可执行文件同目录。
