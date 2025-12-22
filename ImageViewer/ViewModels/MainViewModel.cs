@@ -1,5 +1,6 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using ImageViewer.Helpers;
 using ImageViewer.Models;
 using ImageViewer.Services;
 using System;
@@ -26,7 +27,7 @@ namespace ImageViewer.ViewModels
     {
         private readonly ImageService _imageService;// 图片加载和缓存服务
         private readonly FileWatcherService _fileWatcher; // 文件系统监视服务
-        private readonly LocalSendService _localSendService; // LocalSend 分享服务
+        private readonly LocalSendService _localSendService;
         private readonly DispatcherTimer _slideshowTimer;// 幻灯片播放定时器
         private readonly Random _slideshowRandom = new();
         private List<int>? _slideshowShuffleOrder;
@@ -43,7 +44,6 @@ namespace ImageViewer.ViewModels
         // === 并发控制 ===
         private readonly SemaphoreSlim _thumbnailSemaphore = new SemaphoreSlim(4); // 限制并发数为4
 
-        // === 动画 GIF 进入/退出时的视图状态（用于自动恢复） ===
         private bool _hasSavedViewStateBeforeAnimatedGif;
         private bool _fitToWindowBeforeAnimatedGif;
         private double _zoomLevelBeforeAnimatedGif = 1.0;
@@ -61,6 +61,8 @@ namespace ImageViewer.ViewModels
             _localSendService = new LocalSendService(Settings);
             _slideshowTimer = new DispatcherTimer();
             _slideshowTimer.Tick += SlideshowTimer_Tick;
+
+            ThemeManager.Apply(Settings.Theme);
 
             // 订阅文件系统事件
             _fileWatcher.FileCreated += OnFileCreated;
@@ -90,7 +92,7 @@ namespace ImageViewer.ViewModels
             }
             catch
             {
-                // ignore
+              
             }
         }
 
@@ -99,6 +101,10 @@ namespace ImageViewer.ViewModels
             if (e.PropertyName == nameof(AppSettings.ArchiveLoadStrategy))
             {
                 _imageService.ArchiveLoadStrategy = Settings.ArchiveLoadStrategy;
+            }
+            else if (e.PropertyName == nameof(AppSettings.Theme))
+            {
+                ThemeManager.Apply(Settings.Theme);
             }
         }
 
@@ -149,10 +155,8 @@ namespace ImageViewer.ViewModels
         // === 瀑布流视图缩放级别 ===
         [ObservableProperty]
         private double _waterfallZoomLevel = 1.0;
-        // === 平移 X 坐标 ===
         [ObservableProperty]
         private double _panX;
-        // === 平移 Y 坐标 ===
         [ObservableProperty]
         private double _panY;
         // === 是否全屏 ===
@@ -196,13 +200,11 @@ namespace ImageViewer.ViewModels
 
 
         /// <summary>
-        /// 当前图片的 GIF 数据（用于 GifViewerControl 绑定）
         /// </summary>
         [ObservableProperty]
         private byte[]? _currentGifData;
 
         /// <summary>
-        /// 当前图片是否为动画 GIF
         /// </summary>
         [ObservableProperty]
         private bool _isCurrentAnimatedGif;
@@ -636,7 +638,6 @@ namespace ImageViewer.ViewModels
                         // 在后台线程保存
                         await Task.Run(() => _imageService.SaveRotatedImage(img.FilePath, rotated));
 
-                        // 在 UI 线程刷新缩略图
                         await Application.Current.Dispatcher.InvokeAsync(() =>
                         {
                             img.Thumbnail = _imageService.LoadThumbnail(img.FilePath, Settings.ThumbnailSize);
@@ -660,7 +661,6 @@ namespace ImageViewer.ViewModels
             }
         }
 
-        /// <summary>通过 LocalSend 分享当前图片</summary>
         [RelayCommand]
         private async Task ShareCurrentImage()
         {
@@ -684,7 +684,6 @@ namespace ImageViewer.ViewModels
             await ShareFilesAsync(new[] { CurrentImage.FilePath });
         }
 
-        /// <summary>通过 LocalSend 分享全部已加载的图片</summary>
         [RelayCommand]
         private async Task ShareAllImages()
         {
@@ -708,7 +707,6 @@ namespace ImageViewer.ViewModels
         }
 
         /// <summary>
-        /// 通过 LocalSend 发送文件列表
         /// </summary>
         private async Task ShareFilesAsync(IEnumerable<string> filePaths)
         {
@@ -759,7 +757,6 @@ namespace ImageViewer.ViewModels
         [RelayCommand]
         private void SetAsWallpaper()
         {
-            // Implementation would use Windows API
             StatusMessage = "设置壁纸功能暂未实现";
         }
 
@@ -1014,7 +1011,6 @@ namespace ImageViewer.ViewModels
                 return;
             }
 
-            // PDF 文件处理
             if (ImageService.IsSupportedPdf(filePath))
             {
                 await LoadPdf(filePath);
@@ -1041,7 +1037,6 @@ namespace ImageViewer.ViewModels
 
             await LoadFolder(folder, filePath);
 
-            // Add to recent files
             Settings.RecentFiles.Remove(filePath);
             Settings.RecentFiles.Insert(0, filePath);
             if (Settings.RecentFiles.Count > 20)
@@ -1073,10 +1068,8 @@ namespace ImageViewer.ViewModels
                 IsBusyLoading = true;
                 StatusMessage = "正在加载 PDF...";
 
-                // 取消旧缩略图任务，避免关闭 PDF 时仍在后台渲染
                 _thumbnailCts?.Cancel();
 
-                // 如果之前打开过 PDF，先关闭缓存，避免文件占用/内容不刷新
                 if (!string.IsNullOrWhiteSpace(CurrentFolderPath) && ImageService.IsSupportedPdf(CurrentFolderPath))
                 {
                     _imageService.ClosePdf(CurrentFolderPath);
@@ -1094,7 +1087,6 @@ namespace ImageViewer.ViewModels
                 SecondDisplayImage = null;
                 CurrentIndex = -1;
 
-                // 扫描 PDF 页面
                 var pageList = new List<ImageInfo>();
                 await Task.Run(() =>
                 {
@@ -1163,7 +1155,6 @@ namespace ImageViewer.ViewModels
 
             try
             {
-                // 如果之前打开的是 PDF，先关闭文档缓存，避免文件占用
                 _thumbnailCts?.Cancel();
                 if (!string.IsNullOrWhiteSpace(CurrentFolderPath) && ImageService.IsSupportedPdf(CurrentFolderPath))
                 {
@@ -1284,7 +1275,6 @@ namespace ImageViewer.ViewModels
 
             try
             {
-                // 如果之前打开的是 PDF，先关闭文档缓存，避免文件占用
                 _thumbnailCts?.Cancel();
                 if (!string.IsNullOrWhiteSpace(CurrentFolderPath) && ImageService.IsSupportedPdf(CurrentFolderPath))
                 {
@@ -1311,7 +1301,6 @@ namespace ImageViewer.ViewModels
 
 
 
-                // ✓ 批量添加图片，减少 UI 线程切换
                  var imageList = new List<ImageInfo>();
                  await Task.Run(() =>
                  {
@@ -1322,7 +1311,6 @@ namespace ImageViewer.ViewModels
                          filterOptions: GetFilterOptions()));
                  });
 
-                // 一次性添加到 ObservableCollection
                 foreach (var img in imageList)
                 {
                     Images.Add(img);
@@ -1441,7 +1429,6 @@ namespace ImageViewer.ViewModels
 
                         if (thumbnail != null && !token.IsCancellationRequested)
                         {
-                            // 使用 Background 优先级更新 UI，避免阻塞
                             await Application.Current.Dispatcher.InvokeAsync(() =>
                             {
                                 image.Thumbnail = thumbnail;
@@ -1499,7 +1486,6 @@ namespace ImageViewer.ViewModels
                 CurrentImage.IsCurrent = true;
 
                 // 检查书签状态
-               // CurrentImage.IsBookmarked = Settings.Bookmarks.Any(b => b.FilePath == CurrentImage.FilePath);
                 CurrentImage.IsBookmarked = Settings.Bookmarks.Any(b => b.Type == BookmarkType.Image &&
                                                                         b.FilePath == CurrentImage.CacheKey);
 
@@ -1522,13 +1508,11 @@ namespace ImageViewer.ViewModels
                      {
                          CurrentImage.FullImage = newDisplay;
                      }
-                 }//如果加载失败，保持原有的 DisplayImage 不变
+                 }
 
                 var wasAnimatedGif = IsCurrentAnimatedGif;
-                // 检测是否为动画 GIF
                 if (CurrentImage.FileExtension == ".gif")
                 {
-                    // 检测 GIF 帧数
                     int frameCount = 1;
                     byte[]? gifData = null;
 
@@ -1557,12 +1541,10 @@ namespace ImageViewer.ViewModels
                 }
                 else
                 {
-                    // 非 GIF 文件，清除 GIF 相关状态
                     IsCurrentAnimatedGif = false;
                     CurrentGifData = null;
                 }
 
-                // 动画 GIF：用原始像素显示（避免隐式缩放）；退出时恢复进入 GIF 前的查看状态。
                 if (IsCurrentAnimatedGif)
                 {
                     if (!wasAnimatedGif && !_hasSavedViewStateBeforeAnimatedGif)
@@ -1650,7 +1632,6 @@ namespace ImageViewer.ViewModels
 
             var preloadCount = Settings.PreloadCount;
 
-            // 选择需要预加载的图片（当前图片前后各 PreloadCount 张）
             var imagesToPreload = Images
                 .Skip(Math.Max(0, CurrentIndex - preloadCount))
                 .Take(preloadCount * 2 + 1)
@@ -1728,7 +1709,6 @@ namespace ImageViewer.ViewModels
             }
             else if (File.Exists(first))
             {
-                // PDF 文件
                 if (ImageService.IsSupportedPdf(first))
                 {
                     await LoadPdf(first);
@@ -2016,7 +1996,6 @@ namespace ImageViewer.ViewModels
 
                 // 加载缩略图
                 newImage.Thumbnail = await _imageService.LoadThumbnailAsync(newImage, Settings.ThumbnailSize);
-                // 更新 UI
                 OnPropertyChanged(nameof(HasImages));
                 OnPropertyChanged(nameof(PositionText));
                 UpdateEmptyState();
@@ -2145,7 +2124,6 @@ namespace ImageViewer.ViewModels
         {
             Settings.PropertyChanged -= OnSettingsPropertyChanged;
             _imageService.ArchivePasswordCanceled -= OnArchivePasswordCanceled;
-            // 如果当前打开的是 PDF，关闭文档缓存
              if (!string.IsNullOrEmpty(CurrentFolderPath) && ImageService.IsSupportedPdf(CurrentFolderPath))
             {
                 _imageService.ClosePdf(CurrentFolderPath);
@@ -2172,3 +2150,5 @@ namespace ImageViewer.ViewModels
         #endregion
     }
 }
+
+

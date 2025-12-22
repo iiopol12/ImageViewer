@@ -11,20 +11,16 @@ using System.Windows.Media.Imaging;
 namespace ImageViewer.Services
 {
     /// <summary>
-    /// PDF 渲染服务 - 使用 PdfiumViewer 将 PDF 页面渲染为 BitmapSource
     /// </summary>
     public class PdfService : IDisposable
     {
-        // 缓存已打开的 PDF 文档（避免重复打开同一文件）
         private readonly Dictionary<string, PdfDocument> _documentCache = new(StringComparer.OrdinalIgnoreCase);
         private readonly object _cacheLock = new();
 
-        // 默认渲染 DPI
         private const float DefaultDpi = 150f;
         private const float ThumbnailDpi = 72f;
 
         /// <summary>
-        /// 判断文件是否为 PDF
         /// </summary>
         public static bool IsPdf(string filePath)
         {
@@ -33,7 +29,6 @@ namespace ImageViewer.Services
         }
 
         /// <summary>
-        /// 扫描 PDF 文件，返回每一页作为 ImageInfo
         /// </summary>
         public IReadOnlyList<ImageInfo> ScanPdf(string pdfPath)
         {
@@ -70,7 +65,6 @@ namespace ImageViewer.Services
         }
 
         /// <summary>
-        /// 获取 PDF 页数
         /// </summary>
         public int GetPageCount(string pdfPath)
         {
@@ -86,12 +80,8 @@ namespace ImageViewer.Services
         }
 
         /// <summary>
-        /// 渲染 PDF 页面为 BitmapSource
         /// </summary>
-        /// <param name="pdfPath">PDF 文件路径</param>
         /// <param name="pageIndex">页码（从 0 开始）</param>
-        /// <param name="targetWidth">目标宽度（null 表示使用默认 DPI）</param>
-        /// <returns>渲染后的 BitmapSource</returns>
         public BitmapSource? RenderPage(string pdfPath, int pageIndex, int? targetWidth = null)
         {
             try
@@ -107,9 +97,8 @@ namespace ImageViewer.Services
                 float dpi;
                 if (targetWidth.HasValue && targetWidth.Value > 0)
                 {
-                    // 根据目标宽度计算 DPI
                     dpi = targetWidth.Value / (float)pageSize.Width * 72f;
-                    dpi = Math.Clamp(dpi, 36f, 300f); // 限制 DPI 范围
+                    dpi = Math.Clamp(dpi, 36f, 300f);
                 }
                 else
                 {
@@ -119,10 +108,8 @@ namespace ImageViewer.Services
                 int renderWidth = (int)(pageSize.Width * dpi / 72f);
                 int renderHeight = (int)(pageSize.Height * dpi / 72f);
 
-                // 渲染为 System.Drawing.Image
                 using var image = doc.Render(pageIndex, renderWidth, renderHeight, dpi, dpi, false);
 
-                // 转换为 BitmapSource
                 return ConvertToBitmapSource(image);
             }
             catch (Exception ex)
@@ -133,7 +120,6 @@ namespace ImageViewer.Services
         }
 
         /// <summary>
-        /// 渲染 PDF 页面缩略图
         /// </summary>
         public BitmapSource? RenderThumbnail(string pdfPath, int pageIndex, int thumbnailSize = 120)
         {
@@ -165,7 +151,6 @@ namespace ImageViewer.Services
         }
 
         /// <summary>
-        /// 渲染 ImageInfo 对应的 PDF 页面
         /// </summary>
         public BitmapSource? RenderPage(ImageInfo imageInfo, int? targetWidth = null)
         {
@@ -176,7 +161,6 @@ namespace ImageViewer.Services
         }
 
         /// <summary>
-        /// 渲染 ImageInfo 对应的 PDF 缩略图
         /// </summary>
         public BitmapSource? RenderThumbnail(ImageInfo imageInfo, int thumbnailSize = 120)
         {
@@ -187,7 +171,6 @@ namespace ImageViewer.Services
         }
 
         /// <summary>
-        /// 获取或打开 PDF 文档（带缓存）
         /// </summary>
         private PdfDocument GetOrOpenDocument(string pdfPath)
         {
@@ -233,7 +216,6 @@ namespace ImageViewer.Services
         }
 
         /// <summary>
-        /// 关闭指定 PDF 文档缓存
         /// </summary>
         public void CloseDocument(string pdfPath)
         {
@@ -248,7 +230,6 @@ namespace ImageViewer.Services
         }
 
         /// <summary>
-        /// 将 System.Drawing.Image 转换为 WPF BitmapSource
         /// </summary>
         private static BitmapSource ConvertToBitmapSource(System.Drawing.Image image)
         {
@@ -292,3 +273,4 @@ namespace ImageViewer.Services
         }
     }
 }
+

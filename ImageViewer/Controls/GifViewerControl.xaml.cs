@@ -9,7 +9,6 @@ using System.Windows.Threading;
 namespace ImageViewer.Controls
 {
     /// <summary>
-    /// GIF 循环模式
     /// </summary>
     public enum GifLoopMode
     {
@@ -22,8 +21,6 @@ namespace ImageViewer.Controls
     }
 
     /// <summary>
-    /// GIF 动画播放控件
-    /// 支持从 Stream/byte[] 加载，支持播放控制、速度调节、循环模式
     /// </summary>
     public class GifViewerControl : Control
     {
@@ -35,7 +32,6 @@ namespace ImageViewer.Controls
         private int[]? _frameDelays; // 每帧延时（毫秒）
         private int _loopCompletedCount;
 
-        // 最小帧延时（毫秒），防止0延时导致CPU过载
         private const int MinFrameDelay = 20;
         // 默认帧延时（毫秒），当元数据缺失时使用
         private const int DefaultFrameDelay = 100;
@@ -45,7 +41,6 @@ namespace ImageViewer.Controls
         #region 依赖属性
 
         /// <summary>
-        /// GIF 数据源（byte[] 或 Stream）
         /// </summary>
         public static readonly DependencyProperty SourceProperty =
             DependencyProperty.Register(
@@ -109,7 +104,6 @@ namespace ImageViewer.Controls
         }
 
         /// <summary>
-        /// 循环次数（仅 LoopMode = Count 时有效）
         /// </summary>
         public static readonly DependencyProperty LoopCountProperty =
             DependencyProperty.Register(
@@ -159,7 +153,6 @@ namespace ImageViewer.Controls
         }
 
         /// <summary>
-        /// 是否为动画 GIF（帧数 > 1）
         /// </summary>
         public static readonly DependencyPropertyKey IsAnimatedPropertyKey =
             DependencyProperty.RegisterReadOnly(
@@ -262,7 +255,7 @@ namespace ImageViewer.Controls
         private static object CoerceSpeed(DependencyObject d, object baseValue)
         {
             var speed = (double)baseValue;
-            return Math.Max(0.1, Math.Min(10.0, speed)); // 限制在 0.1x ~ 10x
+            return Math.Max(0.1, Math.Min(10.0, speed));
         }
 
         private static object CoerceLoopCount(DependencyObject d, object baseValue)
@@ -285,7 +278,6 @@ namespace ImageViewer.Controls
         #region 核心方法
 
         /// <summary>
-        /// 加载 GIF 数据
         /// </summary>
         private void LoadGif(object? source)
         {
@@ -354,7 +346,6 @@ namespace ImageViewer.Controls
         }
 
         /// <summary>
-        /// 解码 GIF 获取所有帧和延时
         /// </summary>
         private void DecodeGif(Stream stream)
         {
@@ -378,11 +369,10 @@ namespace ImageViewer.Controls
             canvasWidth = Math.Max(1, canvasWidth);
             canvasHeight = Math.Max(1, canvasHeight);
 
-            var canvasStride = canvasWidth * 4; // Pbgra32
+            var canvasStride = canvasWidth * 4;
             var canvas = new byte[canvasStride * canvasHeight];
             byte[]? restoreBuffer = null;
 
-            // GIF 通常没有可靠 DPI 信息；固定为 96 可避免 WPF 因 DPI 差异做隐式缩放导致发糊。
             const double dpiX = 96.0;
             const double dpiY = 96.0;
 
@@ -534,7 +524,6 @@ namespace ImageViewer.Controls
             }
             catch
             {
-                // ignore
             }
 
             return delay;
@@ -908,3 +897,5 @@ namespace ImageViewer.Controls
         #endregion
     }
 }
+
+

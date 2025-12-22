@@ -1,4 +1,4 @@
-using ImageViewer.Models;
+﻿using ImageViewer.Models;
 using ImageViewer.Views;
 using ImageMagick;
 using System;
@@ -65,7 +65,6 @@ namespace ImageViewer.Services
 
 
         private static readonly string[] PdfExtensions = { ".pdf" };
-        // HashSet用于O(1)查找效率
 
         private static readonly HashSet<string> PdfExtensionSet = new(PdfExtensions, StringComparer.OrdinalIgnoreCase);
         private static readonly HashSet<string> BitmapImageExtensionSet = new(BitmapImageExtensions, StringComparer.OrdinalIgnoreCase);
@@ -120,15 +119,11 @@ namespace ImageViewer.Services
         public event Action<string>? ArchivePasswordCanceled;
 
 
-        // 临时解压目录根路径（每个会话独立GUID）
         private readonly string _archiveExtractSessionRoot =
             Path.Combine(Path.GetTempPath(), "ImageViewer", "ArchiveExtract", Guid.NewGuid().ToString("N"));
 
-        // LRU数据结构：线程安全锁
         private readonly object _archiveExtractCacheLock = new();
-        // LRU链表：头部=最近使用，尾部=最久未使用
         private readonly LinkedList<ExtractCacheItem> _archiveExtractLru = new();
-        // 快速索引：O(1)查找节点位置
         private readonly Dictionary<string, LinkedListNode<ExtractCacheItem>> _archiveExtractIndex = new(StringComparer.Ordinal);
         // 当前缓存总大小（字节）
         private long _archiveExtractTotalBytes;
@@ -150,12 +145,10 @@ namespace ImageViewer.Services
         private readonly int _maxCacheSize = 20;      // 大图缓存
         private readonly int _maxThumbnailCacheSize = 100; // 缩略图缓存
 
-        // LRU #1: 图片缓存
         private readonly LinkedList<string> _imageLru = new();
         private readonly Dictionary<string, LinkedListNode<string>> _imageLruIndex = new(StringComparer.Ordinal);
 
  
-        // LRU #2: 缩略图缓存
         private readonly LinkedList<string> _thumbLru = new();
         private readonly Dictionary<string, LinkedListNode<string>> _thumbLruIndex =new(StringComparer.Ordinal);
 
@@ -249,7 +242,6 @@ namespace ImageViewer.Services
         }
 
         /// <summary>
-        /// 判断是否优先使用BitmapImage加载（速度更快）
         /// </summary>
         private static bool PreferBitmapImage(string filePath)
         {
@@ -265,7 +257,6 @@ namespace ImageViewer.Services
 
 
         /// <summary>
-        /// 使用BitmapImage加载图片（适用于常见格式，性能更好）
         /// </summary>
         private static BitmapSource? LoadWithBitmapImage(string filePath, int? decodePixelWidth = null)
         {
@@ -287,12 +278,11 @@ namespace ImageViewer.Services
 
 
         /// <summary>
-        /// 使用MagickNet加载图片
         /// </summary>
         private static BitmapSource? LoadWithMagickNet(string filePath, int? decodePixelWidth = null)
         {
             using var image = new MagickImage(filePath);
-            image.AutoOrient();// 自动旋转EXIF方向
+            image.AutoOrient();
 
             if (decodePixelWidth.HasValue && decodePixelWidth.Value > 0)
             {
@@ -417,7 +407,6 @@ namespace ImageViewer.Services
                 }
                 catch
                 {
-                    // fall back to Magick.NET
                 }
             }
 
@@ -514,7 +503,6 @@ namespace ImageViewer.Services
 
 
         /// <summary>
-        /// 从ZIP压缩包读取指定条目的字节数据
         /// </summary>
         private static byte[] ReadZipEntryBytes(string archivePath, string entryPath, long? expectedSize = null)
         {
@@ -533,7 +521,6 @@ namespace ImageViewer.Services
 
 
         /// <summary>
-        /// 从ZIP压缩包解压指定条目到文件
         /// </summary>
         private static void ExtractZipEntryToFile(string archivePath, string entryPath, string destinationPath)
         {
@@ -661,7 +648,6 @@ namespace ImageViewer.Services
                     resultPassword = password;
                 }
 
-                // resultPassword set above
             }
 
             if (raiseCanceledEvent)
@@ -672,7 +658,6 @@ namespace ImageViewer.Services
                 }
                 catch
                 {
-                    // ignore handler failures
                 }
             }
 
@@ -886,7 +871,6 @@ namespace ImageViewer.Services
                     }
                     catch
                     {
-                        // fall through and re-extract
                     }
                 }
 
@@ -913,7 +897,6 @@ namespace ImageViewer.Services
                     }
                     catch
                     {
-                        // ignore
                     }
                 }
 
@@ -927,7 +910,6 @@ namespace ImageViewer.Services
                 }
                 catch
                 {
-                    // ignore
                 }
 
                
@@ -1010,7 +992,6 @@ namespace ImageViewer.Services
                     }
                     catch
                     {
-                        // ignore
                     }
                 }
 
@@ -1030,7 +1011,6 @@ namespace ImageViewer.Services
             }
             catch
             {
-                // ignore
             }
         }
 
@@ -1039,7 +1019,6 @@ namespace ImageViewer.Services
         private BitmapSource? LoadBitmap(ImageInfo imageInfo, int? decodePixelWidth)
         {
 
-            // PDF 页面渲染
             if (imageInfo.SourceKind == ImageSourceKind.PdfPage)
             {
                 return _pdfService.RenderPage(imageInfo, decodePixelWidth);
@@ -1125,7 +1104,6 @@ namespace ImageViewer.Services
         }
 
 
-        // 从压缩包临时解压加载图片（带LRU缓存）
         private BitmapSource? LoadBitmapFromZipEntryTempExtractLru(ImageInfo imageInfo, int? decodePixelWidth)
         {
             var extractedPath = EnsureZipEntryExtractedToTemp(imageInfo);
@@ -1402,7 +1380,6 @@ namespace ImageViewer.Services
 
 
         /// <summary>
-        /// 原子化的获取并Touch缩略图
         /// </summary>
         private bool TryGetAndTouchThumbnail(string cacheKey, out BitmapSource? value)
         {
@@ -1455,7 +1432,6 @@ namespace ImageViewer.Services
                         {
                             BitmapSource? bitmap;
 
-                            // PDF 页面使用专门的缩略图渲染
                             if (imageInfo.SourceKind == ImageSourceKind.PdfPage)
                             {
                                 bitmap = _pdfService.RenderThumbnail(imageInfo, size);
@@ -1507,7 +1483,6 @@ namespace ImageViewer.Services
 
 
         /// <summary>
-        /// 原子化的获取+Touch操作
         /// </summary>
         private bool TryGetAndTouch(string cacheKey, out BitmapSource? value)
         {
@@ -1526,11 +1501,6 @@ namespace ImageViewer.Services
 
         /// <summary>
         ///异步加载图片
-        ///场景：两个线程同时请求同一个图片 需要 Double-Check Locking模式 用于防止多线程重复加载
-        /// T1: 第一次检查 → 未命中 → 等待信号量
-        // T2: 第一次检查 → 未命中 → 等待信号量
-        // T1: 获得信号量 → 加载图片 → 添加缓存 → 释放信号量
-        // T2: 获得信号量 → 第二次检查 → 命中！ → 返回（避免重复加载）
         /// 
         /// </summary>
         public async Task<BitmapSource?> LoadImageAsync(ImageInfo imageInfo, int? maxSize = null, CancellationToken cancellationToken = default)
@@ -1729,8 +1699,6 @@ namespace ImageViewer.Services
         #region LRU缓存管理 - 图片缓存
 
         /// <summary>
-        /// LRU Touch操作：将key移动到链表头部（标记为最近使用）
-        /// 原理：LRU链表头部=最近访问，尾部=最久未访问
         /// </summary>
         private void TouchImageCache_NoLock(string key)
         {
@@ -1744,8 +1712,6 @@ namespace ImageViewer.Services
 
 
         /// <summary>
-        /// LRU驱逐策略：当缓存超过容量时，删除最久未使用的项（链表尾部）
-        /// 时间复杂度：O(1) - 直接访问尾节点
         /// </summary>
         private void EvictImageCacheIfNeeded_NoLock()
         {
@@ -1770,14 +1736,11 @@ namespace ImageViewer.Services
 
         /// <summary>
         /// 添加图片到缓存
-        /// 如果key已存在：更新值并Touch（避免重复节点破坏LRU结构）
-        /// 如果key不存在：插入头部并触发驱逐检查
         /// </summary>
         private void AddToCache(string key, BitmapSource image)
         {
             lock (_cacheLock)
             {
-                // 已存在则更新并Touch
                 if (_imageCache.ContainsKey(key))
                 {
                     _imageCache[key] = image;
@@ -1785,7 +1748,6 @@ namespace ImageViewer.Services
                     return;
                 }
 
-                // 加入字典 + 加到 LRU 头
                 _imageCache[key] = image;
                 var node = new LinkedListNode<string>(key);
                 _imageLru.AddFirst(node);    // 插入链表头部
@@ -1798,7 +1760,6 @@ namespace ImageViewer.Services
 
         #region LRU缓存管理 - 缩略图缓存
         /// <summary>
-        /// 缩略图LRU Touch操作（同图片缓存逻辑）
         /// </summary>
         private void TouchThumbnailCache_NoLock(string key)
         {
@@ -1811,8 +1772,6 @@ namespace ImageViewer.Services
 
 
         /// <summary>
-        /// LRU驱逐策略：当缓存超过容量时，删除最久未使用的项（链表尾部）
-        /// 时间复杂度：O(1) - 直接访问尾节点
         /// </summary>
         private void EvictThumbnailCacheIfNeeded_NoLock()
         {
@@ -1832,14 +1791,11 @@ namespace ImageViewer.Services
 
         /// <summary>
         /// 添加图片到缓存
-        /// 如果key已存在：更新值并Touch（避免重复节点破坏LRU结构）
-        /// 如果key不存在：插入头部并触发驱逐检查
         /// </summary>
         private void AddThumbnailToCache(string key, BitmapSource thumbnail)
         {
             lock (_cacheLock)
             {
-                // 更新并 touch（避免重复 key 让 LRU 乱）
                 if (_thumbnailCache.TryGetValue(key, out _))  // 一次查询即可
                 {
                     _thumbnailCache[key] = thumbnail;
@@ -1861,11 +1817,9 @@ namespace ImageViewer.Services
 
         /// <summary>
         /// 从缓存键中提取基础键（移除尺寸标记）
-        /// 例如: "zip|entry|max=4096" → "zip|entry"
         /// </summary>
         private static string GetBaseCacheKey(string cacheKey)
         {
-            //  zip|entry|max=4096  →  zip|entry
             var idx = cacheKey.IndexOf("|max=", StringComparison.Ordinal);
             return idx >= 0 ? cacheKey[..idx] : cacheKey;
 
@@ -1874,7 +1828,6 @@ namespace ImageViewer.Services
 
         /// <summary>
         /// 保存旋转后的图片
-        /// 注意：需要清除所有相关缓存（数据+LRU结构）
         /// </summary>
         public void SaveRotatedImage(string filePath, BitmapSource rotatedImage)
         {
@@ -1901,7 +1854,6 @@ namespace ImageViewer.Services
                     _imageCache.TryRemove(filePath, out _);
                     _thumbnailCache.TryRemove(filePath, out _);
 
-                    // 清理LRU结构
                     if (_imageLruIndex.TryGetValue(filePath, out var imgNode))
                     {
                         _imageLru.Remove(imgNode);
@@ -1922,20 +1874,11 @@ namespace ImageViewer.Services
         }
 
 
-        //public void SaveRotatedImage(string filePath, BitmapSource rotatedImage)
         //{
-        //    try
         //    {
-        //        var encoder = GetEncoderForExtension(Path.GetExtension(filePath));
-        //        encoder.Frames.Add(BitmapFrame.Create(rotatedImage));
 
-        //        using var stream = new FileStream(filePath, FileMode.Create);
-        //        encoder.Save(stream);
         //    }
-        //    catch (Exception ex)
         //    {
-        //        Debug.WriteLine($"保存旋转图片失败: {ex.Message}");
-        //        throw;
         //    }
         //}
 
@@ -1995,10 +1938,8 @@ namespace ImageViewer.Services
 
 
         /// <summary>
-        /// 检测 GIF 文件的帧数
         /// </summary>
         /// <param name="filePath">文件路径</param>
-        /// <returns>帧数，非 GIF 或错误返回 1</returns>
         public static int GetGifFrameCount(string filePath)
         {
             try
@@ -2017,13 +1958,11 @@ namespace ImageViewer.Services
         }
 
 
-        // 关闭 PDF 文档的方法
         public void ClosePdf(string pdfPath)
         {
             _pdfService.CloseDocument(pdfPath);
         }
         /// <summary>
-        /// 从字节数组检测 GIF 帧数
         /// </summary>
         public static int GetGifFrameCount(byte[] data)
         {
@@ -2039,7 +1978,6 @@ namespace ImageViewer.Services
         }
 
         /// <summary>
-        /// 从流检测 GIF 帧数
         /// </summary>
         public static int GetGifFrameCountFromStream(Stream stream)
         {
@@ -2058,7 +1996,6 @@ namespace ImageViewer.Services
         }
 
         /// <summary>
-        /// 加载 GIF 原始数据（用于 GifViewerControl）
         /// </summary>
         public static byte[]? LoadGifData(string filePath)
         {
@@ -2073,7 +2010,6 @@ namespace ImageViewer.Services
         }
 
         /// <summary>
-        /// 从压缩包加载 GIF 原始数据
         /// </summary>
         public byte[]? LoadGifDataFromArchive(ImageInfo imageInfo)
         {
@@ -2120,8 +2056,6 @@ namespace ImageViewer.Services
 
     /// <summary>
     /// 自然排序比较器（处理文件名中的数字）
-    /// 例如: file1.jpg, file2.jpg, file10.jpg 按数字顺序排列
-    /// 而不是字典序: file1.jpg, file10.jpg, file2.jpg
     /// </summary>
 
     public class NaturalStringComparer : IComparer<string>
@@ -2175,3 +2109,5 @@ namespace ImageViewer.Services
         #endregion
     }
 }
+
+

@@ -8,7 +8,6 @@ using System.Windows.Interop;
 namespace ImageViewer.Helpers
 {
     /// <summary>
-    /// 全局快捷键管理器 - 使用 Windows API 实现更可靠的快捷键响应
     /// </summary>
     public class HotKeyManager : IDisposable
     {
@@ -34,7 +33,7 @@ namespace ImageViewer.Helpers
         private IntPtr _windowHandle;
         private HwndSource _source;
         private readonly Dictionary<int, Action> _hotKeyActions = new Dictionary<int, Action>();
-        private int _currentId = 1000; // 起始 ID
+        private int _currentId = 1000;
 
         public HotKeyManager(Window window)
         {
@@ -79,7 +78,6 @@ namespace ImageViewer.Helpers
         }
 
         /// <summary>
-        /// Windows 消息钩子
         /// </summary>
         private IntPtr HwndHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
@@ -88,7 +86,6 @@ namespace ImageViewer.Helpers
                 int id = wParam.ToInt32();
                 if (_hotKeyActions.TryGetValue(id, out var action))
                 {
-                    // 在 UI 线程上执行操作
                     _window.Dispatcher.BeginInvoke(action);
                     handled = true;
                 }
@@ -99,11 +96,8 @@ namespace ImageViewer.Helpers
         /// <summary>
         /// 注册快捷键
         /// </summary>
-        /// <param name="modifiers">修饰键 (Ctrl, Alt, Shift, Win)</param>
         /// <param name="key">主键</param>
         /// <param name="action">触发时执行的操作</param>
-        /// <param name="noRepeat">是否禁止重复触发 (Windows 7+)</param>
-        /// <returns>快捷键 ID,失败返回 -1</returns>
         public int RegisterHotKey(ModifierKeys modifiers, Key key, Action action, bool noRepeat = true)
         {
             try
@@ -133,7 +127,6 @@ namespace ImageViewer.Helpers
                 // 转换虚拟键码
                 var vk = KeyInterop.VirtualKeyFromKey(key);
 
-                // 生成唯一 ID
                 int id = _currentId++;
 
                 // 注册热键
@@ -161,7 +154,6 @@ namespace ImageViewer.Helpers
         }
 
         /// <summary>
-        /// 注销指定 ID 的快捷键
         /// </summary>
         public void UnregisterHotKey(int id)
         {

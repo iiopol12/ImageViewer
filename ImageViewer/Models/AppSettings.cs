@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
@@ -22,7 +22,6 @@ namespace ImageViewer.Models
         Stream = 0,
 
         /// <summary>
-        /// 解压到临时目录并做 LRU 缓存。
         /// </summary>
         TempExtractLru = 1
     }
@@ -41,6 +40,16 @@ namespace ImageViewer.Models
     {
         Zoom,
         Navigate
+    }
+
+    public enum AppTheme
+    {
+        Dark,           // 深色主题
+        Light,          // 浅色主题
+        SoftPink,       // 柔和粉红（浅色背景）
+        HotRed,         // 辣红色（深色背景）
+        Ocean,          // 海洋蓝（深色背景）
+        Forest          // 森林绿（深色背景）
     }
 
     public enum BookmarkType
@@ -84,6 +93,9 @@ namespace ImageViewer.Models
 
         [ObservableProperty]
         private bool _freezeDuringResize = true;
+
+        [ObservableProperty]
+        private AppTheme _theme = AppTheme.Dark;
 
         [ObservableProperty]
         private double _windowLeft;
@@ -155,7 +167,7 @@ namespace ImageViewer.Models
         [ObservableProperty]
         private double _MangaGap = 4;
 
-  
+
 
         [ObservableProperty]
         private string _localSendPath = string.Empty;
@@ -199,7 +211,6 @@ namespace ImageViewer.Models
     public class Bookmark
     {
         /// <summary>
-        /// 文件路径或 CacheKey（PDF 页面使用 CacheKey）
         /// </summary>
         public string FilePath { get; set; } = string.Empty;
 
@@ -231,7 +242,6 @@ namespace ImageViewer.Models
         public string SortKey { get; set; } = string.Empty;
 
         /// <summary>
-        /// 兼容字段：Path
         /// </summary>
         [JsonIgnore]
         public string Path
@@ -241,7 +251,6 @@ namespace ImageViewer.Models
         }
 
         /// <summary>
-        /// 兼容字段：DisplayName
         /// </summary>
         [JsonIgnore]
         public string DisplayName
@@ -251,7 +260,6 @@ namespace ImageViewer.Models
         }
 
         /// <summary>
-        /// 兼容字段：AddedAt
         /// </summary>
         [JsonIgnore]
         public DateTime AddedAt
@@ -261,7 +269,6 @@ namespace ImageViewer.Models
         }
 
         /// <summary>
-        /// PDF 页码（仅 PDF 有效，-1 表示非 PDF）
         /// </summary>
         public int PageIndex { get; set; } = -1;
 

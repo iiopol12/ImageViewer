@@ -7,7 +7,7 @@
         ResizeMode="NoResize"
         WindowStyle="None"
         ShowInTaskbar="False"
-        Background="#FF1A1A1A">
+        Background="{DynamicResource BackgroundDarkBrush}">
 
     <Grid>
         <Grid.ColumnDefinitions>
@@ -16,7 +16,7 @@
         </Grid.ColumnDefinitions>
 
         <!-- 左侧按钮栏 - 黑色背景 -->
-        <Grid Grid.Column="0" Background="#FF1E1E1E">
+        <Grid Grid.Column="0" Background="{DynamicResource BackgroundDarkBrush}">
             <StackPanel VerticalAlignment="Top" Margin="0,40,0,0">
 
                 <!-- 设置 -->
@@ -25,11 +25,11 @@
                     <StackPanel>
                         <Path x:Name="SettingsIcon"
                           Data="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"
-                          Fill="#FF4A9EFF"
+                          Fill="{DynamicResource PrimaryBrush}"
                           Stretch="Uniform"
                           Width="24"
                           Height="24"/>
-                        <TextBlock Text="设置" Foreground="White" FontSize="14" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+                        <TextBlock Text="设置" Foreground="{DynamicResource ForegroundBrush}" FontSize="14" HorizontalAlignment="Center" Margin="0,5,0,0"/>
                     </StackPanel>
                 </Button>
 
@@ -39,11 +39,11 @@
                     <StackPanel>
                         <Path x:Name="FavoritesIcon"
                           Data="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z"
-                          Fill="White"
+                          Fill="{DynamicResource ForegroundBrush}"
                           Stretch="Uniform"
                           Width="24"
                           Height="24"/>
-                        <TextBlock Text="收藏" Foreground="White" FontSize="14" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+                        <TextBlock Text="收藏" Foreground="{DynamicResource ForegroundBrush}" FontSize="14" HorizontalAlignment="Center" Margin="0,5,0,0"/>
                     </StackPanel>
                 </Button>
 
@@ -53,11 +53,11 @@
                     <StackPanel>
                         <Path x:Name="AssociationsIcon"
                           Data="M3.9,12A5,5 0 0,1 8.9,7H12V9H8.9A3,3 0 0,0 8.9,15H12V17H8.9A5,5 0 0,1 3.9,12M15.1,7A5,5 0 0,1 20.1,12A5,5 0 0,1 15.1,17H12V15H15.1A3,3 0 0,0 15.1,9H12V7H15.1Z"
-                          Fill="White"
+                          Fill="{DynamicResource ForegroundBrush}"
                           Stretch="Uniform"
                           Width="24"
                           Height="24"/>
-                        <TextBlock Text="关联" Foreground="White" FontSize="14" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+                        <TextBlock Text="关联" Foreground="{DynamicResource ForegroundBrush}" FontSize="14" HorizontalAlignment="Center" Margin="0,5,0,0"/>
                     </StackPanel>
                 </Button>
 
@@ -65,12 +65,12 @@
         </Grid>
 
         <!-- 右侧内容区域 - 灰黑色背景 -->
-        <Grid Grid.Column="1" Background="#FF2A2A2A" Margin="0,0,0,0">
+        <Grid Grid.Column="1" Background="{DynamicResource BackgroundMediumBrush}" Margin="0,0,0,0">
             <!-- 标题栏 -->
-            <Grid Height="50" VerticalAlignment="Top" Background="#FF1E1E1E">
+            <Grid Height="50" VerticalAlignment="Top" Background="{DynamicResource BackgroundDarkBrush}">
                 <TextBlock x:Name="PageTitleText" 
                    Text="常规设置" 
-                   Foreground="White" 
+                   Foreground="{DynamicResource ForegroundBrush}" 
                    FontSize="18" 
                    FontWeight="SemiBold"
                    VerticalAlignment="Center" 
@@ -85,7 +85,7 @@
                 Margin="0,0,10,0"
                 Click="CloseButton_Click">
                     <Path Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
-                  Fill="White"
+                  Fill="{DynamicResource ForegroundBrush}"
                   Stretch="Uniform"
                   Width="16"
                   Height="16"/>
@@ -95,348 +95,355 @@
             <!-- 设置页 -->
             <Grid x:Name="SettingsPage" Margin="0,50,0,0">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="20">
-                    <Border Background="{StaticResource BackgroundMediumBrush}"
-                CornerRadius="10"
-                Padding="20"
-                Margin="0,0,40,0">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
+                    <StackPanel Margin="0,0,40,0">
+                        <!-- 设置页标题区域 - 渐变背景 -->
+                        <Border Background="{DynamicResource HeaderGradientBrush}"
+                                CornerRadius="12"
+                                Padding="16"
+                                Margin="0,0,0,12">
+                            <Grid>
+                           
+                                <Ellipse Fill="#14FFFFFF"
+                                         Width="140"
+                                         Height="140"
+                                         HorizontalAlignment="Right"
+                                         VerticalAlignment="Bottom"
+                                         Margin="0,0,-80,-70"
+                                         IsHitTestVisible="False"/>
+                                <StackPanel>
+                                    <TextBlock Text="常规设置"
+                                               Foreground="White"
+                                               FontSize="16"
+                                               FontWeight="SemiBold"/>
+                                    <TextBlock Text="自定义浏览模式、主题和显示选项"
+                                               Foreground="#CCFFFFFF"
+                                               FontSize="11"
+                                               Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
 
-                            <StackPanel Grid.Row="0">
+                        <!-- 基本设置卡片 -->
+                        <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="6" Padding="12" Margin="0,0,0,12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
 
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="默认浏览模式"
+                                        Foreground="{DynamicResource ForegroundDimBrush}" VerticalAlignment="Center"/>
+                                <ComboBox Grid.Row="0" Grid.Column="1" x:Name="ViewModeComboBox" Margin="0,4">
+                                    <ComboBoxItem Content="单图模式" Tag="{x:Static models:ViewMode.Single}"/>
+                                    <ComboBoxItem Content="漫画模式" Tag="{x:Static models:ViewMode.Manga}"/>
+                                    <ComboBoxItem Content="双页模式" Tag="{x:Static models:ViewMode.DoublePage}"/>
+                                </ComboBox>
 
-                                <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,0,40,16">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="150"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="主题"
+                                        Foreground="{DynamicResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                <ComboBox Grid.Row="1" Grid.Column="1" x:Name="ThemeComboBox" Margin="0,12,0,4">
+                                    <ComboBoxItem Content="深色" Tag="{x:Static models:AppTheme.Dark}"/>
+                                    <ComboBoxItem Content="浅色" Tag="{x:Static models:AppTheme.Light}"/>
+                                    <ComboBoxItem Content="柔和粉红" Tag="{x:Static models:AppTheme.SoftPink}"/>
+                                    <ComboBoxItem Content="辣红色" Tag="{x:Static models:AppTheme.HotRed}"/>
+                                    <ComboBoxItem Content="海洋蓝" Tag="{x:Static models:AppTheme.Ocean}"/>
+                                    <ComboBoxItem Content="森林绿" Tag="{x:Static models:AppTheme.Forest}"/>
+                                </ComboBox>
 
-                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="默认浏览模式"
-                                                Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center"/>
-                                        <ComboBox Grid.Row="0" Grid.Column="1" x:Name="ViewModeComboBox" Margin="0,4">
-                                            <ComboBoxItem Content="单图模式" Tag="{x:Static models:ViewMode.Single}"/>
-                                            <ComboBoxItem Content="漫画模式" Tag="{x:Static models:ViewMode.Manga}"/>
-                                            <ComboBoxItem Content="双页模式" Tag="{x:Static models:ViewMode.DoublePage}"/>
-                                        </ComboBox>
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="滚轮行为"
+                                        Foreground="{DynamicResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                <ComboBox Grid.Row="2" Grid.Column="1" x:Name="ScrollWheelComboBox" Margin="0,12,0,4">
+                                    <ComboBoxItem Content="缩放" Tag="{x:Static models:ScrollWheelBehavior.Zoom}"/>
+                                    <ComboBoxItem Content="翻页" Tag="{x:Static models:ScrollWheelBehavior.Navigate}"/>
+                                </ComboBox>
 
-                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="背景颜色"
-                                                Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
-                                        <ComboBox Grid.Row="1" Grid.Column="1" x:Name="BackgroundComboBox" Margin="0,12,0,4">
-                                            <ComboBoxItem Content="黑色" Tag="{x:Static models:BackgroundColor.Black}"/>
-                                            <ComboBoxItem Content="白色" Tag="{x:Static models:BackgroundColor.White}"/>
-                                            <ComboBoxItem Content="灰色" Tag="{x:Static models:BackgroundColor.Gray}"/>
-                                            <ComboBoxItem Content="深灰" Tag="{x:Static models:BackgroundColor.DarkGray}"/>
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="漫画模式间隔(px)"
+                              Foreground="{DynamicResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
+                                <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
+                                    <Slider x:Name="MangaGapSlider" Width="150" Minimum="0" Maximum="30"
+                         Value="4" TickFrequency="1" IsSnapToTickEnabled="True"/>
+                                    <TextBlock x:Name="MangaGapText" Text="4" Foreground="{DynamicResource ForegroundBrush}"
+                             VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                </StackPanel>
 
-                                        </ComboBox>
+                            </Grid>
+                        </Border>
 
-                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="滚轮行为"
-                                                Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
-                                        <ComboBox Grid.Row="2" Grid.Column="1" x:Name="ScrollWheelComboBox" Margin="0,12,0,4">
-                                            <ComboBoxItem Content="缩放" Tag="{x:Static models:ScrollWheelBehavior.Zoom}"/>
-                                            <ComboBoxItem Content="翻页" Tag="{x:Static models:ScrollWheelBehavior.Navigate}"/>
-                                        </ComboBox>
-
-                                        <TextBlock Grid.Row="3" Grid.Column="0" Text="漫画模式间隔(px)"
-                                      Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
-                                        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
-                                            <Slider x:Name="MangaGapSlider" Width="150" Minimum="0" Maximum="30"
-                                 Value="4" TickFrequency="1" IsSnapToTickEnabled="True"/>
-                                            <TextBlock x:Name="MangaGapText" Text="4" Foreground="{StaticResource ForegroundBrush}"
-                                     VerticalAlignment="Center" Margin="12,0,0,0"/>
-                                        </StackPanel>
-
-                                    </Grid>
-                                </Border>
-
-                                <!-- Slideshow Settings -->
-                                <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">
-                                    <StackPanel>
-                                        <TextBlock Text="幻灯片设置" Foreground="{StaticResource ForegroundBrush}"
+                        <!-- Slideshow Settings -->
+                        <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="6" Padding="12" Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock Text="幻灯片设置" Foreground="{DynamicResource ForegroundBrush}"
                                                FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
 
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="150"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                            </Grid.RowDefinitions>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
 
-                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="切换间隔(秒)"
-                                                    Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
-                                            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
-                                                <Slider x:Name="IntervalSlider" Width="150" Minimum="1" Maximum="30"
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="切换间隔(秒)"
+                                                    Foreground="{DynamicResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
+                                        <Slider x:Name="IntervalSlider" Width="150" Minimum="1" Maximum="30"
                                                      Value="5" TickFrequency="1" IsSnapToTickEnabled="True"/>
-                                                <TextBlock x:Name="IntervalText" Text="5" Foreground="{StaticResource ForegroundBrush}"
+                                        <TextBlock x:Name="IntervalText" Text="5" Foreground="{DynamicResource ForegroundBrush}"
                                                         VerticalAlignment="Center" Margin="12,0,0,0"/>
-                                            </StackPanel>
-
-                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="随机播放"
-                                                    Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
-                                            <CheckBox Grid.Row="1" Grid.Column="1" x:Name="ShuffleSlideshowCheckBox" Content="启用随机（单图模式）"
-                                                   Foreground="{StaticResource ForegroundBrush}" Margin="0,12,0,0"/>
-                                        </Grid>
                                     </StackPanel>
-                                </Border>
 
-                                <!-- Performance Settings -->
-                                <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">
-                                    <StackPanel>
-                                        <TextBlock Text="性能设置" Foreground="{StaticResource ForegroundBrush}"
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="随机播放"
+                                                    Foreground="{DynamicResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
+                                    <CheckBox Grid.Row="1" Grid.Column="1" x:Name="ShuffleSlideshowCheckBox" Content="启用随机（单图模式）"
+                                                   Foreground="{DynamicResource ForegroundBrush}" Margin="0,12,0,0"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Performance Settings -->
+                        <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="6" Padding="12" Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock Text="性能设置" Foreground="{DynamicResource ForegroundBrush}"
                                                FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
 
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="150"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                            </Grid.RowDefinitions>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
 
-                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="预加载数量"
-                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
-                                            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
-                                                <Slider x:Name="PreloadSlider" Width="150" Minimum="1" Maximum="10"
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="预加载数量"
+                                                   Foreground="{DynamicResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
+                                        <Slider x:Name="PreloadSlider" Width="150" Minimum="1" Maximum="10"
                                                     Value="3" TickFrequency="1" IsSnapToTickEnabled="True"/>
-                                                <TextBlock x:Name="PreloadText" Text="3" Foreground="{StaticResource ForegroundBrush}"
+                                        <TextBlock x:Name="PreloadText" Text="3" Foreground="{DynamicResource ForegroundBrush}"
                                                        VerticalAlignment="Center" Margin="12,0,0,0"/>
-                                            </StackPanel>
-
-                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="缩略图大小(px)"
-                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
-                                            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
-                                                <Slider x:Name="ThumbnailSlider" Width="150" Minimum="40" Maximum="240"
-                                                    Value="120" TickFrequency="20" IsSnapToTickEnabled="True"/>
-                                                <TextBlock x:Name="ThumbnailText" Text="120" Foreground="{StaticResource ForegroundBrush}"
-                                                       VerticalAlignment="Center" Margin="12,0,0,0"/>
-                                            </StackPanel>
-
-
-                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="漫画解码宽度(px)" Visibility="Hidden"
-                                                    Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
-                                            <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0" Visibility="Hidden">
-                                                <Slider x:Name="MangaDecodeSlider" Width="150" Minimum="800" Maximum="4000"
-                                                     Value="1600" TickFrequency="200" IsSnapToTickEnabled="True"/>
-                                                <TextBlock x:Name="MangaDecodeText" Text="1600" Foreground="{StaticResource ForegroundBrush}"
-                                                        VerticalAlignment="Center" Margin="12,0,0,0"/>
-                                            </StackPanel>
-
-                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="压缩包读取"
-                                                    Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
-                                            <ComboBox Grid.Row="3" Grid.Column="1" x:Name="ArchiveStrategyComboBox" Margin="0,12,40,0">
-                                                <ComboBoxItem Content="内存流（默认）" Tag="{x:Static models:ArchiveLoadStrategy.Stream}"/>
-                                                <ComboBoxItem Content="解压到临时目录" Tag="{x:Static models:ArchiveLoadStrategy.TempExtractLru}"/>
-                                            </ComboBox>
-                                        </Grid>
                                     </StackPanel>
-                                </Border>
 
-                                <!-- Filter Settings -->
-                                <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">
-                                    <StackPanel>
-                                        <TextBlock Text="过滤设置" Foreground="{StaticResource ForegroundBrush}"
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="缩略图大小(px)"
+                                                   Foreground="{DynamicResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
+                                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
+                                        <Slider x:Name="ThumbnailSlider" Width="150" Minimum="40" Maximum="240"
+                                                    Value="120" TickFrequency="20" IsSnapToTickEnabled="True"/>
+                                        <TextBlock x:Name="ThumbnailText" Text="120" Foreground="{DynamicResource ForegroundBrush}"
+                                                       VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                    </StackPanel>
+
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="漫画解码宽度(px)" Visibility="Hidden"
+                                                    Foreground="{DynamicResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
+                                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0" Visibility="Hidden">
+                                        <Slider x:Name="MangaDecodeSlider" Width="150" Minimum="800" Maximum="4000"
+                                                     Value="1600" TickFrequency="200" IsSnapToTickEnabled="True"/>
+                                        <TextBlock x:Name="MangaDecodeText" Text="1600" Foreground="{DynamicResource ForegroundBrush}"
+                                                        VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="压缩包读取"
+                                                    Foreground="{DynamicResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
+                                    <ComboBox Grid.Row="3" Grid.Column="1" x:Name="ArchiveStrategyComboBox" Margin="0,12,40,0">
+                                        <ComboBoxItem Content="内存流（默认）" Tag="{x:Static models:ArchiveLoadStrategy.Stream}"/>
+                                        <ComboBoxItem Content="解压到临时目录" Tag="{x:Static models:ArchiveLoadStrategy.TempExtractLru}"/>
+                                    </ComboBox>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Filter Settings -->
+                        <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="6" Padding="12" Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock Text="过滤设置" Foreground="{DynamicResource ForegroundBrush}"
                                                FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                                        <TextBlock Text="0 表示不限制，快捷键 Ctrl+Shift+F 启用/关闭过滤"
-                                               Foreground="{StaticResource ForegroundDimBrush}"
+                                <TextBlock Text="0 表示不限制，快捷键 Ctrl+Shift+F 启用/关闭过滤"
+                                               Foreground="{DynamicResource ForegroundDimBrush}"
                                                FontSize="12" Margin="0,0,0,12"/>
 
-                                        <CheckBox x:Name="EnableFiltersCheckBox" Content="启用过滤（仅对文件夹生效）"
-                                              Foreground="{StaticResource ForegroundBrush}" Margin="0,4"/>
+                                <CheckBox x:Name="EnableFiltersCheckBox" Content="启用过滤（仅对文件夹生效）"
+                                              Foreground="{DynamicResource ForegroundBrush}" Margin="0,4"/>
 
-                                        <CheckBox x:Name="SizeFilterCheckBox" Content="启用尺寸过滤"
-                                              Foreground="{StaticResource ForegroundBrush}" Margin="0,12,0,4"/>
-                                        <Grid Margin="24,0,0,0"
+                                <CheckBox x:Name="SizeFilterCheckBox" Content="启用尺寸过滤"
+                                              Foreground="{DynamicResource ForegroundBrush}" Margin="0,12,0,4"/>
+                                <Grid Margin="24,0,0,0"
                                           IsEnabled="{Binding IsChecked, ElementName=SizeFilterCheckBox}">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="150"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                            </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
 
-                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="最小宽度"
-                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center"/>
-                                            <TextBox Grid.Row="0" Grid.Column="1" x:Name="MinWidthTextBox"
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="最小宽度"
+                                                   Foreground="{DynamicResource ForegroundDimBrush}" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="0" Grid.Column="1" x:Name="MinWidthTextBox"
                                                  Width="120" Height="28" Margin="0,6,0,0" VerticalContentAlignment="Center"/>
 
-                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="最小高度"
-                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
-                                            <TextBox Grid.Row="1" Grid.Column="1" x:Name="MinHeightTextBox"
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="最小高度"
+                                                   Foreground="{DynamicResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" x:Name="MinHeightTextBox"
                                                  Width="120" Height="28" Margin="0,12,0,0" VerticalContentAlignment="Center"/>
 
-                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="最大宽度"
-                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
-                                            <TextBox Grid.Row="2" Grid.Column="1" x:Name="MaxWidthTextBox"
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="最大宽度"
+                                                   Foreground="{DynamicResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                    <TextBox Grid.Row="2" Grid.Column="1" x:Name="MaxWidthTextBox"
                                                  Width="120" Height="28" Margin="0,12,0,0" VerticalContentAlignment="Center"/>
 
-                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="最大高度"
-                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
-                                            <TextBox Grid.Row="3" Grid.Column="1" x:Name="MaxHeightTextBox"
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="最大高度"
+                                                   Foreground="{DynamicResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                    <TextBox Grid.Row="3" Grid.Column="1" x:Name="MaxHeightTextBox"
                                                  Width="120" Height="28" Margin="0,12,0,0" VerticalContentAlignment="Center"/>
-                                        </Grid>
+                                </Grid>
 
-                                        <CheckBox x:Name="FileSizeFilterCheckBox" Content="启用文件大小过滤"
-                                              Foreground="{StaticResource ForegroundBrush}" Margin="0,16,0,4"/>
-                                        <Grid Margin="24,0,0,0"
+                                <CheckBox x:Name="FileSizeFilterCheckBox" Content="启用文件大小过滤"
+                                              Foreground="{DynamicResource ForegroundBrush}" Margin="0,16,0,4"/>
+                                <Grid Margin="24,0,0,0"
                                           IsEnabled="{Binding IsChecked, ElementName=FileSizeFilterCheckBox}">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="150"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                            </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
 
-                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="最小大小(KB)"
-                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center"/>
-                                            <TextBox Grid.Row="0" Grid.Column="1" x:Name="MinFileSizeTextBox"
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="最小大小(KB)"
+                                                   Foreground="{DynamicResource ForegroundDimBrush}" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="0" Grid.Column="1" x:Name="MinFileSizeTextBox"
                                                  Width="120" Height="28" Margin="0,6,0,0" VerticalContentAlignment="Center"/>
 
-                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="最大大小(MB)"
-                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
-                                            <TextBox Grid.Row="1" Grid.Column="1" x:Name="MaxFileSizeTextBox"
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="最大大小(MB)"
+                                                   Foreground="{DynamicResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" x:Name="MaxFileSizeTextBox"
                                                  Width="120" Height="28" Margin="0,12,0,0" VerticalContentAlignment="Center"/>
-                                        </Grid>
-                                    </StackPanel>
-                                </Border>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
 
-                                <!-- Behavior Settings -->
-                                <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">
-                                    <StackPanel>
-                                        <TextBlock Text="行为设置" Foreground="{StaticResource ForegroundBrush}"
+                        <!-- Behavior Settings -->
+                        <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="6" Padding="12" Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock Text="行为设置" Foreground="{DynamicResource ForegroundBrush}"
                                                 FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
 
-                                        <CheckBox x:Name="RememberPositionCheckBox" Content="记住窗口位置和大小"
-                                               Foreground="{StaticResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
-                                        <CheckBox x:Name="RememberReadingCheckBox" Content="记住上次阅读位置"
-                                               Foreground="{StaticResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
-                                        <CheckBox x:Name="FreezeDuringResizeCheckBox" Content="拖动缩放时冻结界面（减少抖动）"
-                                                Foreground="{StaticResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
-                                        <CheckBox x:Name="ShowStatusBarCheckBox" Content="显示底边栏（状态栏）"
-                                                Foreground="{StaticResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
+                                <CheckBox x:Name="RememberPositionCheckBox" Content="记住窗口位置和大小"
+                                               Foreground="{DynamicResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
+                                <CheckBox x:Name="RememberReadingCheckBox" Content="记住上次阅读位置"
+                                               Foreground="{DynamicResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
+                                <CheckBox x:Name="FreezeDuringResizeCheckBox" Content="拖动缩放时冻结界面（减少抖动）"
+                                                Foreground="{DynamicResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
+                                <CheckBox x:Name="ShowStatusBarCheckBox" Content="显示底边栏（状态栏）"
+                                                Foreground="{DynamicResource ForegroundBrush}" IsChecked="True" Margin="0,4"/>
 
-                                        <CheckBox x:Name="ScanSubfoldersCheckBox" Content="启用穿透子文件夹（包含子目录图片）"
-                                                Foreground="{StaticResource ForegroundBrush}" IsChecked="False" Margin="0,12,0,4"/>
-                                        <StackPanel Orientation="Horizontal" Margin="24,0,0,4">
-                                            <TextBlock Text="穿透层数" Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center"/>
-                                            <ComboBox x:Name="ScanSubfoldersDepthComboBox" Width="120" Margin="12,0,0,0"
+                                <CheckBox x:Name="ScanSubfoldersCheckBox" Content="启用穿透子文件夹（包含子目录图片）"
+                                                Foreground="{DynamicResource ForegroundBrush}" IsChecked="False" Margin="0,12,0,4"/>
+                                <StackPanel Orientation="Horizontal" Margin="24,0,0,4">
+                                    <TextBlock Text="穿透层数" Foreground="{DynamicResource ForegroundDimBrush}" VerticalAlignment="Center"/>
+                                    <ComboBox x:Name="ScanSubfoldersDepthComboBox" Width="120" Margin="12,0,0,0"
                                                     IsEnabled="{Binding IsChecked, ElementName=ScanSubfoldersCheckBox}">
-                                                <ComboBoxItem Content="0（仅当前）" Tag="0"/>
-                                                <ComboBoxItem Content="1" Tag="1"/>
-                                                <ComboBoxItem Content="2" Tag="2"/>
-                                                <ComboBoxItem Content="3" Tag="3"/>
-                                                <ComboBoxItem Content="无限" Tag="-1"/>
-                                            </ComboBox>
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
+                                        <ComboBoxItem Content="0（仅当前）" Tag="0"/>
+                                        <ComboBoxItem Content="1" Tag="1"/>
+                                        <ComboBoxItem Content="2" Tag="2"/>
+                                        <ComboBoxItem Content="3" Tag="3"/>
+                                        <ComboBoxItem Content="无限" Tag="-1"/>
+                                    </ComboBox>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
 
-                                <!-- LocalSend -->
-                                <Border Background="{StaticResource BackgroundMediumBrush}" CornerRadius="6" Padding="12" Margin="0,16,0,0">
-                                    <StackPanel>
-                                        <TextBlock Text="LocalSend 分享设置" Foreground="{StaticResource ForegroundBrush}" FontWeight="SemiBold"/>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
+                        <!-- LocalSend -->
+                        <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="6" Padding="12" Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock Text="LocalSend 分享设置" Foreground="{DynamicResource ForegroundBrush}" FontWeight="SemiBold"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
 
-                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="可执行文件路径" Width="100"
-                                                   Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
-                                            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0">
-                                                <TextBox x:Name="LocalSendPathTextBox" Width="200" Height="30"
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="可执行文件路径" Width="100"
+                                                   Foreground="{DynamicResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0">
+                                        <TextBox x:Name="LocalSendPathTextBox" Width="200" Height="30"
                                                      IsReadOnly="True" VerticalContentAlignment="Center"/>
-                                                <Button Content="浏览..." Style="{StaticResource ModernButtonStyle}" Margin="8,0,0,0"
+                                        <Button Content="浏览..." Style="{StaticResource ModernButtonStyle}" Margin="8,0,0,0"
                                                     Click="BrowseLocalSendButton_Click"/>
-                                            </StackPanel>
-                                        </Grid>
                                     </StackPanel>
-                                </Border>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
 
-                                <!-- 版本更新和交流 -->
-                                <Border Background="#E3F2FD" CornerRadius="8" Padding="20" Margin="0,16,0,15">
-                                    <StackPanel>
-                                        <TextBlock Text="版本更新和交流" FontWeight="Bold" Margin="0,0,0,15"/>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="150"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                            </Grid.RowDefinitions>
+                        <!-- 版本更新和交流 - 使用主题渐变色 -->
+                        <Border Background="{DynamicResource HeaderGradientBrush}" CornerRadius="8" Padding="20" Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock Text="版本更新和交流" FontWeight="Bold" Margin="0,0,0,15" Foreground="White"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
 
-                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="当前版本：" VerticalAlignment="Center" FontWeight="Medium"/>
-                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding AppVersion, StringFormat=v{0}}" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="当前版本：" VerticalAlignment="Center" FontWeight="Medium" Foreground="#CCFFFFFF"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding AppVersion, StringFormat=v{0}}" VerticalAlignment="Center" Foreground="White"/>
 
-                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="交流地址：" VerticalAlignment="Center" FontWeight="Medium" Margin="0,12,0,0"/>
-                                            <Button Grid.Row="1" Grid.Column="1" Content="打开网址"
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="交流地址：" VerticalAlignment="Center" FontWeight="Medium" Margin="0,12,0,0" Foreground="#CCFFFFFF"/>
+                                    <Button Grid.Row="1" Grid.Column="1" Content="打开网址"
                                                 HorizontalAlignment="Left"
                                                 Width="200"
-                                                Background="#2196F3" Foreground="White" BorderThickness="0"
+                                                Background="{DynamicResource PrimaryBrush}" Foreground="White" BorderThickness="0"
                                                 Click="OpenWebsite_Click"
                                                 ToolTip="在默认浏览器中打开网站"
                                                 Margin="0,12,0,0"/>
-                                        </Grid>
-                                    </StackPanel>
-                                </Border>
+                                </Grid>
                             </StackPanel>
+                        </Border>
 
-                            <!-- 底部按钮 -->
-                            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-                                <Button Content="取消" Style="{StaticResource ModernButtonStyle}"
-                                  Click="CancelButton_Click" Width="80" Margin="0,0,8,0"/>
-                                <Button Content="保存" Style="{StaticResource ModernButtonStyle}"
-                                  Click="SaveButton_Click" Width="80" Margin="0,0,40,0"/>
-
-                            </StackPanel>
-                        </Grid>
-                    </Border>
+                        <!-- 底部按钮 -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+                            <Button Content="取消" Style="{StaticResource ModernButtonStyle}"
+                                      Click="CancelButton_Click" Width="80" Margin="0,0,8,0"/>
+                            <Button Content="保存" Style="{StaticResource ModernButtonStyle}"
+                                      Click="SaveButton_Click" Width="80"/>
+                        </StackPanel>
+                    </StackPanel>
                 </ScrollViewer>
             </Grid>
-       
+
 
             <!-- 收藏页 -->
             <Grid x:Name="FavoritesPage" Visibility="Collapsed" Margin="0,50,0,0" ClipToBounds="True">
                 <Grid Margin="20">
                     <Grid.Resources>
-                        <LinearGradientBrush x:Key="FavoritesHeaderBrush" StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="#243B55" Offset="0"/>
-                            <GradientStop Color="#1F2C3B" Offset="0.55"/>
-                            <GradientStop Color="#20252F" Offset="1"/>
-                        </LinearGradientBrush>
-                        <SolidColorBrush x:Key="FavoritePillBrush" Color="#2B3946"/>
-                        <SolidColorBrush x:Key="FavoriteWarnBrush" Color="#3C2A29"/>
                         <Style x:Key="FavoritePillStyle" TargetType="Border">
-                            <Setter Property="Background" Value="{StaticResource FavoritePillBrush}"/>
+                            <Setter Property="Background" Value="{DynamicResource BackgroundDarkBrush}"/>
                             <Setter Property="CornerRadius" Value="999"/>
                             <Setter Property="Padding" Value="10,4"/>
                         </Style>
                         <DataTemplate x:Key="FavoriteImageItemTemplate">
-                            <Border Background="{StaticResource BackgroundMediumBrush}"
+                            <Border Background="{DynamicResource BackgroundMediumBrush}"
                                     CornerRadius="6"
                                     Padding="8"
                                     Margin="0,0,12,12"
@@ -449,7 +456,7 @@
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
-                                    <Border Grid.Row="0" Background="{StaticResource BackgroundDarkBrush}" CornerRadius="4">
+                                    <Border Grid.Row="0" Background="{DynamicResource BackgroundDarkBrush}" CornerRadius="4">
                                         <Grid>
                                             <Image Source="{Binding Thumbnail}" Stretch="Uniform"
                                                    RenderOptions.BitmapScalingMode="HighQuality"/>
@@ -495,7 +502,7 @@
                                     </Border>
 
                                     <TextBlock Grid.Row="1" Text="{Binding Name}"
-                                               Foreground="{StaticResource ForegroundBrush}"
+                                               Foreground="{DynamicResource ForegroundBrush}"
                                                FontSize="12"
                                                Margin="0,8,0,0"
                                                TextTrimming="CharacterEllipsis"/>
@@ -514,7 +521,7 @@
                             </Border>
                         </DataTemplate>
                         <DataTemplate x:Key="FavoriteFolderImageItemTemplate">
-                            <Border Background="{StaticResource BackgroundDarkBrush}"
+                            <Border Background="{DynamicResource BackgroundDarkBrush}"
                                     CornerRadius="4"
                                     Padding="6"
                                     Margin="0,0,0,6"
@@ -526,17 +533,17 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <Border Grid.Column="0" Background="{StaticResource BackgroundMediumBrush}" CornerRadius="3" Width="48" Height="36">
+                                    <Border Grid.Column="0" Background="{DynamicResource BackgroundMediumBrush}" CornerRadius="3" Width="48" Height="36">
                                         <Image Source="{Binding Thumbnail}" Stretch="UniformToFill"/>
                                     </Border>
 
                                     <StackPanel Grid.Column="1" Margin="8,0,0,0">
                                         <TextBlock Text="{Binding Name}"
-                                                   Foreground="{StaticResource ForegroundBrush}"
+                                                   Foreground="{DynamicResource ForegroundBrush}"
                                                    FontSize="11"
                                                    TextTrimming="CharacterEllipsis"/>
                                         <TextBlock Text="{Binding DisplayPath}"
-                                                   Foreground="{StaticResource ForegroundDimBrush}"
+                                                   Foreground="{DynamicResource ForegroundDimBrush}"
                                                    FontSize="10"
                                                    TextTrimming="CharacterEllipsis"/>
                                     </StackPanel>
@@ -555,8 +562,8 @@
                             </Border>
                         </DataTemplate>
                         <DataTemplate x:Key="FavoriteFolderItemTemplate">
-                            <Border Background="{StaticResource BackgroundMediumBrush}"
-                                    BorderBrush="{StaticResource BackgroundLightBrush}"
+                            <Border Background="{DynamicResource BackgroundMediumBrush}"
+                                    BorderBrush="{DynamicResource BackgroundLightBrush}"
                                     BorderThickness="1"
                                     CornerRadius="10"
                                     Padding="12"
@@ -579,24 +586,24 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <Border Grid.Column="0"
-                                                Background="{StaticResource BackgroundDarkBrush}"
+                                                Background="{DynamicResource BackgroundDarkBrush}"
                                                 CornerRadius="6"
                                                 Padding="6"
                                                 Margin="0,0,8,0">
                                             <Path Data="M4 4 L10 4 L12 6 L20 6 L20 10 M2 10 L22 10 L20 20 L4 20 L2 10"
-                                                  Stroke="{StaticResource ForegroundBrush}"
+                                                  Stroke="{DynamicResource ForegroundBrush}"
                                                   StrokeThickness="2"
                                                   Width="16" Height="16"
                                                   Stretch="Uniform"/>
                                         </Border>
                                         <StackPanel Grid.Column="1" Margin="0,0,8,0">
                                             <TextBlock Text="{Binding Name}"
-                                                       Foreground="{StaticResource ForegroundBrush}"
+                                                       Foreground="{DynamicResource ForegroundBrush}"
                                                        FontSize="13"
                                                        FontWeight="SemiBold"
                                                        TextTrimming="CharacterEllipsis"/>
                                             <TextBlock Text="{Binding FolderPath}"
-                                                       Foreground="{StaticResource ForegroundDimBrush}"
+                                                       Foreground="{DynamicResource ForegroundDimBrush}"
                                                        FontSize="10"
                                                        TextTrimming="CharacterEllipsis"/>
                                         </StackPanel>
@@ -628,20 +635,20 @@
                                     <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,8,0,0">
                                         <Border Style="{StaticResource FavoritePillStyle}">
                                             <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="收藏" Foreground="{StaticResource ForegroundDimBrush}" FontSize="10" Margin="0,0,6,0"/>
+                                                <TextBlock Text="收藏" Foreground="{DynamicResource ForegroundDimBrush}" FontSize="10" Margin="0,0,6,0"/>
                                                 <TextBlock Text="{Binding FavoriteImageCount}"
-                                                           Foreground="{StaticResource ForegroundBrush}"
+                                                           Foreground="{DynamicResource ForegroundBrush}"
                                                            FontSize="12"
                                                            FontWeight="SemiBold"/>
                                             </StackPanel>
                                         </Border>
-                                        <Border Background="{StaticResource FavoriteWarnBrush}"
+                                        <Border Background="{DynamicResource AccentBrush}"
                                                 CornerRadius="999"
                                                 Padding="8,2"
                                                 Margin="8,0,0,0"
                                                 Visibility="{Binding Exists, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
                                             <TextBlock Text="路径无效"
-                                                       Foreground="{StaticResource ForegroundBrush}"
+                                                       Foreground="{DynamicResource ForegroundBrush}"
                                                        FontSize="10"/>
                                         </Border>
                                     </StackPanel>
@@ -658,14 +665,14 @@
                                     </StackPanel>
 
                                     <Border Grid.Row="3"
-                                            Background="{StaticResource BackgroundDarkBrush}"
+                                            Background="{DynamicResource BackgroundDarkBrush}"
                                             CornerRadius="4"
                                             Padding="6"
                                             Margin="0,10,0,0"
                                             Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
                                         <StackPanel>
                                             <TextBlock Text="该文件夹暂无收藏图片"
-                                                       Foreground="{StaticResource ForegroundDimBrush}"
+                                                       Foreground="{DynamicResource ForegroundDimBrush}"
                                                        FontSize="11"
                                                        Margin="0,0,0,6">
                                                 <TextBlock.Style>
@@ -702,7 +709,7 @@
                                 </Grid.RowDefinitions>
 
                                 <Border Grid.Row="0"
-                                        Background="{StaticResource FavoritesHeaderBrush}"
+                                        Background="{DynamicResource HeaderGradientBrush}"
                                         CornerRadius="12"
                                         Padding="16"
                                         Margin="0,0,0,12">
@@ -728,20 +735,20 @@
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0">
                                                 <StackPanel Orientation="Horizontal">
-                                                    <Border Background="#2A3F55" CornerRadius="6" Padding="6" Margin="0,0,10,0">
+                                                    <Border Background="{DynamicResource PrimaryDarkBrush}" CornerRadius="6" Padding="6" Margin="0,0,10,0">
                                                         <Path Data="M4 4 L10 4 L12 6 L20 6 L20 10 M2 10 L22 10 L20 20 L4 20 L2 10"
-                                                              Stroke="{StaticResource ForegroundBrush}"
+                                                              Stroke="White"
                                                               StrokeThickness="2"
                                                               Width="18" Height="18"
                                                               Stretch="Uniform"/>
                                                     </Border>
                                                     <StackPanel>
                                                         <TextBlock Text="收藏文件夹"
-                                                                   Foreground="{StaticResource ForegroundBrush}"
+                                                                   Foreground="White"
                                                                    FontSize="16"
                                                                    FontWeight="SemiBold"/>
                                                         <TextBlock Text="在卡片内展开查看收藏图片，Ctrl+Tab 快速切换"
-                                                                   Foreground="{StaticResource ForegroundDimBrush}"
+                                                                   Foreground="#CCFFFFFF"
                                                                    FontSize="11"
                                                                    Margin="0,4,0,0"
                                                                    TextWrapping="Wrap"/>
@@ -751,31 +758,22 @@
                                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                                 <Border Style="{StaticResource FavoritePillStyle}" Margin="0,0,8,0">
                                                     <StackPanel>
-                                                        <TextBlock Text="文件夹" Foreground="{StaticResource ForegroundDimBrush}" FontSize="10" HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="文件夹" Foreground="{DynamicResource ForegroundDimBrush}" FontSize="10" HorizontalAlignment="Center"/>
                                                         <TextBlock Text="{Binding FavoriteFolderItems.Count}"
-                                                                   Foreground="{StaticResource ForegroundBrush}"
+                                                                   Foreground="{DynamicResource ForegroundBrush}"
                                                                    FontSize="16"
                                                                    FontWeight="SemiBold"
                                                                    HorizontalAlignment="Center"/>
                                                     </StackPanel>
                                                 </Border>
-                                                <Border Style="{StaticResource FavoritePillStyle}">
-                                                    <StackPanel>
-                                                        <TextBlock Text="图片" Foreground="{StaticResource ForegroundDimBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                        <TextBlock Text="{Binding FavoriteImageItems.Count}"
-                                                                   Foreground="{StaticResource ForegroundBrush}"
-                                                                   FontSize="16"
-                                                                   FontWeight="SemiBold"
-                                                                   HorizontalAlignment="Center"/>
-                                                    </StackPanel>
-                                                </Border>
+                                             
                                             </StackPanel>
                                         </Grid>
                                     </Grid>
                                 </Border>
 
                                 <Border Grid.Row="1"
-                                        Background="{StaticResource BackgroundMediumBrush}"
+                                        Background="{DynamicResource BackgroundMediumBrush}"
                                         CornerRadius="10"
                                         Padding="12"
                                         Margin="0,0,0,12">
@@ -785,13 +783,13 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="排序" Foreground="{StaticResource ForegroundDimBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                            <TextBlock Text="排序" Foreground="{DynamicResource ForegroundDimBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,0"/>
                                             <ComboBox x:Name="FavoriteFolderSortComboBox" Width="140"   HorizontalAlignment="Center" VerticalAlignment="Center"
                                                       SelectionChanged="FavoriteFolderSort_SelectionChanged">
                                                 <ComboBoxItem Content="按添加时间" Tag="AddedAt" IsSelected="True"/>
                                                 <ComboBoxItem Content="按名称" Tag="Name"/>
                                             </ComboBox>
-                                            <Border Background="{StaticResource BackgroundLightBrush}" Width="1" Height="18" Margin="12,0" Opacity="0.6"/>
+                                            <Border Background="{DynamicResource BackgroundLightBrush}" Width="1" Height="18" Margin="12,0" Opacity="0.6"/>
                                             <Button Content="添加文件夹" Style="{StaticResource ModernButtonStyle}" Padding="10,6" Margin="0,0,8,0"
                                                     Click="AddFavoriteFolder_Click"/>
                                             <Button Content="收藏当前目录" Style="{StaticResource ModernButtonStyle}" Padding="10,6"
@@ -799,7 +797,7 @@
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                             <CheckBox x:Name="FavoriteFoldersBatchToggle" Content="批量移除" VerticalAlignment="Center"
-                                                      Foreground="{StaticResource ForegroundDimBrush}"
+                                                      Foreground="{DynamicResource ForegroundDimBrush}"
                                                       Margin="0,0,8,0"/>
                                             <Button Content="移除选中" Style="{StaticResource ModernButtonStyle}" Padding="10,6" Margin="0,0,8,0"
                                                     IsEnabled="{Binding ElementName=FavoriteFoldersBatchToggle, Path=IsChecked}"
@@ -823,19 +821,19 @@
                                                 </Style.Triggers>
                                             </Style>
                                         </StackPanel.Style>
-                                        <Border Background="{StaticResource BackgroundDarkBrush}" CornerRadius="10" Padding="12" Margin="0,0,0,8">
+                                        <Border Background="{DynamicResource BackgroundDarkBrush}" CornerRadius="10" Padding="12" Margin="0,0,0,8">
                                             <Path Data="M4 4 L10 4 L12 6 L20 6 L20 10 M2 10 L22 10 L20 20 L4 20 L2 10"
-                                                  Stroke="{StaticResource ForegroundBrush}"
+                                                  Stroke="{DynamicResource ForegroundBrush}"
                                                   StrokeThickness="2"
                                                   Width="26" Height="26"
                                                   Stretch="Uniform"/>
                                         </Border>
                                         <TextBlock Text="暂无收藏文件夹"
-                                                   Foreground="{StaticResource ForegroundBrush}"
+                                                   Foreground="{DynamicResource ForegroundBrush}"
                                                    FontSize="13"
                                                    HorizontalAlignment="Center"/>
                                         <TextBlock Text="点击“添加文件夹”或“收藏当前目录”开始整理"
-                                                   Foreground="{StaticResource ForegroundDimBrush}"
+                                                   Foreground="{DynamicResource ForegroundDimBrush}"
                                                    FontSize="11"
                                                    Margin="0,4,0,0"
                                                    HorizontalAlignment="Center"/>
@@ -867,19 +865,19 @@
                                             Click="BackToFavoriteFolders_Click"/>
                                     <TextBlock x:Name="FavoriteFolderImagesTitle"
                                                Text="收藏文件夹"
-                                               Foreground="{StaticResource ForegroundBrush}"
+                                               Foreground="{DynamicResource ForegroundBrush}"
                                                FontSize="13"
                                                Margin="12,0,0,0"
                                                VerticalAlignment="Center"/>
                                     <TextBlock Text="{Binding FavoriteFolderImageItems.Count, StringFormat=共 {0} 项}"
-                                               Foreground="{StaticResource ForegroundDimBrush}"
+                                               Foreground="{DynamicResource ForegroundDimBrush}"
                                                Margin="12,0,0,0"
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
 
                                 <Grid Grid.Row="1">
                                     <TextBlock Text="该文件夹暂无收藏图片"
-                                               Foreground="{StaticResource ForegroundDimBrush}"
+                                               Foreground="{DynamicResource ForegroundDimBrush}"
                                                HorizontalAlignment="Center"
                                                VerticalAlignment="Center">
                                         <TextBlock.Style>
@@ -915,21 +913,15 @@
             <!-- 关联页 -->
             <Grid x:Name="AssociationsPage" Visibility="Collapsed" Margin="0,50,0,0">
                 <Grid.Resources>
-                    <LinearGradientBrush x:Key="AssociationsHeaderBrush" StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#2B3E50" Offset="0"/>
-                        <GradientStop Color="#22303E" Offset="0.6"/>
-                        <GradientStop Color="#1E252E" Offset="1"/>
-                    </LinearGradientBrush>
-                    <SolidColorBrush x:Key="AssociationPillBrush" Color="#2B3946"/>
                     <Style x:Key="AssociationPillStyle" TargetType="Border">
-                        <Setter Property="Background" Value="{StaticResource AssociationPillBrush}"/>
+                        <Setter Property="Background" Value="{DynamicResource BackgroundDarkBrush}"/>
                         <Setter Property="CornerRadius" Value="999"/>
                         <Setter Property="Padding" Value="10,4"/>
                     </Style>
                 </Grid.Resources>
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="20">
-                        <Border Background="{StaticResource AssociationsHeaderBrush}"
+                        <Border Background="{DynamicResource HeaderGradientBrush}"
                                 CornerRadius="12"
                                 Padding="16"
                                 Margin="0,0,0,12">
@@ -953,11 +945,11 @@
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0">
                                         <TextBlock Text="关联设置"
-                                                   Foreground="{StaticResource ForegroundBrush}"
+                                                   Foreground="White"
                                                    FontSize="16"
                                                    FontWeight="SemiBold"/>
                                         <TextBlock Text="选择要关联的图片格式，系统将默认用 ImageViewer 打开"
-                                                   Foreground="{StaticResource ForegroundDimBrush}"
+                                                   Foreground="#CCFFFFFF"
                                                    FontSize="11"
                                                    Margin="0,6,0,0"
                                                    TextWrapping="Wrap"/>
@@ -965,9 +957,9 @@
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                         <Border Style="{StaticResource AssociationPillStyle}" Margin="0,0,8,0">
                                             <StackPanel>
-                                                <TextBlock Text="普通" Foreground="{StaticResource ForegroundDimBrush}" FontSize="10" HorizontalAlignment="Center"/>
+                                                <TextBlock Text="普通" Foreground="{DynamicResource ForegroundDimBrush}" FontSize="10" HorizontalAlignment="Center"/>
                                                 <TextBlock Text="{Binding AssociationNormalOptions.Count}"
-                                                           Foreground="{StaticResource ForegroundBrush}"
+                                                           Foreground="{DynamicResource ForegroundBrush}"
                                                            FontSize="16"
                                                            FontWeight="SemiBold"
                                                            HorizontalAlignment="Center"/>
@@ -975,9 +967,9 @@
                                         </Border>
                                         <Border Style="{StaticResource AssociationPillStyle}">
                                             <StackPanel>
-                                                <TextBlock Text="RAW" Foreground="{StaticResource ForegroundDimBrush}" FontSize="10" HorizontalAlignment="Center"/>
+                                                <TextBlock Text="RAW" Foreground="{DynamicResource ForegroundDimBrush}" FontSize="10" HorizontalAlignment="Center"/>
                                                 <TextBlock Text="{Binding AssociationRawOptions.Count}"
-                                                           Foreground="{StaticResource ForegroundBrush}"
+                                                           Foreground="{DynamicResource ForegroundBrush}"
                                                            FontSize="16"
                                                            FontWeight="SemiBold"
                                                            HorizontalAlignment="Center"/>
@@ -988,27 +980,27 @@
                             </Grid>
                         </Border>
 
-                        <Border Background="{StaticResource BackgroundMediumBrush}"
+                        <Border Background="{DynamicResource BackgroundMediumBrush}"
                                 CornerRadius="10"
                                 Padding="12"
                                 Margin="0,0,0,12">
                             <StackPanel>
                                 <TextBlock Text="说明"
-                                           Foreground="{StaticResource ForegroundBrush}"
+                                           Foreground="{DynamicResource ForegroundBrush}"
                                            FontSize="13"
                                            FontWeight="SemiBold"/>
                                 <TextBlock Text="PDF RAR/CAR ZIP/CAZ可在应用内打开，但不提供文件关联。"
                                            TextWrapping="Wrap"
-                                           Foreground="{StaticResource ForegroundDimBrush}"
+                                           Foreground="{DynamicResource ForegroundDimBrush}"
                                            Margin="0,8,0,0"/>
                                 <TextBlock Text="RAW 格式优先使用系统 WIC 解码（建议从微软商店安装 Raw Image Extension）；若系统不支持则自动回退到 Magick.NET。"
                                            TextWrapping="Wrap"
-                                           Foreground="{StaticResource ForegroundDimBrush}"
+                                           Foreground="{DynamicResource ForegroundDimBrush}"
                                            Margin="0,6,0,0"/>
                             </StackPanel>
                         </Border>
 
-                        <Border Background="{StaticResource BackgroundMediumBrush}"
+                        <Border Background="{DynamicResource BackgroundMediumBrush}"
                                 CornerRadius="10"
                                 Padding="12"
                                 Margin="0,0,0,12">
@@ -1018,10 +1010,10 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="格式选择" Foreground="{StaticResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBlock Text="格式选择" Foreground="{DynamicResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                     <Border Style="{StaticResource AssociationPillStyle}">
                                         <TextBlock Text="{Binding AssociationOptions.Count, StringFormat=总计 {0}}"
-                                                   Foreground="{StaticResource ForegroundBrush}"
+                                                   Foreground="{DynamicResource ForegroundBrush}"
                                                    FontSize="11"/>
                                     </Border>
                                 </StackPanel>
@@ -1034,20 +1026,20 @@
                             </Grid>
                         </Border>
 
-                        <Border Background="{StaticResource BackgroundMediumBrush}"
+                        <Border Background="{DynamicResource BackgroundMediumBrush}"
                                 CornerRadius="10"
                                 Padding="12"
                                 Margin="0,0,0,12">
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                     <TextBlock Text="普通格式"
-                                               Foreground="{StaticResource ForegroundBrush}"
+                                               Foreground="{DynamicResource ForegroundBrush}"
                                                FontSize="13"
                                                FontWeight="SemiBold"
                                                Margin="0,0,8,0"/>
                                     <Border Style="{StaticResource AssociationPillStyle}">
                                         <TextBlock Text="{Binding AssociationNormalOptions.Count}"
-                                                   Foreground="{StaticResource ForegroundBrush}"
+                                                   Foreground="{DynamicResource ForegroundBrush}"
                                                    FontSize="11"/>
                                     </Border>
                                 </StackPanel>
@@ -1061,7 +1053,7 @@
                                         <DataTemplate>
                                             <CheckBox Content="{Binding DisplayName}"
                                                       IsChecked="{Binding IsSelected}"
-                                                      Foreground="{StaticResource ForegroundBrush}"
+                                                      Foreground="{DynamicResource ForegroundBrush}"
                                                       Margin="0,0,12,8"/>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
@@ -1069,20 +1061,20 @@
                             </StackPanel>
                         </Border>
 
-                        <Border Background="{StaticResource BackgroundMediumBrush}"
+                        <Border Background="{DynamicResource BackgroundMediumBrush}"
                                 CornerRadius="10"
                                 Padding="12"
                                 Margin="0,0,0,12">
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                     <TextBlock Text="RAW 格式"
-                                               Foreground="{StaticResource ForegroundBrush}"
+                                               Foreground="{DynamicResource ForegroundBrush}"
                                                FontSize="13"
                                                FontWeight="SemiBold"
                                                Margin="0,0,8,0"/>
                                     <Border Style="{StaticResource AssociationPillStyle}">
                                         <TextBlock Text="{Binding AssociationRawOptions.Count}"
-                                                   Foreground="{StaticResource ForegroundBrush}"
+                                                   Foreground="{DynamicResource ForegroundBrush}"
                                                    FontSize="11"/>
                                     </Border>
                                 </StackPanel>
@@ -1096,7 +1088,7 @@
                                         <DataTemplate>
                                             <CheckBox Content="{Binding DisplayName}"
                                                       IsChecked="{Binding IsSelected}"
-                                                      Foreground="{StaticResource ForegroundBrush}"
+                                                      Foreground="{DynamicResource ForegroundBrush}"
                                                       Margin="0,0,12,8"/>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>

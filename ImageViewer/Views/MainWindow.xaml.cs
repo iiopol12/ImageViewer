@@ -1,4 +1,4 @@
-using ImageViewer.Helpers;
+﻿using ImageViewer.Helpers;
 using ImageViewer.Models;
 using ImageViewer.Services;
 using ImageViewer.ViewModels;
@@ -28,7 +28,6 @@ namespace ImageViewer.Views
     public partial class MainWindow : Window
     {
 
-        // ViewModel 快捷访问属性
         private MainViewModel ViewModel => (MainViewModel)DataContext;
 
         private const int FolderSwitchMaxVisibleItems = 7;
@@ -92,7 +91,6 @@ namespace ImageViewer.Views
         private const int WMSZ_BOTTOMLEFT = 7;
         private const int WMSZ_BOTTOMRIGHT = 8;
 
-        // Resize freeze state (prevent UI jitter during sizing)
         private bool _isInSizeMove;
         private bool _isResizeFreezeActive;
         private bool _isResizeFreezePending;
@@ -110,7 +108,6 @@ namespace ImageViewer.Views
 
             FolderSwitchListBox.ItemsSource = _folderSwitchVisibleEntries;
 
-            // 订阅 ViewModel 属性变化事件
             ViewModel.PropertyChanged += ViewModel_PropertyChanged;
             // 初始化全局快捷键管理器
             _hotKeyManager = new HotKeyManager(this);
@@ -121,7 +118,6 @@ namespace ImageViewer.Views
             };
             _cursorHideTimer.Tick += CursorHideTimer_Tick;
 
-            // 使用 ContentRendered 代替 Loaded，确保内容已渲染完成
             ContentRendered += (s, e) =>
             {
                 // 注册全局快捷键
@@ -157,8 +153,6 @@ namespace ImageViewer.Views
             RestoreWindowPlacement();
             _hasRestoredWindowPlacement = true;
 
-            // 使用淡入动画显示窗口，而不是直接设置 Opacity = 1
-            //FadeInWindow();
             // 处理非客户区命中，确保上下边框可缩放
             // 注册窗口消息钩子，处理自定义命中测试
             if (PresentationSource.FromVisual(this) is HwndSource source)
@@ -214,7 +208,6 @@ namespace ImageViewer.Views
 
         private IntPtr HitTestResize(IntPtr lParam)
         {
-            // lParam 打包了屏幕坐标（低位 X，高位 Y）
             var mousePos = GetMousePosition(lParam);
             var pos = PointFromScreen(mousePos);
             double border = SystemParameters.WindowResizeBorderThickness.Left;
@@ -462,7 +455,6 @@ namespace ImageViewer.Views
             }
             catch
             {
-                // ignored
             }
             finally
             {
@@ -516,7 +508,6 @@ namespace ImageViewer.Views
         #region 全局快捷键注册
 
         /// <summary>
-        /// 注册全局快捷键 - 替代 XAML 中的 InputBindings
         /// </summary>
         private void RegisterGlobalHotKeys()
         {
@@ -763,7 +754,6 @@ namespace ImageViewer.Views
             }
             catch
             {
-                // DragMove有时可能会抛出异常，忽略即可
             }
         }
 
@@ -782,7 +772,6 @@ namespace ImageViewer.Views
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // Additional initialization
             ScheduleFitToWindowUpdate();
         }
 
@@ -794,6 +783,7 @@ namespace ImageViewer.Views
                 Owner = this
             };
             settingsWindow.ShowDialog();
+            ThemeManager.Apply(ViewModel.Settings.Theme);
         }
         /// <summary>
         /// 窗口关闭事件 - 保存设置和清理资源
@@ -852,8 +842,6 @@ namespace ImageViewer.Views
 
         private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            // 只保留 Escape 键的特殊处理
-            // 其他快捷键已通过 HotKeyManager 处理
             if (e.Key == Key.Escape)
             {
                 if (ViewModel.IsFullScreen)
@@ -1329,11 +1317,9 @@ namespace ImageViewer.Views
             }
             catch (OperationCanceledException)
             {
-                // ignore
             }
             catch
             {
-                // ignore
             }
             finally
             {
@@ -1355,7 +1341,6 @@ namespace ImageViewer.Views
             }
             catch
             {
-                // ignore
             }
 
             IEnumerable<string> subFolders;
@@ -1622,7 +1607,6 @@ namespace ImageViewer.Views
         /// </summary>
         private void Window_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            // 在隧道路由阶段优先处理 Ctrl + 滚轮缩放，防止 ScrollViewer 抢占事件
             if (!Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
                 return;
 
@@ -1685,11 +1669,9 @@ namespace ImageViewer.Views
         private void Window_MouseWheel(object sender, MouseWheelEventArgs e)
         {
 
-            // 判断是否按下 Ctrl 键
             bool ctrlPressed = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
             if (ViewModel.ShowWaterfallView)
             {
-                // 瀑布流视图：仅 Ctrl + 滚轮缩放，其它情况交给 ScrollViewer 正常滚动
                 if (ctrlPressed)
                 {
                     HandleWaterfallZoomWithMouseWheel(e);
@@ -1701,7 +1683,6 @@ namespace ImageViewer.Views
 
             if (forceZoom)
             {
-                // Ctrl + 滚轮 或设置为缩放模式时进行缩放
                 if (ViewModel.IsMangaMode)
                 {
                     HandleMangaZoomWithMouseWheel(e);
@@ -1720,7 +1701,6 @@ namespace ImageViewer.Views
         }
 
         /// <summary>
-        /// 处理 Ctrl + 鼠标滚轮缩放
         /// </summary>
         private void HandleZoomWithMouseWheel(MouseWheelEventArgs e)
         {
@@ -1780,7 +1760,6 @@ namespace ImageViewer.Views
         }
 
         /// <summary>
-        /// 漫画模式下的滚轮缩放(支持 Ctrl + 滚轮)
         /// </summary>
         private void HandleMangaZoomWithMouseWheel(MouseWheelEventArgs e)
         {
@@ -1830,7 +1809,6 @@ namespace ImageViewer.Views
         }
 
         /// <summary>
-        /// 瀑布流视图下 Ctrl + 滚轮缩放
         /// </summary>
         private void HandleWaterfallZoomWithMouseWheel(MouseWheelEventArgs e)
         {
@@ -1904,7 +1882,6 @@ namespace ImageViewer.Views
             if (itemContainer != null)
                 return;
 
-            // 空白处：清除所有 IsSelected
             foreach (var img in ViewModel.Images)
             {
                 if (img.IsSelected)
@@ -1962,7 +1939,6 @@ namespace ImageViewer.Views
 
         #region  ViewModel 属性变化处理
         /// <summary>
-        /// ViewModel 属性变化事件处理
         /// </summary>
         private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
@@ -2145,14 +2121,12 @@ namespace ImageViewer.Views
             }
             else
             {
-                // 如果是最大化状态，使用 RestoreBounds
                 _previousLeft = RestoreBounds.Left;
                 _previousTop = RestoreBounds.Top;
                 _previousWidth = RestoreBounds.Width;
                 _previousHeight = RestoreBounds.Height;
             }
 
-            // 3. 保存并隐藏UI元素
             _previousShowStatusBar = ViewModel.Settings.ShowStatusBar;
             _previousShowSidebar = ViewModel.Settings.ShowSidebar;
             ViewModel.Settings.ShowStatusBar = false;
@@ -2194,7 +2168,6 @@ namespace ImageViewer.Views
             // 3. 恢复窗口状态
             WindowState = _previousWindowState;
 
-            // 4. 恢复UI元素
             ViewModel.Settings.ShowStatusBar = _previousShowStatusBar;
             ViewModel.Settings.ShowSidebar = _previousShowSidebar;
         }
@@ -2248,7 +2221,6 @@ namespace ImageViewer.Views
             {
                 var currentPosition = e.GetPosition(ImageScrollViewer);
                 var delta = currentPosition - _lastMousePosition;
-                // 滚动 ScrollViewer 以移动图片
                 ImageScrollViewer.ScrollToHorizontalOffset(ImageScrollViewer.HorizontalOffset - delta.X);
                 ImageScrollViewer.ScrollToVerticalOffset(ImageScrollViewer.VerticalOffset - delta.Y);
                 // 更新上次鼠标位置
@@ -2292,7 +2264,7 @@ namespace ImageViewer.Views
         /// 延迟更新适应窗口缩放 - 避免频繁计算
         /// </summary>
         private void ScheduleFitToWindowUpdate()
-        {// 使用 Dispatcher 在后台优先级执行，避免阻塞 UI
+        {
             Dispatcher.BeginInvoke(new Action(UpdateFitToWindowZoom), DispatcherPriority.Background);
         }
 
@@ -2320,7 +2292,7 @@ namespace ImageViewer.Views
             // 如果是双页模式，需要考虑第二张图片
             if (ViewModel.IsDoublePage && ViewModel.SecondDisplayImage != null)
             {
-                imageWidth += ViewModel.SecondDisplayImage.PixelWidth + 8; // include gap between pages
+                imageWidth += ViewModel.SecondDisplayImage.PixelWidth + 8;
                 imageHeight = Math.Max(imageHeight, ViewModel.SecondDisplayImage.PixelHeight);
             }
 
@@ -2382,14 +2354,10 @@ namespace ImageViewer.Views
                 listBox.ScrollIntoView(listBox.SelectedItem);
             }
 
-            // 更新 ViewModel 的 CurrentIndex 以切换显示的图片
-            // 注意: 由于 XAML 中已有 SelectedIndex="{Binding CurrentIndex}" 绑定
             // 这个事件主要用于确保滚动到选中项
             // 但我们添加手动更新以确保绑定正常工作
             if (listBox.SelectedIndex >= 0 && listBox.SelectedIndex < ViewModel.Images.Count)
             {
-                // 如果 ViewModel 的 CurrentIndex 与 ListBox 的 SelectedIndex 不同步
-                // 手动更新 ViewModel
                 if (ViewModel.CurrentIndex != listBox.SelectedIndex)
                 {
                     ViewModel.CurrentIndex = listBox.SelectedIndex;
@@ -2418,7 +2386,6 @@ namespace ImageViewer.Views
             bool shiftPressed = (modifiers & ModifierKeys.Shift) == ModifierKeys.Shift;
             if (ctrlPressed)
             {
-                // Ctrl 复选 - 仅切换选中状态，不离开瀑布流视图
                 imageInfo.IsSelected = !imageInfo.IsSelected;
                 e.Handled = true;
                 return;
@@ -2426,7 +2393,6 @@ namespace ImageViewer.Views
 
             if (shiftPressed && imageInfo.IsSelected)
             {
-                // Shift 点击已选项：取消该项选中
                 imageInfo.IsSelected = false;
                 e.Handled = true;
                 return;
@@ -2497,7 +2463,6 @@ namespace ImageViewer.Views
             var viewportBottom = viewportTop + scrollViewer.ViewportHeight;
             var viewportCenter = viewportTop + scrollViewer.ViewportHeight / 2;
 
-            // 更新 ViewModel 的滚动偏移量
             ViewModel.ScrollOffset = viewportTop;
         }
 
@@ -2506,3 +2471,5 @@ namespace ImageViewer.Views
 
     }
 }
+
+

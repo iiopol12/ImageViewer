@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -9,7 +9,7 @@ namespace ImageViewer.Models
     {
         File = 0,
         ZipEntry = 1, // 压缩包内图片
-        PdfPage = 2   //PDF 页面
+        PdfPage = 2
     }
 
     public partial class ImageInfo : ObservableObject
@@ -21,7 +21,6 @@ namespace ImageViewer.Models
         public string? ArchiveEntryPath { get; set; }
 
         /// <summary>
-        /// PDF 页码索引（从 0 开始，仅 PdfPage 类型有效）
         /// </summary>
         public int PdfPageIndex { get; set; }
 
@@ -100,19 +99,16 @@ namespace ImageViewer.Models
         private double _rotationAngle = 0;
 
         /// <summary>
-        /// GIF 帧数（仅 GIF 文件有效）
         /// </summary>
         [ObservableProperty]
         private int _gifFrameCount;
 
         /// <summary>
-        /// GIF 原始数据（用于 GifViewerControl 播放）
         /// </summary>
         [ObservableProperty]
         private byte[]? _gifData;
 
         /// <summary>
-        /// 是否为动画 GIF（帧数 > 1）
         /// </summary>
         public bool IsAnimatedGif => FileExtension == ".gif" && GifFrameCount > 1;
 
@@ -157,7 +153,6 @@ namespace ImageViewer.Models
         }
 
         /// <summary>
-        /// 更新图片元数据供信息面板展示（在 UI 线程调用）
         /// </summary>
         public void UpdateMetadata(BitmapSource source)
         {
@@ -173,7 +168,6 @@ namespace ImageViewer.Models
 
 
         /// <summary>
-        /// 更新 GIF 元数据
         /// </summary>
         public void UpdateGifMetadata(int frameCount, byte[]? gifData = null)
         {
@@ -205,3 +199,4 @@ namespace ImageViewer.Models
 
     }
 }
+

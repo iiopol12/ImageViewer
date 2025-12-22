@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
@@ -134,7 +134,6 @@ namespace ImageViewer.Converters
 
             string data = isBookmarked ? FilledStarData : EmptyStarData;
 
-            // 返回 Geometry，Path.Data 直接用
             return Geometry.Parse(data);
         }
 
@@ -165,7 +164,6 @@ namespace ImageViewer.Converters
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            // 默认显示工具栏，如果设置值缺失则视为 true，并在全屏时隐藏
             bool showToolbar = values.Length > 0 ? values[0] as bool? ?? true : true;
             bool isFullScreen = values.Length > 1 && values[1] is bool full && full;
 
@@ -331,14 +329,11 @@ namespace ImageViewer.Converters
     /// <summary>
     /// 图片视图可见性转换器
     /// 用于在瀑布流显示时隐藏单图/双页/漫画视图
-    /// 参数: "Single" - 单图/双页模式, "Manga" - 漫画模式
     /// </summary>
     public class ImageViewVisibilityConverter : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            // values[0] = IsMangaMode
-            // values[1] = ShowWaterfallView
             if (values.Length < 2)
                 return Visibility.Collapsed;
 
@@ -355,7 +350,7 @@ namespace ImageViewer.Converters
             {
                 return isMangaMode ? Visibility.Visible : Visibility.Collapsed;
             }
-            else // Single/DoublePage
+            else
             {
                 return isMangaMode ? Visibility.Collapsed : Visibility.Visible;
             }
@@ -370,22 +365,17 @@ namespace ImageViewer.Converters
 
 
     /// <summary>
-    /// GIF 显示可见性转换器
-    /// 当文件扩展名为 .gif 且帧数 > 1 时显示 GIF 控件
     /// </summary>
     public class GifVisibilityConverter : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            // values[0] = FileExtension (string)
-            // values[1] = FrameCount (int) 或 IsAnimatedGif (bool)
             if (values.Length < 2)
                 return Visibility.Collapsed;
 
             var extension = values[0] as string;
             bool isGif = string.Equals(extension, ".gif", StringComparison.OrdinalIgnoreCase);
 
-            // 检查是否为动画 GIF
             bool isAnimated = false;
             if (values[1] is int frameCount)
                 isAnimated = frameCount > 1;
@@ -396,12 +386,10 @@ namespace ImageViewer.Converters
 
             if (showGif)
             {
-                // GIF 控件：仅在动画 GIF 时显示
                 return isGif && isAnimated ? Visibility.Visible : Visibility.Collapsed;
             }
             else
             {
-                // 静态图片控件：非动画 GIF 或其他格式时显示
                 return isGif && isAnimated ? Visibility.Collapsed : Visibility.Visible;
             }
         }
@@ -413,7 +401,6 @@ namespace ImageViewer.Converters
     }
 
     /// <summary>
-    /// GIF 播放速度格式化转换器
     /// </summary>
     public class SpeedToTextConverter : IValueConverter
     {
@@ -433,14 +420,11 @@ namespace ImageViewer.Converters
     }
 
     /// <summary>
-    /// GIF 帧进度转换器
     /// </summary>
     public class FrameProgressConverter : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            // values[0] = CurrentFrameIndex
-            // values[1] = FrameCount
             if (values.Length < 2)
                 return "0/0";
 
@@ -456,3 +440,5 @@ namespace ImageViewer.Converters
         }
     }
 }
+
+

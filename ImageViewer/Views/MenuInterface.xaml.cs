@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Win32;
+using ImageViewer.Helpers;
 using ImageViewer.Models;
 using ImageViewer.Services;
 using ImageViewer.ViewModels;
@@ -70,9 +71,6 @@ namespace ImageViewer.Views
         private FavoriteSortOption _favoriteFolderSort = FavoriteSortOption.AddedAtDesc;
         private FavoriteFolderItem? _selectedFavoriteFolder;
 
-        // 定义颜色常量
-        private static readonly SolidColorBrush ActiveColor = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF4A9EFF"));
-        private static readonly SolidColorBrush InactiveColor = new SolidColorBrush(Colors.White);
         private static readonly HashSet<string> RawExtensionSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             ".dng", ".cr2", ".cr3", ".nef", ".arw", ".raf", ".rw2", ".orf", ".pef", ".srw"
@@ -150,24 +148,37 @@ namespace ImageViewer.Views
             // 自动保存设置
             SaveButton_Click(sender, e);
         }
+
+        private static Brush GetThemeBrush(string key, Brush fallback)
+        {
+            if (Application.Current?.Resources[key] is Brush brush)
+            {
+                return brush;
+            }
+
+            return fallback;
+        }
         private void UpdateIconColors(MenuPage activePage)
         {
-            // 重置所有图标为白色
-            SettingsIcon.Fill = InactiveColor;
-            FavoritesIcon.Fill = InactiveColor;
-            AssociationsIcon.Fill = InactiveColor;
+            var inactiveBrush = GetThemeBrush("ForegroundBrush", Brushes.Black);
+            var activeBrush = GetThemeBrush("PrimaryBrush", Brushes.DeepSkyBlue);
+
+            // 重置所有图标为基础颜色
+            SettingsIcon.Fill = inactiveBrush;
+            FavoritesIcon.Fill = inactiveBrush;
+            AssociationsIcon.Fill = inactiveBrush;
 
             // 将当前激活页面的图标设置为蓝色
             switch (activePage)
             {
                 case MenuPage.Settings:
-                    SettingsIcon.Fill = ActiveColor;
+                    SettingsIcon.Fill = activeBrush;
                     break;
                 case MenuPage.Favorites:
-                    FavoritesIcon.Fill = ActiveColor;
+                    FavoritesIcon.Fill = activeBrush;
                     break;
                 case MenuPage.Associations:
-                    AssociationsIcon.Fill = ActiveColor;
+                    AssociationsIcon.Fill = activeBrush;
                     break;
             }
         }
@@ -191,7 +202,6 @@ namespace ImageViewer.Views
 
         private void LoadSettings()
         {
-            // View Mode
             foreach (ComboBoxItem item in ViewModeComboBox.Items)
             {
                 if (item.Tag is ViewMode mode && mode == _settings.DefaultViewMode)
@@ -201,17 +211,15 @@ namespace ImageViewer.Views
                 }
             }
 
-            // Background Color
-            foreach (ComboBoxItem item in BackgroundComboBox.Items)
+            foreach (ComboBoxItem item in ThemeComboBox.Items)
             {
-                if (item.Tag is BackgroundColor color && color == _settings.BackgroundColor)
+                if (item.Tag is AppTheme theme && theme == _settings.Theme)
                 {
-                    BackgroundComboBox.SelectedItem = item;
+                    ThemeComboBox.SelectedItem = item;
                     break;
                 }
             }
 
-            // Scroll Wheel Behavior
             foreach (ComboBoxItem item in ScrollWheelComboBox.Items)
             {
                 if (item.Tag is ScrollWheelBehavior behavior && behavior == _settings.ScrollWheelBehavior)
@@ -221,12 +229,10 @@ namespace ImageViewer.Views
                 }
             }
 
-            // Slideshow
             IntervalSlider.Value = _settings.SlideshowInterval;
             IntervalText.Text = _settings.SlideshowInterval.ToString();
             ShuffleSlideshowCheckBox.IsChecked = _settings.SlideshowShuffle;
 
-            // Performance
             PreloadSlider.Value = _settings.PreloadCount;
             PreloadText.Text = _settings.PreloadCount.ToString();
             ThumbnailSlider.Value = _settings.ThumbnailSize;
@@ -245,7 +251,6 @@ namespace ImageViewer.Views
                 }
             }
 
-            // Filters
             EnableFiltersCheckBox.IsChecked = _settings.FiltersEnabled;
             SizeFilterCheckBox.IsChecked = _settings.SizeFilterEnabled;
             MinWidthTextBox.Text = _settings.MinWidth.ToString();
@@ -256,13 +261,11 @@ namespace ImageViewer.Views
             MinFileSizeTextBox.Text = _settings.MinFileSizeKB.ToString();
             MaxFileSizeTextBox.Text = _settings.MaxFileSizeMB.ToString();
 
-             // Behavior
              RememberPositionCheckBox.IsChecked = _settings.RememberWindowPosition;
              RememberReadingCheckBox.IsChecked = _settings.RememberReadingPosition;
              FreezeDuringResizeCheckBox.IsChecked = _settings.FreezeDuringResize;
              ShowStatusBarCheckBox.IsChecked = _settings.ShowStatusBar;
 
-             // Subfolder scan
              ScanSubfoldersCheckBox.IsChecked = _settings.ScanSubfoldersEnabled;
              foreach (ComboBoxItem item in ScanSubfoldersDepthComboBox.Items)
              {
@@ -273,35 +276,30 @@ namespace ImageViewer.Views
                  }
              }
  
-             // LocalSend
              LocalSendPathTextBox.Text = _settings.LocalSendPath;
          }
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            // View Mode
             if (ViewModeComboBox.SelectedItem is ComboBoxItem viewItem && viewItem.Tag is ViewMode mode)
             {
                 _settings.DefaultViewMode = mode;
             }
 
-            // Background Color
-            if (BackgroundComboBox.SelectedItem is ComboBoxItem bgItem && bgItem.Tag is BackgroundColor color)
+            if (ThemeComboBox.SelectedItem is ComboBoxItem themeItem && themeItem.Tag is AppTheme theme)
             {
-                _settings.BackgroundColor = color;
+                _settings.Theme = theme;
+                ThemeManager.Apply(_settings.Theme);
             }
 
-            // Scroll Wheel Behavior
             if (ScrollWheelComboBox.SelectedItem is ComboBoxItem swItem && swItem.Tag is ScrollWheelBehavior behavior)
             {
                 _settings.ScrollWheelBehavior = behavior;
             }
 
-            // Slideshow
             _settings.SlideshowInterval = (int)IntervalSlider.Value;
             _settings.SlideshowShuffle = ShuffleSlideshowCheckBox.IsChecked ?? false;
 
-            // Performance
             _settings.PreloadCount = (int)PreloadSlider.Value;
             _settings.ThumbnailSize = (int)ThumbnailSlider.Value;
             _settings.MangaGap = MangaGapSlider.Value;
@@ -312,7 +310,6 @@ namespace ImageViewer.Views
                 _settings.ArchiveLoadStrategy = strategy;
             }
 
-            // Filters
             _settings.FiltersEnabled = EnableFiltersCheckBox.IsChecked ?? false;
             _settings.SizeFilterEnabled = SizeFilterCheckBox.IsChecked ?? false;
             _settings.MinWidth = ParseNonNegativeInt(MinWidthTextBox.Text);
@@ -323,13 +320,11 @@ namespace ImageViewer.Views
             _settings.MinFileSizeKB = ParseNonNegativeInt(MinFileSizeTextBox.Text);
             _settings.MaxFileSizeMB = ParseNonNegativeInt(MaxFileSizeTextBox.Text);
 
-              // Behavior
               _settings.RememberWindowPosition = RememberPositionCheckBox.IsChecked ?? true;
               _settings.RememberReadingPosition = RememberReadingCheckBox.IsChecked ?? true;
               _settings.FreezeDuringResize = FreezeDuringResizeCheckBox.IsChecked ?? true;
               _settings.ShowStatusBar = ShowStatusBarCheckBox.IsChecked ?? true;
 
-              // Subfolder scan
               _settings.ScanSubfoldersEnabled = ScanSubfoldersCheckBox.IsChecked ?? false;
               if (ScanSubfoldersDepthComboBox.SelectedItem is ComboBoxItem depthItem &&
                   int.TryParse(depthItem.Tag?.ToString(), out var depth))
@@ -337,7 +332,6 @@ namespace ImageViewer.Views
                   _settings.ScanSubfoldersDepth = depth;
               }
  
-              // LocalSend
               _settings.LocalSendPath = LocalSendPathTextBox.Text ?? string.Empty;
 
             _settings.Save();
@@ -435,7 +429,6 @@ namespace ImageViewer.Views
             }
             catch (OperationCanceledException)
             {
-                // ignore
             }
         }
 
@@ -980,7 +973,6 @@ namespace ImageViewer.Views
             {
                 if (!string.IsNullOrWhiteSpace(WebsiteUrl))
                 {
-                    // 确保URL格式正确
                     string url = WebsiteUrl;
                     if (!url.StartsWith("http://") && !url.StartsWith("https://"))
                     {
@@ -1255,3 +1247,6 @@ namespace ImageViewer.Views
         }
     }
 }
+   
+
+
