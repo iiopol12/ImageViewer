@@ -45,7 +45,7 @@
 ## PDF 说明
 PDF 渲染依赖 `pdfium.dll`。如果启动后提示缺失或架构不匹配，请将正确架构的 `pdfium.dll` 放在可执行文件同目录。
 
-多种主题
+## 多种主题
 <img width="960" height="780" alt="PixPin_2025-12-22_19-57-10" src="https://github.com/user-attachments/assets/7248f015-fa8a-4fb4-9016-13e5535e570d" />
 <img width="960" height="780" alt="PixPin_2025-12-22_19-57-39" src="https://github.com/user-attachments/assets/dd95349e-f9b1-4cb2-bf7b-52bd51fafc24" />
 <img width="960" height="780" alt="PixPin_2025-12-22_19-57-31" src="https://github.com/user-attachments/assets/ab38fee6-1f41-4978-919a-c15a956e8cae" />
