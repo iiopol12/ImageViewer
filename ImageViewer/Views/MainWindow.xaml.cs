@@ -785,6 +785,54 @@ namespace ImageViewer.Views
             settingsWindow.ShowDialog();
             ThemeManager.Apply(ViewModel.Settings.Theme);
         }
+
+        #region 打印功能
+
+        /// <summary>
+        /// 打印按钮点击事件
+        /// </summary>
+        private void PrintButton_Click(object sender, RoutedEventArgs e)
+        {
+            OpenPrintWindow();
+        }
+
+        /// <summary>
+        /// 打印菜单项点击事件
+        /// </summary>
+        private void PrintMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            OpenPrintWindow();
+        }
+
+        /// <summary>
+        /// 打开打印窗口
+        /// </summary>
+        private void OpenPrintWindow()
+        {
+            if (ViewModel.DisplayImage == null)
+            {
+                System.Windows.MessageBox.Show("没有可打印的图片", "提示",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            try
+            {
+                var printWindow = new PrintWindow(ViewModel.DisplayImage, ViewModel.CurrentImage?.FilePath)
+                {
+                    Owner = this
+                };
+                printWindow.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"打开打印窗口失败: {ex.Message}", "错误",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        #endregion
+
         /// <summary>
         /// 窗口关闭事件 - 保存设置和清理资源
         /// </summary>
@@ -842,6 +890,14 @@ namespace ImageViewer.Views
 
         private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
+            // Ctrl+P 打印快捷键
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.P)
+            {
+                OpenPrintWindow();
+                e.Handled = true;
+                return;
+            }
+
             if (e.Key == Key.Escape)
             {
                 if (ViewModel.IsFullScreen)
@@ -2471,5 +2527,3 @@ namespace ImageViewer.Views
 
     }
 }
-
-

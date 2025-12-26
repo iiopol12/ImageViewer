@@ -330,7 +330,16 @@
                               Stroke="{DynamicResource ForegroundBrush}" StrokeThickness="2" Width="18" Height="18" Stretch="Uniform"/>
                         </Button>
 
-
+                        <Button Style="{StaticResource IconButtonStyle}" ToolTip="打印 (Ctrl+P)" 
+                            Click="PrintButton_Click" IsEnabled="{Binding HasImages}">
+                            <!-- 打印机图标 -->
+                            <Path Data="M6 9V2h12v7 M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2 M6 14h12v8H6z"
+                                  Stroke="{DynamicResource ForegroundBrush}" 
+                                  StrokeThickness="2" 
+                                  Width="18" 
+                                  Height="18" 
+                                  Stretch="Uniform"/>
+                        </Button>
 
                         <Button Style="{StaticResource IconButtonStyle}" FontFamily="Segoe UI Symbol"
                             Command="{Binding ToggleSlideShowCommand}" ToolTip="幻灯片 (S)" IsEnabled="{Binding HasImages}">
@@ -1562,6 +1571,8 @@
             <MenuItem Header="分享当前图片 (LocalSend)" Command="{Binding ShareCurrentImageCommand}"/>
             <MenuItem Header="在资源管理器中显示" Command="{Binding OpenInExplorerCommand}"/>
             <MenuItem Header="删除 (Delete)" Command="{Binding DeleteImageCommand}"/>
+            <Separator/>
+            <MenuItem Header="打印 (Ctrl+P)" Click="PrintMenuItem_Click"/>
             <Separator/>
             <MenuItem Header="全屏 (F11)" Command="{Binding ToggleFullScreenCommand}"/>
             <MenuItem Header="幻灯片 (S)" Command="{Binding ToggleSlideShowCommand}"/>
