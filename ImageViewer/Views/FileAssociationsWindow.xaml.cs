@@ -16,6 +16,7 @@ namespace ImageViewer.Views
         {
             InitializeComponent();
             DataContext = this;
+
         }
 
         public void InitializeExtensions(IEnumerable<string> extensions, IEnumerable<string>? preselected = null)
