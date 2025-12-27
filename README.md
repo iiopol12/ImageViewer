@@ -27,7 +27,7 @@
 - 文件：`Ctrl+O` 打开文件，`Ctrl+F` 打开文件夹，`Ctrl+Tab` 切换收藏文件夹
 - 导航：`←/→` 或 `A/D` 上一张/下一张，`Space` 下一张，`PgUp/PgDn` 上一张/下一张，`Home/End` 首张/末张
 - 视图：`F11` 全屏，`Esc` 退出全屏/关闭，`+/-` 缩放，`Ctrl+0` 适应/原始尺寸切换
-- 功能：`M` 切换浏览模式，`S` 幻灯片，`B` 收藏/取消收藏，`Ctrl+C` 复制到剪贴板，`Delete` 删除图片，`Ctrl+Shift+F` 启用/关闭过滤
+- 功能：`M` 切换浏览模式，`S` 幻灯片，`B` 收藏/取消收藏，`Ctrl+C` 复制到剪贴板，`Delete` 删除图片，`Ctrl+Shift+F` 启用/关闭过滤 `Ctrl+P` 打印
 
 ## 构建与运行
 需要 Windows 与支持 `net10.0-windows7.0` 的 .NET SDK。
