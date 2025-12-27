@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <StackPanel>
         <TextBlock Text="选择要关联的图片格式"
+                   
                    Foreground="{StaticResource ForegroundBrush}"
                    FontSize="14"
                    FontWeight="SemiBold"
