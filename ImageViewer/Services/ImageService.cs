@@ -17,6 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
+using System.Windows.Media;
 
 namespace ImageViewer.Services
 {
@@ -241,8 +242,9 @@ namespace ImageViewer.Services
             return !string.IsNullOrWhiteSpace(extension) && SupportedExtensionSet.Contains(extension);
         }
 
-        /// <summary>
-        /// </summary>
+  
+
+
         private static bool PreferBitmapImage(string filePath)
         {
             var ext = Path.GetExtension(filePath);
@@ -255,9 +257,6 @@ namespace ImageViewer.Services
         }
 
 
-
-        /// <summary>
-        /// </summary>
         private static BitmapSource? LoadWithBitmapImage(string filePath, int? decodePixelWidth = null)
         {
             var bitmap = new BitmapImage();
@@ -273,7 +272,7 @@ namespace ImageViewer.Services
 
             bitmap.EndInit();
             bitmap.Freeze();
-            return bitmap;
+            return NormalizeDpi(bitmap);
         }
 
 
@@ -291,7 +290,7 @@ namespace ImageViewer.Services
 
             var bitmapSource = image.ToBitmapSource();
             bitmapSource.Freeze();
-            return bitmapSource;
+            return NormalizeDpi(bitmapSource);
         }
 
 
@@ -315,7 +314,7 @@ namespace ImageViewer.Services
 
             bitmap.EndInit();
             bitmap.Freeze();
-            return bitmap;
+            return NormalizeDpi(bitmap);
         }
 
         private static BitmapSource? LoadWithMagickNet(byte[] data, int? decodePixelWidth = null)
@@ -330,7 +329,7 @@ namespace ImageViewer.Services
 
             var bitmapSource = image.ToBitmapSource();
             bitmapSource.Freeze();
-            return bitmapSource;
+            return NormalizeDpi(bitmapSource);
         }
 
         private static bool PassesFileSizeFilter(long sizeBytes, ImageFilterOptions options)
@@ -1874,13 +1873,6 @@ namespace ImageViewer.Services
         }
 
 
-        //{
-        //    {
-
-        //    }
-        //    {
-        //    }
-        //}
 
         private BitmapEncoder GetEncoderForExtension(string extension)
         {
@@ -1962,8 +1954,8 @@ namespace ImageViewer.Services
         {
             _pdfService.CloseDocument(pdfPath);
         }
-        /// <summary>
-        /// </summary>
+
+
         public static int GetGifFrameCount(byte[] data)
         {
             try
@@ -1977,8 +1969,7 @@ namespace ImageViewer.Services
             }
         }
 
-        /// <summary>
-        /// </summary>
+
         public static int GetGifFrameCountFromStream(Stream stream)
         {
             try
@@ -1995,8 +1986,7 @@ namespace ImageViewer.Services
             }
         }
 
-        /// <summary>
-        /// </summary>
+
         public static byte[]? LoadGifData(string filePath)
         {
             try
@@ -2009,8 +1999,7 @@ namespace ImageViewer.Services
             }
         }
 
-        /// <summary>
-        /// </summary>
+
         public byte[]? LoadGifDataFromArchive(ImageInfo imageInfo)
         {
             if (imageInfo.SourceKind != ImageSourceKind.ZipEntry)
@@ -2049,6 +2038,57 @@ namespace ImageViewer.Services
                 return null;
             }
         }
+
+
+        /// <summary>
+        /// 标准化图片DPI - 将异常DPI的图片转换为96 DPI
+        /// 解决某些图片（如DPI=1）在WPF中显示过大的问题
+        /// </summary>
+        private static BitmapSource NormalizeDpi(BitmapSource source)
+        {
+            if (source == null) return source;
+
+            double dpiX = source.DpiX;
+            double dpiY = source.DpiY;
+
+            // DPI正常范围检查（10-1000是合理范围）
+            if (dpiX >= 10 && dpiX <= 1000 && dpiY >= 10 && dpiY <= 1000)
+                return source;
+
+            // 需要标准化DPI
+            try
+            {
+                int width = source.PixelWidth;
+                int height = source.PixelHeight;
+
+                // 转换为统一的像素格式
+                var formattedSource = new FormatConvertedBitmap(source, PixelFormats.Bgra32, null, 0);
+                formattedSource.Freeze();
+
+                int stride = width * 4; // BGRA32 每像素4字节
+                byte[] pixels = new byte[height * stride];
+                formattedSource.CopyPixels(pixels, stride, 0);
+
+                // 创建96 DPI的新位图
+                var result = BitmapSource.Create(
+                    width, height,
+                    96, 96, 
+                    PixelFormats.Bgra32,
+                    null,
+                    pixels,
+                    stride);
+
+                result.Freeze();
+                return result;
+            }
+            catch
+            {
+                // 如果转换失败，返回原图
+                return source;
+            }
+        }
+
+
     }
 
 
