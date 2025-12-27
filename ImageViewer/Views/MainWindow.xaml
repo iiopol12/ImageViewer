@@ -1176,6 +1176,17 @@
                                             </Border>
                                             <TextBlock Grid.Column="2" Text="启用/关闭过滤" Style="{StaticResource DescTextStyle}"/>
                                         </Grid>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
+                                                <TextBlock Text="Ctrl+P" Style="{StaticResource KeyTextStyle}"/>
+                                            </Border>
+                                            <TextBlock Grid.Column="2" Text="打印" Style="{StaticResource DescTextStyle}"/>
+                                        </Grid>
                                     </StackPanel>
                                 </Grid>
                             </StackPanel>
