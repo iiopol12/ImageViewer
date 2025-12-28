@@ -94,7 +94,11 @@
 
             <!-- 设置页 -->
             <Grid x:Name="SettingsPage" Margin="0,50,0,0">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Margin="20,20,20,0">
                     <StackPanel Margin="0,0,40,0">
                         <!-- 设置页标题区域 - 渐变背景 -->
                         <Border Background="{DynamicResource HeaderGradientBrush}"
@@ -421,15 +425,17 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- 底部按钮 -->
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
-                            <Button Content="取消" Style="{StaticResource ModernButtonStyle}"
-                                      Click="CancelButton_Click" Width="80" Margin="0,0,8,0"/>
-                            <Button Content="保存" Style="{StaticResource ModernButtonStyle}"
-                                      Click="SaveButton_Click" Width="80"/>
-                        </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
+                <!-- 底部按钮 -->
+                <Border Grid.Row="1" Margin="20,8,20,20" Background="Transparent">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="取消" Style="{StaticResource ModernButtonStyle}"
+                                  Click="CancelButton_Click" Width="80" Margin="0,0,8,0"/>
+                        <Button Content="保存" Style="{StaticResource ModernButtonStyle}"
+                                  Click="SaveButton_Click" Width="80"/>
+                    </StackPanel>
+                </Border>
             </Grid>
 
 
@@ -735,13 +741,7 @@
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0">
                                                 <StackPanel Orientation="Horizontal">
-                                                    <Border Background="{DynamicResource PrimaryDarkBrush}" CornerRadius="6" Padding="6" Margin="0,0,10,0">
-                                                        <Path Data="M4 4 L10 4 L12 6 L20 6 L20 10 M2 10 L22 10 L20 20 L4 20 L2 10"
-                                                              Stroke="White"
-                                                              StrokeThickness="2"
-                                                              Width="18" Height="18"
-                                                              Stretch="Uniform"/>
-                                                    </Border>
+                                                 
                                                     <StackPanel>
                                                         <TextBlock Text="收藏文件夹"
                                                                    Foreground="White"

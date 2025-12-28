@@ -195,6 +195,13 @@ namespace ImageViewer.Views
             _ = RefreshFavoritesAsync();
         }
 
+        public void OpenFavoritesPage()
+        {
+            ShowPage(MenuPage.Favorites);
+            ShowFavoriteFoldersTab();
+            _ = RefreshFavoritesAsync();
+        }
+
         private void AssociationsNavButton_Click(object sender, RoutedEventArgs e)
         {
             ShowPage(MenuPage.Associations);
@@ -492,6 +499,7 @@ namespace ImageViewer.Views
                 {
                     RefreshFavoriteFolderImages(_selectedFavoriteFolder);
                 }
+                NotifyBookmarkStateChanged();
             }
         }
 
@@ -518,6 +526,7 @@ namespace ImageViewer.Views
                 if (TryAddFavoriteFolder(dialog.SelectedPath))
                 {
                     await RefreshFavoritesAsync();
+                    NotifyBookmarkStateChanged();
                 }
             }
         }
@@ -537,20 +546,17 @@ namespace ImageViewer.Views
             }
 
             var folderPath = viewModel.CurrentFolderPath ?? string.Empty;
-            if (File.Exists(folderPath))
+            if (string.IsNullOrWhiteSpace(folderPath) ||
+                (!Directory.Exists(folderPath) && !File.Exists(folderPath)))
             {
-                folderPath = Path.GetDirectoryName(folderPath) ?? string.Empty;
-            }
-
-            if (string.IsNullOrWhiteSpace(folderPath) || !Directory.Exists(folderPath))
-            {
-                MessageBox.Show("当前没有可收藏的文件夹。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("当前没有可收藏的路径。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
             if (TryAddFavoriteFolder(folderPath))
             {
                 await RefreshFavoritesAsync();
+                NotifyBookmarkStateChanged();
             }
         }
 
@@ -596,7 +602,14 @@ namespace ImageViewer.Views
                     return;
                 }
 
-                await viewModel.LoadFolder(folder.FolderPath);
+                if (Directory.Exists(folder.FolderPath))
+                {
+                    await viewModel.LoadFolder(folder.FolderPath);
+                }
+                else if (File.Exists(folder.FolderPath))
+                {
+                    await viewModel.LoadImageFromPath(folder.FolderPath);
+                }
             }
         }
 
@@ -604,7 +617,14 @@ namespace ImageViewer.Views
         {
             if (sender is FrameworkElement { DataContext: FavoriteFolderItem folder } && folder.Exists)
             {
-                Process.Start("explorer.exe", $"\"{folder.FolderPath}\"");
+                if (Directory.Exists(folder.FolderPath))
+                {
+                    Process.Start("explorer.exe", $"\"{folder.FolderPath}\"");
+                }
+                else if (File.Exists(folder.FolderPath))
+                {
+                    Process.Start("explorer.exe", $"/select,\"{folder.FolderPath}\"");
+                }
             }
         }
 
@@ -617,10 +637,12 @@ namespace ImageViewer.Views
         {
             if (sender is FrameworkElement { DataContext: FavoriteFolderItem folder })
             {
+                RemoveFavoriteImagesUnderFolders(new[] { folder.FolderPath });
                 _settings.Bookmarks.RemoveAll(b => b.Type == BookmarkType.Folder &&
                                                    string.Equals(b.FilePath, folder.FolderPath, StringComparison.OrdinalIgnoreCase));
                 _settings.Save();
                 await RefreshFavoritesAsync();
+                NotifyBookmarkStateChanged();
             }
         }
 
@@ -632,6 +654,9 @@ namespace ImageViewer.Views
                 return;
             }
 
+            var selectedPaths = selected.Select(item => item.FolderPath).ToList();
+            RemoveFavoriteImagesUnderFolders(selectedPaths);
+
             foreach (var item in selected)
             {
                 _settings.Bookmarks.RemoveAll(b => b.Type == BookmarkType.Folder &&
@@ -640,6 +665,7 @@ namespace ImageViewer.Views
 
             _settings.Save();
             await RefreshFavoritesAsync();
+            NotifyBookmarkStateChanged();
         }
 
         private async void ClearFavoriteFolders_Click(object sender, RoutedEventArgs e)
@@ -655,9 +681,77 @@ namespace ImageViewer.Views
                 return;
             }
 
+            var folderPaths = _settings.Bookmarks
+                .Where(b => b.Type == BookmarkType.Folder && !string.IsNullOrWhiteSpace(b.FilePath))
+                .Select(b => b.FilePath)
+                .ToList();
+            RemoveFavoriteImagesUnderFolders(folderPaths);
+
             _settings.Bookmarks.RemoveAll(b => b.Type == BookmarkType.Folder);
             _settings.Save();
             await RefreshFavoritesAsync();
+            NotifyBookmarkStateChanged();
+        }
+
+        private void RemoveFavoriteImagesUnderFolders(IEnumerable<string> folderPaths)
+        {
+            if (folderPaths == null)
+            {
+                return;
+            }
+
+            var normalizedFolders = new List<string>();
+            foreach (var folderPath in folderPaths)
+            {
+                if (string.IsNullOrWhiteSpace(folderPath))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    normalizedFolders.Add(Path.GetFullPath(folderPath));
+                }
+                catch
+                {
+                }
+            }
+
+            if (normalizedFolders.Count == 0)
+            {
+                return;
+            }
+
+            _settings.Bookmarks.RemoveAll(b => b.Type == BookmarkType.Image &&
+                                               !string.IsNullOrWhiteSpace(b.FilePath) &&
+                                               IsImageBookmarkUnderFolders(b.FilePath, normalizedFolders));
+        }
+
+        private static bool IsImageBookmarkUnderFolders(string bookmarkKey, List<string> folderPaths)
+        {
+            var pathInfo = ResolveBookmarkPath(bookmarkKey);
+            if (string.IsNullOrWhiteSpace(pathInfo.FilePath))
+            {
+                return false;
+            }
+
+            foreach (var folderPath in folderPaths)
+            {
+                if (IsPathUnderFolder(pathInfo.FilePath, folderPath))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void NotifyBookmarkStateChanged()
+        {
+            if (Owner is MainWindow mainWindow && mainWindow.DataContext is MainViewModel viewModel)
+            {
+                viewModel.RefreshBookmarkStates();
+            }
         }
 
         private async void OpenFavoriteInViewer_Click(object sender, RoutedEventArgs e)
@@ -849,9 +943,10 @@ namespace ImageViewer.Views
 
         private bool TryAddFavoriteFolder(string folderPath)
         {
-            if (string.IsNullOrWhiteSpace(folderPath) || !Directory.Exists(folderPath))
+            if (string.IsNullOrWhiteSpace(folderPath) ||
+                (!Directory.Exists(folderPath) && !File.Exists(folderPath)))
             {
-                MessageBox.Show("文件夹不存在。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("路径不存在。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
                 return false;
             }
 
@@ -885,21 +980,31 @@ namespace ImageViewer.Views
 
         private static bool IsImageUnderFolder(FavoriteItem item, string folderPath)
         {
-            if (string.IsNullOrWhiteSpace(item.FilePath) || string.IsNullOrWhiteSpace(folderPath))
+            return IsPathUnderFolder(item.FilePath, folderPath);
+        }
+
+        private static bool IsPathUnderFolder(string itemPath, string folderPath)
+        {
+            if (string.IsNullOrWhiteSpace(itemPath) || string.IsNullOrWhiteSpace(folderPath))
             {
                 return false;
             }
 
             try
             {
-                var itemPath = Path.GetFullPath(item.FilePath);
+                var itemFullPath = Path.GetFullPath(itemPath);
                 var folderFullPath = Path.GetFullPath(folderPath);
+                if (string.Equals(itemFullPath, folderFullPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
                 if (!folderFullPath.EndsWith(Path.DirectorySeparatorChar))
                 {
                     folderFullPath += Path.DirectorySeparatorChar;
                 }
 
-                return itemPath.StartsWith(folderFullPath, StringComparison.OrdinalIgnoreCase);
+                return itemFullPath.StartsWith(folderFullPath, StringComparison.OrdinalIgnoreCase);
             }
             catch
             {
@@ -1241,7 +1346,7 @@ namespace ImageViewer.Views
                 }
                 Name = displayName;
                 CreatedAt = createdAt;
-                Exists = Directory.Exists(folderPath);
+                Exists = Directory.Exists(folderPath) || File.Exists(folderPath);
                 _isExpanded = isExpanded;
             }
         }

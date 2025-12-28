@@ -199,13 +199,11 @@ namespace ImageViewer.ViewModels
         private bool _isMangaOverviewVisible;
 
 
-        /// <summary>
-        /// </summary>
+        /// === 当前GIF数据 ===
         [ObservableProperty]
         private byte[]? _currentGifData;
 
-        /// <summary>
-        /// </summary>
+        /// === 当前图片是否为动画GIF ===
         [ObservableProperty]
         private bool _isCurrentAnimatedGif;
 
@@ -218,10 +216,14 @@ namespace ImageViewer.ViewModels
             : "无图片";
         /// <summary>是否有图片</summary>
         public bool HasImages => Images.Count > 0;
-        /// <summary>是否可以前往上一张</summary>
-        public bool CanGoPrevious => CurrentIndex > 0;
-        /// <summary>是否可以前往下一张</summary>
-        public bool CanGoNext => CurrentIndex < Images.Count - 1;
+        ///// <summary>是否可以前往上一张</summary>
+        //public bool CanGoPrevious => CurrentIndex > 0;
+        ///// <summary>是否可以前往下一张</summary>
+        //public bool CanGoNext => CurrentIndex < Images.Count - 1;
+        /// <summary>当前路径是否已收藏（文件夹/压缩包/PDF）</summary>
+        public bool IsCurrentFolderBookmarked => IsFolderBookmarked(GetCurrentFolderBookmarkPath());
+        /// <summary>当前路径是否可收藏</summary>
+        public bool IsCurrentFolderBookmarkAvailable => !string.IsNullOrWhiteSpace(GetCurrentFolderBookmarkPath());
 
         /// <summary>是否双页模式</summary>
         public bool IsDoublePage => CurrentViewMode == ViewMode.DoublePage;
@@ -259,6 +261,11 @@ namespace ImageViewer.ViewModels
                 IsMangaOverviewVisible = false;
 
             }
+        }
+        partial void OnCurrentFolderPathChanged(string value)
+        {
+            OnPropertyChanged(nameof(IsCurrentFolderBookmarked));
+            OnPropertyChanged(nameof(IsCurrentFolderBookmarkAvailable));
         }
         /// <summary>当前索引变化时触发 - 加载对应图片</summary>
         partial void OnCurrentIndexChanged(int value)
@@ -350,12 +357,22 @@ namespace ImageViewer.ViewModels
         [RelayCommand]
         private void GoPrevious()
         {
-            if (CanGoPrevious)
+            if (Images.Count == 0)
+                return;
+
+            if (CurrentIndex < 0)
             {
-                // 双页模式下，如果当前不是宽图，则跳转2张
-                var step = CurrentViewMode == ViewMode.DoublePage && !CurrentImage?.IsWide == true ? 2 : 1;
-                CurrentIndex = Math.Max(0, CurrentIndex - step);
+                CurrentIndex = 0;
+                return;
             }
+
+            // 双页模式下，如果当前不是宽图，则跳转2张
+            var step = CurrentViewMode == ViewMode.DoublePage && !CurrentImage?.IsWide == true ? 2 : 1;
+            var targetIndex = CurrentIndex - step;
+            if (targetIndex < 0)
+                targetIndex = Images.Count - 1;
+
+            CurrentIndex = targetIndex;
         }
 
 
@@ -363,12 +380,22 @@ namespace ImageViewer.ViewModels
         [RelayCommand]
         private void GoNext()
         {
-            if (CanGoNext)
+            if (Images.Count == 0)
+                return;
+
+            if (CurrentIndex < 0)
             {
-                // 双页模式下，如果当前不是宽图，则跳转2张
-                var step = CurrentViewMode == ViewMode.DoublePage && !CurrentImage?.IsWide == true ? 2 : 1;
-                CurrentIndex = Math.Min(Images.Count - 1, CurrentIndex + step);
+                CurrentIndex = 0;
+                return;
             }
+
+            // 双页模式下，如果当前不是宽图，则跳转2张
+            var step = CurrentViewMode == ViewMode.DoublePage && !CurrentImage?.IsWide == true ? 2 : 1;
+            var targetIndex = CurrentIndex + step;
+            if (targetIndex >= Images.Count)
+                targetIndex = 0;
+
+            CurrentIndex = targetIndex;
         }
 
         /// <summary>跳转到指定索引命令</summary>
@@ -798,6 +825,7 @@ namespace ImageViewer.ViewModels
                             }
                         }
 
+                        AutoAddFavoriteFoldersForImages(selectedImages);
                         StatusMessage = $"已收藏 {selectedImages.Count} 张";
                     }
                     else
@@ -814,6 +842,7 @@ namespace ImageViewer.ViewModels
                     }
 
                     Settings.Save();
+                    RefreshBookmarkStates();
                     return;
                 }
             }
@@ -843,6 +872,7 @@ namespace ImageViewer.ViewModels
                             PageIndex = CurrentImage.PdfPageIndex // 新增：保存页码
                         });
                     }
+                    AutoAddFavoriteFoldersForImages(new[] { CurrentImage });
                     StatusMessage = "已添加书签";
                 }
                 else
@@ -852,6 +882,288 @@ namespace ImageViewer.ViewModels
                 }
 
                 Settings.Save();
+                RefreshBookmarkStates();
+            }
+        }
+
+        private void AutoAddFavoriteFoldersForImages(IEnumerable<ImageInfo> images)
+        {
+            if (images == null)
+            {
+                return;
+            }
+
+            var added = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var image in images)
+            {
+                var folderPath = GetImageParentFolderPath(image);
+                if (string.IsNullOrWhiteSpace(folderPath) || !added.Add(folderPath))
+                {
+                    continue;
+                }
+
+                AddFavoriteFolderIfMissing(folderPath);
+            }
+        }
+
+        private static string? GetImageParentFolderPath(ImageInfo? image)
+        {
+            if (image == null)
+            {
+                return null;
+            }
+
+            string? path = null;
+            switch (image.SourceKind)
+            {
+                case ImageSourceKind.File:
+                    path = Path.GetDirectoryName(image.FilePath);
+                    break;
+                case ImageSourceKind.ZipEntry:
+                    path = image.ArchivePath;
+                    break;
+                case ImageSourceKind.PdfPage:
+                    path = image.FilePath;
+                    break;
+            }
+
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return null;
+            }
+
+            try
+            {
+                var normalized = Path.GetFullPath(path);
+                return Directory.Exists(normalized) || File.Exists(normalized) ? normalized : null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private bool AddFavoriteFolderIfMissing(string folderPath)
+        {
+            if (string.IsNullOrWhiteSpace(folderPath))
+            {
+                return false;
+            }
+
+            string normalized;
+            try
+            {
+                normalized = Path.GetFullPath(folderPath);
+            }
+            catch
+            {
+                return false;
+            }
+
+            if (!Directory.Exists(normalized) && !File.Exists(normalized))
+            {
+                return false;
+            }
+
+            if (Settings.Bookmarks.Any(b => b.Type == BookmarkType.Folder &&
+                                            string.Equals(b.FilePath, normalized, StringComparison.OrdinalIgnoreCase)))
+            {
+                return false;
+            }
+
+            var displayName = Path.GetFileName(normalized);
+            if (string.IsNullOrWhiteSpace(displayName))
+            {
+                displayName = normalized;
+            }
+
+            Settings.Bookmarks.Add(new Bookmark
+            {
+                FilePath = normalized,
+                Name = displayName,
+                Type = BookmarkType.Folder,
+                SortKey = displayName,
+                CreatedAt = DateTime.Now,
+                IsExpanded = true
+            });
+
+            var currentPath = GetCurrentFolderBookmarkPath();
+            if (!string.IsNullOrWhiteSpace(currentPath) &&
+                string.Equals(currentPath, normalized, StringComparison.OrdinalIgnoreCase))
+            {
+                OnPropertyChanged(nameof(IsCurrentFolderBookmarked));
+            }
+
+            return true;
+        }
+
+        [RelayCommand]
+        private void ToggleCurrentFolderBookmark()
+        {
+            var folderPath = GetCurrentFolderBookmarkPath();
+            if (string.IsNullOrWhiteSpace(folderPath))
+            {
+                StatusMessage = "当前没有可收藏的路径";
+                return;
+            }
+
+            if (IsFolderBookmarked(folderPath))
+            {
+                RemoveFavoriteImagesUnderFolder(folderPath);
+                Settings.Bookmarks.RemoveAll(b => b.Type == BookmarkType.Folder &&
+                                                  string.Equals(b.FilePath, folderPath, StringComparison.OrdinalIgnoreCase));
+                Settings.Save();
+                RefreshBookmarkStates();
+                StatusMessage = "已取消收藏当前路径";
+                return;
+            }
+
+            if (AddFavoriteFolderIfMissing(folderPath))
+            {
+                Settings.Save();
+                RefreshBookmarkStates();
+                StatusMessage = "已收藏当前路径";
+            }
+        }
+
+        public void RefreshBookmarkStates()
+        {
+            var bookmarked = new HashSet<string>(
+                Settings.Bookmarks
+                    .Where(b => b.Type == BookmarkType.Image && !string.IsNullOrWhiteSpace(b.FilePath))
+                    .Select(b => b.FilePath),
+                StringComparer.OrdinalIgnoreCase);
+
+            foreach (var img in Images)
+            {
+                var isBookmarked = bookmarked.Contains(img.CacheKey);
+                if (img.IsBookmarked != isBookmarked)
+                {
+                    img.IsBookmarked = isBookmarked;
+                }
+            }
+
+            if (CurrentImage != null)
+            {
+                CurrentImage.IsBookmarked = bookmarked.Contains(CurrentImage.CacheKey);
+            }
+
+            OnPropertyChanged(nameof(IsCurrentFolderBookmarked));
+            OnPropertyChanged(nameof(IsCurrentFolderBookmarkAvailable));
+        }
+
+        private string? GetCurrentFolderBookmarkPath()
+        {
+            var path = CurrentFolderPath;
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return null;
+            }
+
+            try
+            {
+                var normalized = Path.GetFullPath(path);
+                return Directory.Exists(normalized) || File.Exists(normalized) ? normalized : null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private bool IsFolderBookmarked(string? folderPath)
+        {
+            if (string.IsNullOrWhiteSpace(folderPath))
+            {
+                return false;
+            }
+
+            return Settings.Bookmarks.Any(b => b.Type == BookmarkType.Folder &&
+                                               string.Equals(b.FilePath, folderPath, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private void RemoveFavoriteImagesUnderFolder(string folderPath)
+        {
+            if (string.IsNullOrWhiteSpace(folderPath))
+            {
+                return;
+            }
+
+            string normalized;
+            try
+            {
+                normalized = Path.GetFullPath(folderPath);
+            }
+            catch
+            {
+                return;
+            }
+
+            Settings.Bookmarks.RemoveAll(b => b.Type == BookmarkType.Image &&
+                                              IsBookmarkUnderFolder(b.FilePath, normalized));
+        }
+
+        private static bool IsBookmarkUnderFolder(string? bookmarkKey, string folderPath)
+        {
+            if (string.IsNullOrWhiteSpace(bookmarkKey) || string.IsNullOrWhiteSpace(folderPath))
+            {
+                return false;
+            }
+
+            var resolvedPath = ResolveBookmarkPath(bookmarkKey);
+            if (string.IsNullOrWhiteSpace(resolvedPath))
+            {
+                return false;
+            }
+
+            return IsPathUnderFolder(resolvedPath, folderPath);
+        }
+
+        private static string? ResolveBookmarkPath(string bookmarkKey)
+        {
+            if (bookmarkKey.StartsWith("pdf:", StringComparison.OrdinalIgnoreCase))
+            {
+                var payload = bookmarkKey.Substring(4);
+                var separatorIndex = payload.IndexOf("|page=", StringComparison.OrdinalIgnoreCase);
+                return separatorIndex >= 0 ? payload.Substring(0, separatorIndex) : payload;
+            }
+
+            if (bookmarkKey.StartsWith("zip:", StringComparison.OrdinalIgnoreCase))
+            {
+                var payload = bookmarkKey.Substring(4);
+                var separatorIndex = payload.IndexOf('|');
+                return separatorIndex >= 0 ? payload.Substring(0, separatorIndex) : payload;
+            }
+
+            return bookmarkKey;
+        }
+
+        private static bool IsPathUnderFolder(string itemPath, string folderPath)
+        {
+            if (string.IsNullOrWhiteSpace(itemPath) || string.IsNullOrWhiteSpace(folderPath))
+            {
+                return false;
+            }
+
+            try
+            {
+                var itemFullPath = Path.GetFullPath(itemPath);
+                var folderFullPath = Path.GetFullPath(folderPath);
+                if (string.Equals(itemFullPath, folderFullPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                if (!folderFullPath.EndsWith(Path.DirectorySeparatorChar))
+                {
+                    folderFullPath += Path.DirectorySeparatorChar;
+                }
+
+                return itemFullPath.StartsWith(folderFullPath, StringComparison.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return false;
             }
         }
 
@@ -1617,8 +1929,8 @@ namespace ImageViewer.ViewModels
             finally
             {
                 IsImageLoading = false;
-                OnPropertyChanged(nameof(CanGoPrevious));
-                OnPropertyChanged(nameof(CanGoNext));
+                //OnPropertyChanged(nameof(CanGoPrevious));
+                //OnPropertyChanged(nameof(CanGoNext));
                 OnPropertyChanged(nameof(PositionText));
             }
         }
@@ -1925,14 +2237,15 @@ namespace ImageViewer.ViewModels
                 return;
             }
 
-            if (CanGoNext)
-            {// 播放下一张
+            //if (CanGoNext)
+            //{
+            // 播放下一张
                 GoNext();
-            }
-            else
-            {// 到达末尾，回到开头循环播放
-                GoToFirst();
-            }
+            //}
+            //else
+            //{// 到达末尾，回到开头循环播放
+            //    GoToFirst();
+            //}
         }
         /// <summary>
         /// 文件创建事件 - 新图片添加到文件夹

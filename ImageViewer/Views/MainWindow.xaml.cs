@@ -529,6 +529,8 @@ namespace ImageViewer.Views
                 // === 收藏文件夹切换 ===
                 _hotKeyManager.RegisterHotKey(ModifierKeys.Control, Key.Tab,
                     ShowFolderSwitchOverlay);
+                _hotKeyManager.RegisterHotKey(ModifierKeys.Control | ModifierKeys.Shift, Key.B,
+                    OpenFavoritesPage);
 
                 // === 导航 - 方向键 ===
                 _hotKeyManager.RegisterHotKey(ModifierKeys.None, Key.Left,
@@ -542,6 +544,7 @@ namespace ImageViewer.Views
 
                 _hotKeyManager.RegisterHotKey(ModifierKeys.None, Key.Down,
                     () => ViewModel.GoNextCommand?.Execute(null));
+
 
                 // === 导航 - 字母键 ===
                 _hotKeyManager.RegisterHotKey(ModifierKeys.None, Key.A,
@@ -778,10 +781,24 @@ namespace ImageViewer.Views
 
         private void OpenSettingsMenuItem_Click(object sender, RoutedEventArgs e)
         {
+            OpenSettingsWindow(openFavorites: false);
+        }
+
+        private void OpenFavoritesPage()
+        {
+            OpenSettingsWindow(openFavorites: true);
+        }
+
+        private void OpenSettingsWindow(bool openFavorites)
+        {
             var settingsWindow = new MenuInterface(ViewModel.Settings)
             {
                 Owner = this
             };
+            if (openFavorites)
+            {
+                settingsWindow.OpenFavoritesPage();
+            }
             settingsWindow.ShowDialog();
             ThemeManager.Apply(ViewModel.Settings.Theme);
         }
@@ -1114,13 +1131,20 @@ namespace ImageViewer.Views
                 if (entry == null)
                     return;
 
-                if (!entry.Exists || !Directory.Exists(entry.FullPath))
+                if (!entry.Exists || (!Directory.Exists(entry.FullPath) && !File.Exists(entry.FullPath)))
                 {
-                    ViewModel.StatusMessage = "收藏文件夹不存在";
+                    ViewModel.StatusMessage = "收藏路径不存在";
                     return;
                 }
 
-                await ViewModel.LoadFolder(entry.FullPath);
+                if (Directory.Exists(entry.FullPath))
+                {
+                    await ViewModel.LoadFolder(entry.FullPath);
+                }
+                else
+                {
+                    await ViewModel.LoadImageFromPath(entry.FullPath);
+                }
             }
             catch (Exception ex)
             {
@@ -1448,7 +1472,7 @@ namespace ImageViewer.Views
                 var displayName = string.IsNullOrWhiteSpace(bookmark.Name)
                     ? GetFolderDisplayName(folderPath)
                     : bookmark.Name;
-                var exists = Directory.Exists(folderPath);
+                var exists = Directory.Exists(folderPath) || File.Exists(folderPath);
                 var coverPath = favoriteImages
                     .Where(path => IsPathUnderFolder(path, folderPath))
                     .OrderBy(path => GetFolderRelativePath(folderPath, path), comparer)
@@ -1556,12 +1580,8 @@ namespace ImageViewer.Views
 
                 if (File.Exists(ViewModel.CurrentFolderPath))
                 {
-                    var dir = Path.GetDirectoryName(ViewModel.CurrentFolderPath);
-                    if (!string.IsNullOrWhiteSpace(dir) && Directory.Exists(dir))
-                    {
-                        baseDirectory = dir;
-                        return true;
-                    }
+                    baseDirectory = ViewModel.CurrentFolderPath;
+                    return true;
                 }
             }
 
@@ -2323,7 +2343,29 @@ namespace ImageViewer.Views
         {
             Dispatcher.BeginInvoke(new Action(UpdateFitToWindowZoom), DispatcherPriority.Background);
         }
+        static double GetImageDipWidth(BitmapSource source)
+        {
+            if (source == null)
+                return 0;
 
+            var dpiX = source.DpiX;
+            if (!double.IsFinite(dpiX) || dpiX <= 0)
+                dpiX = 96;
+
+            return source.PixelWidth * 96.0 / dpiX;
+        }
+
+        static double GetImageDipHeight(BitmapSource source)
+        {
+            if (source == null)
+                return 0;
+
+            var dpiY = source.DpiY;
+            if (!double.IsFinite(dpiY) || dpiY <= 0)
+                dpiY = 96;
+
+            return source.PixelHeight * 96.0 / dpiY;
+        }
 
         /// <summary>
         /// 更新适应窗口的缩放级别
@@ -2342,14 +2384,16 @@ namespace ImageViewer.Views
 
             if (viewportWidth <= 0 || viewportHeight <= 0)
                 return;
-            // 获取图片实际大小
-            double imageWidth = ViewModel.DisplayImage.PixelWidth;
-            double imageHeight = ViewModel.DisplayImage.PixelHeight;
+
+
+            // 获取图片显示大小（DIP），避免 DPI 元数据导致的缩放偏差
+            double imageWidth = GetImageDipWidth(ViewModel.DisplayImage);
+            double imageHeight = GetImageDipHeight(ViewModel.DisplayImage);
             // 如果是双页模式，需要考虑第二张图片
             if (ViewModel.IsDoublePage && ViewModel.SecondDisplayImage != null)
-            {
-                imageWidth += ViewModel.SecondDisplayImage.PixelWidth + 8;
-                imageHeight = Math.Max(imageHeight, ViewModel.SecondDisplayImage.PixelHeight);
+            { 
+                imageWidth += GetImageDipWidth(ViewModel.SecondDisplayImage) + 8;
+                imageHeight = Math.Max(imageHeight, GetImageDipHeight(ViewModel.SecondDisplayImage));
             }
 
             if (imageWidth <= 0 || imageHeight <= 0)

@@ -402,12 +402,40 @@
                         </Grid.RowDefinitions>
 
                         <Border Grid.Row="0" Padding="12,8" Background="{DynamicResource BackgroundLightBrush}">
-                            <StackPanel>
-                                <TextBlock Text="图片列表" Foreground="{DynamicResource ForegroundBrush}" 
-                                       FontSize="14" FontWeight="SemiBold"/>
-                                <TextBlock Text="{Binding PositionText}" Foreground="{DynamicResource ForegroundDimBrush}" 
-                                       FontSize="12" Margin="0,4,0,0"/>
-                            </StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="图片列表" Foreground="{DynamicResource ForegroundBrush}" 
+                                           FontSize="14" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding PositionText}" Foreground="{DynamicResource ForegroundDimBrush}" 
+                                           FontSize="12" Margin="0,4,0,0"/>
+                                </StackPanel>
+                                <Button Grid.Column="1"
+                                        Style="{StaticResource IconButtonStyle}"
+                                        Width="28" Height="28"
+                                        Margin="8,0,0,0"
+                                        ToolTip="收藏/取消收藏当前路径"
+                                        Command="{Binding ToggleCurrentFolderBookmarkCommand}"
+                                        IsEnabled="{Binding IsCurrentFolderBookmarkAvailable}">
+                                    <Grid>
+                                        <Path Data="M12 2 L15 9 H22 L17 13 L19 20 L12 16 L5 20 L7 13 L2 9 H9 Z"
+                                              Stroke="{DynamicResource ForegroundBrush}"
+                                              StrokeThickness="1.6"
+                                              Fill="Transparent"
+                                              Width="16" Height="16" Stretch="Uniform"
+                                              Visibility="{Binding IsCurrentFolderBookmarked, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}"/>
+                                        <Path Data="M12 2 L15 9 H22 L17 13 L19 20 L12 16 L5 20 L7 13 L2 9 H9 Z"
+                                              Fill="{DynamicResource PrimaryBrush}"
+                                              Stroke="{DynamicResource PrimaryBrush}"
+                                              StrokeThickness="1.2"
+                                              Width="16" Height="16" Stretch="Uniform"
+                                              Visibility="{Binding IsCurrentFolderBookmarked, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                    </Grid>
+                                </Button>
+                            </Grid>
                         </Border>
 
                         <ListBox Grid.Row="1" 
@@ -983,6 +1011,19 @@
                                                 </Border>
                                             </StackPanel>
                                             <TextBlock Grid.Column="2" Text="收藏文件夹切换" Style="{StaticResource DescTextStyle}"/>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                <Border Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="Ctrl+Shift+B" Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="2" Text="打开收藏页面" Style="{StaticResource DescTextStyle}"/>
                                         </Grid>
 
                                         <!-- 图片导航 -->
