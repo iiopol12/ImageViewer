@@ -387,7 +387,14 @@
             <!-- Main Content Area -->
             <Grid Grid.Row="2">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition>
+                        <ColumnDefinition.Width>
+                            <MultiBinding Converter="{StaticResource SidebarWidthToGridLengthConverter}" Mode="TwoWay">
+                                <Binding ElementName="RootWindow" Path="DataContext.Settings.ShowSidebar" Mode="OneWay"/>
+                                <Binding ElementName="RootWindow" Path="DataContext.Settings.SidebarWidth" Mode="TwoWay"/>
+                            </MultiBinding>
+                        </ColumnDefinition.Width>
+                    </ColumnDefinition>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
@@ -529,10 +536,20 @@
                             </Style>
                         </Grid.Style>
                         <ScrollViewer x:Name="ImageScrollViewer"
-                                  HorizontalScrollBarVisibility="Auto"
-                                  VerticalScrollBarVisibility="Auto"
                                   PanningMode="Both"
                                   SizeChanged="ImageScrollViewer_SizeChanged">
+                            <ScrollViewer.Style>
+                                <Style TargetType="ScrollViewer">
+                                    <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+                                    <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding FitToWindow}" Value="True">
+                                            <Setter Property="HorizontalScrollBarVisibility" Value="Hidden"/>
+                                            <Setter Property="VerticalScrollBarVisibility" Value="Hidden"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ScrollViewer.Style>
                             <Grid x:Name="ImageContainer" 
                               MouseLeftButtonDown="ImageContainer_MouseLeftButtonDown"
                               MouseLeftButtonUp="ImageContainer_MouseLeftButtonUp"

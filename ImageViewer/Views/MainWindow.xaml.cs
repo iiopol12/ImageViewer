@@ -2403,6 +2403,11 @@ namespace ImageViewer.Views
             // 设置缩放级别
             if (double.IsFinite(scale) && scale > 0)
             {
+                if (Math.Abs(scale - ViewModel.ZoomLevel) < 0.001)
+                {
+                    return;
+                }
+
                 ViewModel.ZoomLevel = scale;
             }
         }

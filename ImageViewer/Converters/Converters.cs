@@ -202,6 +202,52 @@ namespace ImageViewer.Converters
         }
     }
 
+    public class SidebarWidthToGridLengthConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            bool showSidebar = values.Length > 0 && values[0] is bool b && b;
+            if (!showSidebar)
+            {
+                return new GridLength(0);
+            }
+
+            double width = 0;
+            if (values.Length > 1)
+            {
+                if (values[1] is double d)
+                {
+                    width = d;
+                }
+                else if (values[1] is int i)
+                {
+                    width = i;
+                }
+                else if (values[1] != null && double.TryParse(values[1].ToString(), out var parsed))
+                {
+                    width = parsed;
+                }
+            }
+
+            if (!double.IsFinite(width) || width <= 0)
+            {
+                width = 200;
+            }
+
+            return new GridLength(width);
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            if (value is GridLength gridLength && gridLength.IsAbsolute)
+            {
+                return new object[] { Binding.DoNothing, gridLength.Value };
+            }
+
+            return new object[] { Binding.DoNothing, Binding.DoNothing };
+        }
+    }
+
     public class DoubleToThicknessConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

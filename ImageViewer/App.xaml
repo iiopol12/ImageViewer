@@ -14,6 +14,7 @@
             <converters:BoolToBookmarkIconConverter x:Key="BoolToBookmarkIconConverter"/>
             <converters:ToolbarVisibilityConverter x:Key="ToolbarVisibilityConverter"/>
             <converters:DoubleToGridLengthConverter x:Key="DoubleToGridLengthConverter"/>
+            <converters:SidebarWidthToGridLengthConverter x:Key="SidebarWidthToGridLengthConverter"/>
             <converters:DoubleToThicknessConverter x:Key="DoubleToThicknessConverter"/>
             <converters:DoubleToCornerRadiusConverter x:Key="DoubleToCornerRadiusConverter"/>
             <converters:GifVisibilityConverter x:Key="GifVisibilityConverter"/>
