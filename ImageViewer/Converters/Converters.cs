@@ -410,8 +410,6 @@ namespace ImageViewer.Converters
 
 
 
-    /// <summary>
-    /// </summary>
     public class GifVisibilityConverter : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
@@ -446,8 +444,7 @@ namespace ImageViewer.Converters
         }
     }
 
-    /// <summary>
-    /// </summary>
+
     public class SpeedToTextConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -465,8 +462,7 @@ namespace ImageViewer.Converters
         }
     }
 
-    /// <summary>
-    /// </summary>
+ 
     public class FrameProgressConverter : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
@@ -478,6 +474,68 @@ namespace ImageViewer.Converters
             int total = values[1] is int t ? t : 0;
 
             return $"{current}/{total}";
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// 根据漫画模式、显示侧边栏设置和全屏状态计算侧边栏宽度
+    /// 参数顺序：IsMangaMode, ShowSidebar, IsFullScreen, SidebarWidth
+    /// </summary>
+    public class MangaSidebarWidthConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (values.Length < 4)
+                return new GridLength(0);
+
+            bool isMangaMode = values[0] is bool manga && manga;
+            bool showSidebar = values[1] is bool show && show;
+            bool isFullScreen = values[2] is bool full && full;
+            double sidebarWidth = values[3] is double width ? width : 200;
+
+            // 只有漫画模式、显示侧边栏且非全屏时才显示侧边栏
+            if (isMangaMode && showSidebar && !isFullScreen)
+            {
+                return new GridLength(sidebarWidth);
+            }
+
+            return new GridLength(0);
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// 根据非漫画模式、显示侧边栏设置和全屏状态计算底边栏高度
+    /// 参数顺序：IsMangaMode, ShowSidebar, IsFullScreen, BottomBarHeight
+    /// </summary>
+    public class BottomBarHeightConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (values.Length < 4)
+                return new GridLength(0);
+
+            bool isMangaMode = values[0] is bool manga && manga;
+            bool showSidebar = values[1] is bool show && show;
+            bool isFullScreen = values[2] is bool full && full;
+            double bottomBarHeight = values[3] is double height ? height : 120;
+
+            // 只有非漫画模式、显示侧边栏且非全屏时才显示底边栏
+            if (!isMangaMode && showSidebar && !isFullScreen)
+            {
+                return new GridLength(bottomBarHeight);
+            }
+
+            return new GridLength(0);
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)

@@ -384,24 +384,880 @@
                 </Grid>
             </Border>
 
-            <!-- Main Content Area -->
+            <!-- Main Content Area - 覆盖层设计 -->
             <Grid Grid.Row="2">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition>
-                        <ColumnDefinition.Width>
-                            <MultiBinding Converter="{StaticResource SidebarWidthToGridLengthConverter}" Mode="TwoWay">
-                                <Binding ElementName="RootWindow" Path="DataContext.Settings.ShowSidebar" Mode="OneWay"/>
-                                <Binding ElementName="RootWindow" Path="DataContext.Settings.SidebarWidth" Mode="TwoWay"/>
-                            </MultiBinding>
-                        </ColumnDefinition.Width>
-                    </ColumnDefinition>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+                <!-- 图片显示区域占满整个空间，侧边栏和底边栏作为覆盖层叠加 -->
 
-                <!-- Sidebar -->
-                <Border Grid.Column="0" Background="{DynamicResource BackgroundMediumBrush}"
+                <!-- ========== 图片显示区域（始终居中，不受侧边栏影响） ========== -->
+                <Grid>
+                    <!-- ========== 图片显示区域 ========== -->
+                    <!-- Image Display Area -->
+                    <Grid Background="{DynamicResource ImageBackgroundBrush}">
+
+                        <!-- Single/Double Page Mode -->
+                        <Grid>
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Style.Triggers>
+                                        <!-- 漫画模式时隐藏 -->
+                                        <DataTrigger Binding="{Binding IsMangaMode}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                        <!-- 瀑布流显示时隐藏 -->
+                                        <DataTrigger Binding="{Binding ShowWaterfallView}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
+                            <ScrollViewer x:Name="ImageScrollViewer"
+                      PanningMode="Both"
+                      SizeChanged="ImageScrollViewer_SizeChanged">
+                                <ScrollViewer.Style>
+                                    <Style TargetType="ScrollViewer">
+                                        <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+                                        <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding FitToWindow}" Value="True">
+                                                <Setter Property="HorizontalScrollBarVisibility" Value="Hidden"/>
+                                                <Setter Property="VerticalScrollBarVisibility" Value="Hidden"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ScrollViewer.Style>
+                                <Grid x:Name="ImageContainer" 
+                  MouseLeftButtonDown="ImageContainer_MouseLeftButtonDown"
+                  MouseLeftButtonUp="ImageContainer_MouseLeftButtonUp"
+                  MouseMove="ImageContainer_MouseMove"
+                  Background="Transparent">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.LayoutTransform>
+                                        <ScaleTransform x:Name="ImageScaleTransform" 
+                                    ScaleX="{Binding ZoomLevel}" 
+                                    ScaleY="{Binding ZoomLevel}"/>
+                                    </Grid.LayoutTransform>
+
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Grid.Column="1" HorizontalAlignment="Center">
+                                        <!-- 静态图片显示（非动画 GIF 或其他格式） -->
+                                        <Image x:Name="MainImage" Source="{Binding DisplayImage}" 
+                             Stretch="None" RenderOptions.BitmapScalingMode="HighQuality">
+                                            <Image.Style>
+                                                <Style TargetType="Image">
+                                                    <!-- 仅在非动画 GIF 时显示 -->
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsCurrentAnimatedGif}" Value="True">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                        <Trigger Property="Source" Value="{x:Null}">
+                                                            <Setter Property="Opacity" Value="0"/>
+                                                        </Trigger>
+                                                        <EventTrigger RoutedEvent="Loaded">
+                                                            <BeginStoryboard>
+                                                                <Storyboard>
+                                                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                     From="0" To="1" Duration="0:0:0.15"/>
+                                                                </Storyboard>
+                                                            </BeginStoryboard>
+                                                        </EventTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Image.Style>
+                                        </Image>
+
+                                        <!-- GIF 动画播放控件（仅动画 GIF 时显示） -->
+                                        <controls:GifViewerControl x:Name="GifViewer"
+                               Source="{Binding CurrentGifData}"
+                               IsPlaying="True"
+                               Speed="1.0"
+                               LoopMode="Infinite">
+                                            <controls:GifViewerControl.Style>
+                                                <Style TargetType="controls:GifViewerControl">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsCurrentAnimatedGif}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </controls:GifViewerControl.Style>
+                                        </controls:GifViewerControl>
+
+
+                                        <Image x:Name="SecondImageControl" Source="{Binding SecondDisplayImage}" 
+                           Stretch="None" RenderOptions.BitmapScalingMode="HighQuality"
+                           Visibility="{Binding IsDoublePage, Converter={StaticResource BoolToVisibilityConverter}}"
+                           Margin="8,0,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+                            </ScrollViewer>
+
+                            <!-- Click Zones -->
+                            <Grid Visibility="{Binding HasImages, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- 左侧点击区域 -->
+                                <Border Grid.Column="0" Background="Transparent" Cursor="Hand"
+MouseLeftButtonUp="PreviousZone_Click"
+x:Name="PreviousZone">
+                                    <!-- 左箭头提示 -->
+                                    <Path Data="M15 18l-6-6 6-6" 
+  Stroke="{DynamicResource ForegroundBrush}" 
+  StrokeThickness="3"
+  Width="40" 
+  Height="40"
+  Stretch="Uniform"
+  HorizontalAlignment="Center"
+  VerticalAlignment="Center"
+  Opacity="0">
+                                        <Path.Effect>
+                                            <DropShadowEffect Color="Black" 
+                      Direction="0" 
+                      ShadowDepth="0" 
+                      BlurRadius="8" 
+                      Opacity="0.5"/>
+                                        </Path.Effect>
+                                        <Path.Style>
+                                            <Style TargetType="Path">
+                                                <Style.Triggers>
+                                                    <!-- 鼠标悬停时显示 -->
+                                                    <DataTrigger Binding="{Binding IsMouseOver, ElementName=PreviousZone}" Value="True">
+                                                        <DataTrigger.EnterActions>
+                                                            <BeginStoryboard>
+                                                                <Storyboard>
+                                                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                             To="0.7" Duration="0:0:0.2"/>
+                                                                </Storyboard>
+                                                            </BeginStoryboard>
+                                                        </DataTrigger.EnterActions>
+                                                        <DataTrigger.ExitActions>
+                                                            <BeginStoryboard>
+                                                                <Storyboard>
+                                                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                             To="0" Duration="0:0:0.2"/>
+                                                                </Storyboard>
+                                                            </BeginStoryboard>
+                                                        </DataTrigger.ExitActions>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Path.Style>
+                                    </Path>
+                                </Border>
+
+                                <!-- 右侧点击区域 -->
+                                <Border Grid.Column="2" Background="Transparent" Cursor="Hand"
+MouseLeftButtonUp="NextZone_Click"
+x:Name="NextZone">
+                                    <!-- 右箭头提示 -->
+                                    <Path Data="M9 18l6-6-6-6" 
+  Stroke="{DynamicResource ForegroundBrush}" 
+  StrokeThickness="3"
+  Width="40" 
+  Height="40"
+  Stretch="Uniform"
+  HorizontalAlignment="Center"
+  VerticalAlignment="Center"
+  Opacity="0">
+                                        <Path.Effect>
+                                            <DropShadowEffect Color="Black" 
+                      Direction="0" 
+                      ShadowDepth="0" 
+                      BlurRadius="8" 
+                      Opacity="0.5"/>
+                                        </Path.Effect>
+                                        <Path.Style>
+                                            <Style TargetType="Path">
+                                                <Style.Triggers>
+                                                    <!-- 鼠标悬停时显示 -->
+                                                    <DataTrigger Binding="{Binding IsMouseOver, ElementName=NextZone}" Value="True">
+                                                        <DataTrigger.EnterActions>
+                                                            <BeginStoryboard>
+                                                                <Storyboard>
+                                                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                             To="0.7" Duration="0:0:0.2"/>
+                                                                </Storyboard>
+                                                            </BeginStoryboard>
+                                                        </DataTrigger.EnterActions>
+                                                        <DataTrigger.ExitActions>
+                                                            <BeginStoryboard>
+                                                                <Storyboard>
+                                                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                             To="0" Duration="0:0:0.2"/>
+                                                                </Storyboard>
+                                                            </BeginStoryboard>
+                                                        </DataTrigger.ExitActions>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Path.Style>
+                                    </Path>
+                                </Border>
+                            </Grid>
+                        </Grid>
+
+                        <!-- Manga Mode -->
+                        <ScrollViewer x:Name="MangaScrollViewer"
+                  HorizontalScrollBarVisibility="Disabled"
+                  VerticalScrollBarVisibility="Auto"
+                  PreviewMouseLeftButtonDown="MangaScrollViewer_PreviewMouseLeftButtonDown"
+                  ScrollChanged="MangaScrollViewer_ScrollChanged"
+                  MouseLeftButtonDown="MangaScrollViewer_MouseLeftButtonDown">
+                            <ScrollViewer.Style>
+                                <Style TargetType="ScrollViewer">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <!-- 仅在漫画模式且非瀑布流时显示 -->
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding IsMangaMode}" Value="True"/>
+                                                <Condition Binding="{Binding ShowWaterfallView}" Value="False"/>
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </MultiDataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ScrollViewer.Style>
+                            <Grid>
+                                <Grid.LayoutTransform>
+                                    <ScaleTransform ScaleX="{Binding MangaZoomLevel}"
+                                ScaleY="{Binding MangaZoomLevel}"/>
+                                </Grid.LayoutTransform>
+
+                                <ItemsControl x:Name="MangaItemsControl"
+                          ItemsSource="{Binding Images}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Margin="{Binding DataContext.Settings.MangaGap, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource DoubleToThicknessConverter}}"
+                                Background="{DynamicResource BackgroundDarkBrush}" 
+                                CornerRadius="0"
+                                Cursor="Hand"
+                                BorderThickness="0"
+                                MouseLeftButtonUp="WaterfallItem_Click"
+                                Tag="{Binding}">
+                                                <Border.MinHeight>
+                                                    <MultiBinding Converter="{StaticResource MangaPlaceholderHeightConverter}">
+                                                        <Binding Path="FullImage"/>
+                                                        <Binding Path="Thumbnail"/>
+                                                        <Binding ElementName="RootWindow" Path="DataContext.Settings.MangaDecodeWidth"/>
+                                                    </MultiBinding>
+                                                </Border.MinHeight>
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="BorderBrush" Value="Transparent"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+
+                                                <Image Stretch="Uniform" 
+                                   RenderOptions.BitmapScalingMode="HighQuality"
+                                   MaxWidth="{Binding ElementName=RootWindow, Path=DataContext.Settings.MangaDecodeWidth, FallbackValue=1600}">
+                                                    <Image.Source>
+                                                        <MultiBinding Converter="{StaticResource MangaImageSourceConverter}">
+                                                            <Binding Path="FullImage"/>
+                                                            <Binding Path="Thumbnail"/>
+                                                        </MultiBinding>
+                                                    </Image.Source>
+                                                </Image>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
+                        </ScrollViewer>
+
+                        <!-- Waterfall View (瀑布流视图) -->
+                        <ScrollViewer x:Name="WaterfallScrollViewer"
+                  VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled"
+                  PreviewMouseLeftButtonDown="WaterfallScrollViewer_PreviewMouseLeftButtonDown"
+                  Background="{DynamicResource ImageBackgroundBrush}"
+                  Visibility="{Binding ShowWaterfallView, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <ItemsControl ItemsSource="{Binding Images}">
+                                <ItemsControl.LayoutTransform>
+                                    <ScaleTransform ScaleX="{Binding WaterfallZoomLevel}" ScaleY="{Binding WaterfallZoomLevel}"/>
+                                </ItemsControl.LayoutTransform>
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Margin="4" Background="{DynamicResource BackgroundDarkBrush}" 
+                            CornerRadius="4" Cursor="Hand"
+                            MouseLeftButtonUp="WaterfallItem_Click"
+                            Tag="{Binding}">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="BorderThickness" Value="2"/>
+                                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                                    <Style.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource BackgroundLightBrush}"/>
+                                                        </Trigger>
+                                                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <Grid Width="180" Height="140">
+                                                <Image Source="{Binding Thumbnail}" Stretch="Uniform" 
+                                   RenderOptions.BitmapScalingMode="HighQuality"
+                                   Margin="4"/>
+
+                                                <!-- Loading indicator -->
+                                                <Border Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"
+                                    Background="#80000000">
+                                                    <TextBlock Text="..." Foreground="White" FontSize="20"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+
+                                                <!-- Error indicator -->
+                                                <Border Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}"
+                                    Background="#80000000">
+                                                    <Path Width="24" Height="24"
+                                      Stretch="Uniform"
+     
+                                      StrokeThickness="2"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Data="M3,3 L21,21 M21,3 L3,21"/>
+                                                </Border>
+
+                                                <!-- Bookmark indicator -->
+                                                <Path Width="16" Height="16"
+                              Stretch="Uniform"
+                              Fill="#FFD700"
+                              HorizontalAlignment="Right"
+                              VerticalAlignment="Top"
+                              Margin="0,4,4,0"
+                              Visibility="{Binding IsBookmarked, Converter={StaticResource BoolToVisibilityConverter}}"
+                              Data="M8,0 L9.76,5.17 L15.3,5.64 L10.8,9.02 
+                                    L12.24,14.36 L8,11.4 L3.76,14.36 
+                                    L5.2,9.02 L0.7,5.64 L6.24,5.17 Z"/>
+
+                                                <!-- File name overlay -->
+                                                <Border VerticalAlignment="Bottom" Background="#AA000000" Padding="4,2">
+                                                    <TextBlock Text="{Binding FileName}" 
+                                           Foreground="White"
+                                           FontSize="10" TextTrimming="CharacterEllipsis"
+                                           TextAlignment="Center"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+
+                        <!-- Empty State -->
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                Visibility="{Binding ShowEmptyState, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <Path
+            Data="
+        M4 5 H20 V19 H4 Z
+        M4 16 L9 11 L14 16 L17 13 L20 16
+        M7 9 A 1.5 1.5 0 1 0 7 6 A 1.5 1.5 0 1 0 7 9
+        M17 18 A 3 3 0 1 0 23 18 A 3 3 0 1 0 17 18
+        M22 20 L25 23"
+            Stroke="{DynamicResource ForegroundBrush}"
+            StrokeThickness="4"
+            Width="72"
+            Height="72"
+            Stretch="Uniform"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Opacity="0.3" />
+                            <TextBlock Text="拖拽图片或文件夹到此处" 
+                   Foreground="{DynamicResource ForegroundDimBrush}"
+                   FontSize="18" HorizontalAlignment="Center" Margin="0,16,0,0"/>
+                            <TextBlock Text="或点击工具栏打开文件/文件夹" 
+                   Foreground="{DynamicResource ForegroundDimBrush}"
+                   FontSize="14" HorizontalAlignment="Center" Margin="0,8,0,0" Opacity="0.7"/>
+
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,24,0,0">
+                                <Button Content="打开图片" Style="{StaticResource ModernButtonStyle}"
+                    Command="{Binding OpenFileCommand}" Margin="0,0,8,0"/>
+                                <Button Content="打开文件夹" Style="{StaticResource ModernButtonStyle}"
+                    Command="{Binding OpenFolderCommand}"/>
+                            </StackPanel>
+
+
+
+                            <!-- 快捷键指南 - 分组美化版 -->
+                            <Border Background="{DynamicResource BackgroundLightBrush}"
+                    CornerRadius="8"
+                    Padding="24,16"
+                    Margin="0,32,0,0"
+                    BorderBrush="{DynamicResource ForegroundDimBrush}"
+                    BorderThickness="1"
+                    MaxWidth="800">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#80000000" 
+                              Opacity="0.3" 
+                              BlurRadius="10" 
+                              ShadowDepth="3"/>
+                                </Border.Effect>
+
+                                <StackPanel>
+                                    <!-- 标题 -->
+                                    <TextBlock Text="快捷键指南"
+                       Foreground="{DynamicResource ForegroundBrush}"
+                       FontSize="14"
+                       FontWeight="SemiBold"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,12"/>
+
+                                    <!-- 主分隔线 -->
+                                    <Border Height="1"
+                            Background="{DynamicResource ForegroundDimBrush}"
+                            Opacity="0.3"
+                            Margin="0,0,0,16"/>
+
+                                    <!-- 两列布局 -->
+                                    <Grid>
+                                        <Grid.Resources>
+                                            <!-- 按键样式 -->
+                                            <Style x:Key="KeyStyle" TargetType="Border">
+                                                <Setter Property="Background" Value="{DynamicResource BackgroundDarkBrush}"/>
+                                                <Setter Property="CornerRadius" Value="3"/>
+                                                <Setter Property="Padding" Value="6,3"/>
+                                                <Setter Property="Margin" Value="0,0,4,0"/>
+                                            </Style>
+
+                                            <Style x:Key="KeyTextStyle" TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+                                                <Setter Property="FontSize" Value="11"/>
+                                                <Setter Property="FontFamily" Value="Consolas"/>
+                                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                            </Style>
+
+                                            <Style x:Key="DescTextStyle" TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+                                                <Setter Property="FontSize" Value="12"/>
+                                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                            </Style>
+
+                                            <Style x:Key="CategoryStyle" TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+                                                <Setter Property="FontSize" Value="11"/>
+                                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                                <Setter Property="Margin" Value="0,0,0,6"/>
+                                            </Style>
+                                        </Grid.Resources>
+
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="24"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- 左列 -->
+                                        <StackPanel Grid.Column="0">
+                                            <!-- 文件操作 -->
+                                            <TextBlock Text="文件操作" Style="{StaticResource CategoryStyle}"/>
+                                            <Grid Margin="0,0,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                    <Border Style="{StaticResource KeyStyle}">
+                                                        <TextBlock Text="Ctrl+O" Style="{StaticResource KeyTextStyle}"/>
+                                                    </Border>
+                                                    <Border Style="{StaticResource KeyStyle}">
+                                                        <TextBlock Text="Ctrl+F" Style="{StaticResource KeyTextStyle}"/>
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="2" Text="打开文件/文件夹" Style="{StaticResource DescTextStyle}"/>
+                                            </Grid>
+                                            <Grid Margin="0,0,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                    <Border Style="{StaticResource KeyStyle}">
+                                                        <TextBlock Text="Ctrl+Tab" Style="{StaticResource KeyTextStyle}"/>
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="2" Text="收藏文件夹切换" Style="{StaticResource DescTextStyle}"/>
+                                            </Grid>
+                                            <Grid Margin="0,0,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                    <Border Style="{StaticResource KeyStyle}">
+                                                        <TextBlock Text="Ctrl+Shift+B" Style="{StaticResource KeyTextStyle}"/>
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="2" Text="打开收藏页面" Style="{StaticResource DescTextStyle}"/>
+                                            </Grid>
+
+                                            <!-- 图片导航 -->
+                                            <TextBlock Text="图片导航" Style="{StaticResource CategoryStyle}" Margin="0,12,0,6"/>
+                                            <Grid Margin="0,0,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                    <Border Style="{StaticResource KeyStyle}">
+                                                        <TextBlock Text="← →" Style="{StaticResource KeyTextStyle}"/>
+                                                    </Border>
+                                                    <Border Style="{StaticResource KeyStyle}">
+                                                        <TextBlock Text="A D" Style="{StaticResource KeyTextStyle}"/>
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="2" Text="上一张/下一张" Style="{StaticResource DescTextStyle}"/>
+                                            </Grid>
+                                            <Grid Margin="0,0,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="Space" Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                                <TextBlock Grid.Column="2" Text="下一张" Style="{StaticResource DescTextStyle}"/>
+                                            </Grid>
+                                            <Grid Margin="0,0,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                    <Border Style="{StaticResource KeyStyle}">
+                                                        <TextBlock Text="PgUp" Style="{StaticResource KeyTextStyle}"/>
+                                                    </Border>
+                                                    <Border Style="{StaticResource KeyStyle}">
+                                                        <TextBlock Text="PgDn" Style="{StaticResource KeyTextStyle}"/>
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="2" Text="上一张/下一张" Style="{StaticResource DescTextStyle}"/>
+                                            </Grid>
+                                            <Grid Margin="0,0,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                    <Border Style="{StaticResource KeyStyle}">
+                                                        <TextBlock Text="Home" Style="{StaticResource KeyTextStyle}"/>
+                                                    </Border>
+                                                    <Border Style="{StaticResource KeyStyle}">
+                                                        <TextBlock Text="End" Style="{StaticResource KeyTextStyle}"/>
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="2" Text="首张/末张" Style="{StaticResource DescTextStyle}"/>
+                                            </Grid>
+
+                                            <!-- 视图控制 -->
+                                            <TextBlock Text="视图控制" Style="{StaticResource CategoryStyle}" Margin="0,12,0,6"/>
+                                            <Grid Margin="0,0,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="F11" Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                                <TextBlock Grid.Column="2" Text="全屏切换" Style="{StaticResource DescTextStyle}"/>
+                                            </Grid>
+                                            <Grid Margin="0,0,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="ESC" Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                                <TextBlock Grid.Column="2" Text="退出全屏/关闭" Style="{StaticResource DescTextStyle}"/>
+                                            </Grid>
+                                            <Grid Margin="0,0,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                    <Border Style="{StaticResource KeyStyle}">
+                                                        <TextBlock Text="+" Style="{StaticResource KeyTextStyle}"/>
+                                                    </Border>
+                                                    <Border Style="{StaticResource KeyStyle}">
+                                                        <TextBlock Text="-" Style="{StaticResource KeyTextStyle}"/>
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="2" Text="放大/缩小" Style="{StaticResource DescTextStyle}"/>
+                                            </Grid>
+                                            <Grid Margin="0,0,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="Ctrl+0" Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                                <TextBlock Grid.Column="2" Text="适应/原始尺寸切换" Style="{StaticResource DescTextStyle}"/>
+                                            </Grid>
+                                        </StackPanel>
+
+                                        <!-- 中间分隔线 -->
+                                        <Border Grid.Column="1" Width="1" 
+                                Background="{DynamicResource ForegroundDimBrush}"
+                                Opacity="0.3"
+                                Margin="12,0"/>
+
+                                        <!-- 右列 -->
+                                        <StackPanel Grid.Column="2">
+                                            <!-- 功能操作 -->
+                                            <TextBlock Text="功能操作" Style="{StaticResource CategoryStyle}"/>
+                                            <Grid Margin="0,0,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="M" Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                                <TextBlock Grid.Column="2" Text="切换浏览模式" Style="{StaticResource DescTextStyle}"/>
+                                            </Grid>
+                                            <Grid Margin="0,0,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="S" Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                                <TextBlock Grid.Column="2" Text="开始/停止幻灯片" Style="{StaticResource DescTextStyle}"/>
+                                            </Grid>
+                                            <Grid Margin="0,0,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="B" Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                                <TextBlock Grid.Column="2" Text="收藏/取消收藏" Style="{StaticResource DescTextStyle}"/>
+                                            </Grid>
+                                            <Grid Margin="0,0,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="Ctrl+C" Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                                <TextBlock Grid.Column="2" Text="复制到剪贴板" Style="{StaticResource DescTextStyle}"/>
+                                            </Grid>
+                                            <Grid Margin="0,0,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="Delete" Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                                <TextBlock Grid.Column="2" Text="删除当前图片" Style="{StaticResource DescTextStyle}"/>
+                                            </Grid>
+                                            <Grid Margin="0,0,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="Ctrl+Shift+F" Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                                <TextBlock Grid.Column="2" Text="启用/关闭过滤" Style="{StaticResource DescTextStyle}"/>
+                                            </Grid>
+                                            <Grid Margin="0,0,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="Ctrl+P" Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                                <TextBlock Grid.Column="2" Text="打印" Style="{StaticResource DescTextStyle}"/>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+
+                        </StackPanel>
+
+                        <!-- Image Info Panel -->
+                        <Border x:Name="ImageInfoPanel"
+            Padding="12"
+            Background="#CC000000"
+            CornerRadius="8"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            Margin="12"
+            MaxWidth="360">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#99000000" BlurRadius="12" ShadowDepth="0"/>
+                            </Border.Effect>
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding IsInfoPanelVisible}" Value="True"/>
+                                                <Condition Binding="{Binding HasImages}" Value="True"/>
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </MultiDataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+
+                            <Grid>
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Column="1" Width="24" Height="24" HorizontalAlignment="Right" VerticalAlignment="Top"
+                    Style="{StaticResource IconButtonStyle}"
+                    Command="{Binding ToggleInfoPanelCommand}"
+                    ToolTip="关闭信息面板">
+                                    <Path Data="M6 6 L18 18 M18 6 L6 18"
+                      Stroke="{DynamicResource ForegroundBrush}"
+                      StrokeThickness="2"
+                      Width="14" Height="14" Stretch="Uniform"/>
+                                </Button>
+
+                                <StackPanel Grid.Column="0" Margin="0,4,0,0">
+                                    <TextBlock Text="{Binding CurrentImage.FileName}"
+                           Foreground="{DynamicResource ForegroundBrush}"
+                           FontWeight="SemiBold"
+                           FontSize="14"
+                           TextTrimming="CharacterEllipsis"
+                           MaxWidth="320"/>
+                                    <TextBlock Text="{Binding PositionText}"
+                           Foreground="{DynamicResource ForegroundDimBrush}"
+                           FontSize="11" Margin="0,2,0,6"/>
+                                    <TextBlock Text="{Binding CurrentImage.DimensionsFormatted, StringFormat='分辨率：{0}'}"
+                           Foreground="{DynamicResource ForegroundBrush}"
+                           FontSize="12"/>
+                                    <TextBlock Text="{Binding CurrentImage.BitDepth, StringFormat='位深：{0} bpp'}"
+                           Foreground="{DynamicResource ForegroundBrush}"
+                           FontSize="12" Margin="0,2,0,0"/>
+                                    <TextBlock Text="{Binding CurrentImage.FileSizeFormatted, StringFormat='大小：{0}'}"
+                           Foreground="{DynamicResource ForegroundBrush}"
+                           FontSize="12" Margin="0,2,0,0"/>
+                                    <TextBlock Text="{Binding CurrentImage.DateModified, StringFormat='修改：{0:yyyy-MM-dd HH:mm}'}"
+                           Foreground="{DynamicResource ForegroundBrush}"
+                           FontSize="12" Margin="0,2,0,0"/>
+                                    <TextBlock Text="{Binding CurrentImage.FilePath}"
+                           Foreground="{DynamicResource ForegroundDimBrush}"
+                           FontSize="11"
+                           Margin="0,8,0,0"
+                           TextTrimming="CharacterEllipsis"
+                           MaxWidth="320"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Loading Overlay -->
+                        <Border Background="#80000000" 
+            Visibility="{Binding IsBusyLoading, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock Text="⟳" FontSize="48" Foreground="{DynamicResource PrimaryBrush}"
+                       HorizontalAlignment="Center">
+                                    <TextBlock.RenderTransform>
+                                        <RotateTransform x:Name="LoadingRotation"/>
+                                    </TextBlock.RenderTransform>
+                                    <TextBlock.Triggers>
+                                        <EventTrigger RoutedEvent="Loaded">
+                                            <BeginStoryboard>
+                                                <Storyboard RepeatBehavior="Forever">
+                                                    <DoubleAnimation Storyboard.TargetName="LoadingRotation"
+                                                 Storyboard.TargetProperty="Angle"
+                                                 From="0" To="360" Duration="0:0:1"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                    </TextBlock.Triggers>
+                                </TextBlock>
+                                <TextBlock Text="加载中..." Foreground="White" FontSize="14" Margin="0,12,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Grid>
+
+                <!-- ========== 漫画模式侧边栏（左侧纵向）- 覆盖层设计 ========== -->
+                <Border x:Name="MangaSidebar" 
+                    HorizontalAlignment="Left"
+                    Background="{DynamicResource BackgroundMediumBrush}"
                     Width="{Binding Settings.SidebarWidth}"
-                    Visibility="{Binding Settings.ShowSidebar, Converter={StaticResource BoolToVisibilityConverter}}">
+                    Panel.ZIndex="50">
+                    <Border.Effect>
+                        <DropShadowEffect Color="Black" BlurRadius="15" ShadowDepth="0" Opacity="0.4" Direction="0"/>
+                    </Border.Effect>
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <!-- 漫画模式且显示侧边栏且非全屏时显示 -->
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsMangaMode}" Value="True"/>
+                                        <Condition Binding="{Binding Settings.ShowSidebar}" Value="True"/>
+                                        <Condition Binding="{Binding IsFullScreen}" Value="False"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+
+                    <!-- 侧边栏内容 - 纵向列表 -->
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -416,48 +1272,50 @@
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
                                     <TextBlock Text="图片列表" Foreground="{DynamicResource ForegroundBrush}" 
-                                           FontSize="14" FontWeight="SemiBold"/>
+                                       FontSize="14" FontWeight="SemiBold"/>
                                     <TextBlock Text="{Binding PositionText}" Foreground="{DynamicResource ForegroundDimBrush}" 
-                                           FontSize="12" Margin="0,4,0,0"/>
+                                       FontSize="12" Margin="0,4,0,0"/>
                                 </StackPanel>
                                 <Button Grid.Column="1"
-                                        Style="{StaticResource IconButtonStyle}"
-                                        Width="28" Height="28"
-                                        Margin="8,0,0,0"
-                                        ToolTip="收藏/取消收藏当前路径"
-                                        Command="{Binding ToggleCurrentFolderBookmarkCommand}"
-                                        IsEnabled="{Binding IsCurrentFolderBookmarkAvailable}">
+                                    Style="{StaticResource IconButtonStyle}"
+                                    Width="28" Height="28"
+                                    Margin="8,0,0,0"
+                                    ToolTip="收藏/取消收藏当前路径"
+                                    Command="{Binding ToggleCurrentFolderBookmarkCommand}"
+                                    IsEnabled="{Binding IsCurrentFolderBookmarkAvailable}">
                                     <Grid>
                                         <Path Data="M12 2 L15 9 H22 L17 13 L19 20 L12 16 L5 20 L7 13 L2 9 H9 Z"
-                                              Stroke="{DynamicResource ForegroundBrush}"
-                                              StrokeThickness="1.6"
-                                              Fill="Transparent"
-                                              Width="16" Height="16" Stretch="Uniform"
-                                              Visibility="{Binding IsCurrentFolderBookmarked, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}"/>
+                                          Stroke="{DynamicResource ForegroundBrush}"
+                                          StrokeThickness="1.6"
+                                          Fill="Transparent"
+                                          Width="16" Height="16" Stretch="Uniform"
+                                          Visibility="{Binding IsCurrentFolderBookmarked, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}"/>
                                         <Path Data="M12 2 L15 9 H22 L17 13 L19 20 L12 16 L5 20 L7 13 L2 9 H9 Z"
-                                              Fill="{DynamicResource PrimaryBrush}"
-                                              Stroke="{DynamicResource PrimaryBrush}"
-                                              StrokeThickness="1.2"
-                                              Width="16" Height="16" Stretch="Uniform"
-                                              Visibility="{Binding IsCurrentFolderBookmarked, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                          Fill="{DynamicResource PrimaryBrush}"
+                                          Stroke="{DynamicResource PrimaryBrush}"
+                                          StrokeThickness="1.2"
+                                          Width="16" Height="16" Stretch="Uniform"
+                                          Visibility="{Binding IsCurrentFolderBookmarked, Converter={StaticResource BoolToVisibilityConverter}}"/>
                                     </Grid>
                                 </Button>
                             </Grid>
                         </Border>
 
-                        <ListBox Grid.Row="1" 
-                         ItemsSource="{Binding Images}" 
-                         SelectedIndex="{Binding CurrentIndex, Mode=TwoWay}"
-                         Background="Transparent"
-                         BorderThickness="0"
-                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                         ItemContainerStyle="{StaticResource ThumbnailListBoxItemStyle}"
-                         SelectionChanged="ThumbnailList_SelectionChanged"
-                         VirtualizingPanel.IsVirtualizing="True"
-                         VirtualizingPanel.VirtualizationMode="Recycling"
-                         VirtualizingPanel.CacheLength="10,10"
-                         VirtualizingPanel.CacheLengthUnit="Item"
-                         ScrollViewer.CanContentScroll="True">
+                        <!-- 漫画模式纵向缩略图列表 -->
+                        <ListBox x:Name="MangaThumbnailList"
+                             Grid.Row="1" 
+                             ItemsSource="{Binding Images}" 
+                             SelectedIndex="{Binding CurrentIndex, Mode=TwoWay}"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ItemContainerStyle="{StaticResource ThumbnailListBoxItemStyle}"
+                             SelectionChanged="ThumbnailList_SelectionChanged"
+                             VirtualizingPanel.IsVirtualizing="True"
+                             VirtualizingPanel.VirtualizationMode="Recycling"
+                             VirtualizingPanel.CacheLength="10,10"
+                             VirtualizingPanel.CacheLengthUnit="Item"
+                             ScrollViewer.CanContentScroll="True">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <Grid Width="160" ToolTip="{Binding FileName}">
@@ -469,40 +1327,27 @@
                                         <Border Grid.Row="0" Background="{DynamicResource BackgroundDarkBrush}" CornerRadius="2">
                                             <Grid>
                                                 <Image Source="{Binding Thumbnail}" Stretch="Uniform" 
-                                                   RenderOptions.BitmapScalingMode="HighQuality"/>
-
+                                               RenderOptions.BitmapScalingMode="HighQuality"/>
                                                 <Border Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"
-                                                    Background="#80000000">
+                                                Background="#80000000">
                                                     <TextBlock Text="..." Foreground="White" FontSize="20"
-                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                </Border>
-
-                                                <Border Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}"
-                                                    Background="#80000000">
-                                                    <Path Width="24" Height="24"
-                                                  Stretch="Uniform"
-                                                  StrokeThickness="2"
-                                                  HorizontalAlignment="Center"
-                                                  VerticalAlignment="Center"
-                                                  Data="M3,3 L21,21 M21,3 L3,21"/>
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Border>
                                                 <Path Width="16" Height="16"
-                                                  Stretch="Uniform"
-                                                  Fill="#FFD700"
-                                                  HorizontalAlignment="Right"
-                                                  VerticalAlignment="Top"
-                                                  Margin="0,4,4,0"
-                                                  Visibility="{Binding IsBookmarked, Converter={StaticResource BoolToVisibilityConverter}}"
-                                                  Data="M8,0 L9.76,5.17 L15.3,5.64 L10.8,9.02 
-                                                        L12.24,14.36 L8,11.4 L3.76,14.36 
-                                                        L5.2,9.02 L0.7,5.64 L6.24,5.17 Z"/>
+                                              Stretch="Uniform"
+                                              Fill="#FFD700"
+                                              HorizontalAlignment="Right"
+                                              VerticalAlignment="Top"
+                                              Margin="0,4,4,0"
+                                              Visibility="{Binding IsBookmarked, Converter={StaticResource BoolToVisibilityConverter}}"
+                                              Data="M8,0 L9.76,5.17 L15.3,5.64 L10.8,9.02 L12.24,14.36 L8,11.4 L3.76,14.36 L5.2,9.02 L0.7,5.64 L6.24,5.17 Z"/>
                                             </Grid>
                                         </Border>
 
                                         <TextBlock Grid.Row="1" Text="{Binding FileName}" 
-                                               Foreground="{DynamicResource ForegroundBrush}"
-                                               FontSize="11" TextTrimming="CharacterEllipsis"
-                                               Margin="0,4,0,0" TextAlignment="Center"/>
+                                           Foreground="{DynamicResource ForegroundBrush}"
+                                           FontSize="11" TextTrimming="CharacterEllipsis"
+                                           Margin="0,4,0,0" TextAlignment="Center"/>
                                     </Grid>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
@@ -510,849 +1355,280 @@
                     </Grid>
                 </Border>
 
-                <GridSplitter Grid.Column="0" Width="4" Background="Transparent" 
-                          HorizontalAlignment="Right" VerticalAlignment="Stretch"
-                          Visibility="{Binding Settings.ShowSidebar, Converter={StaticResource BoolToVisibilityConverter}}"
-                          Cursor="SizeWE"/>
+                <!-- ========== 单图/双页模式底边栏（底部横向）- 覆盖层设计 ========== -->
+                <Border x:Name="BottomThumbnailBar"
+            VerticalAlignment="Bottom"
+            Background="{DynamicResource BackgroundMediumBrush}"
+            Height="{Binding Settings.BottomBarHeight}"
+            Panel.ZIndex="50">
+                    <Border.Effect>
+                        <DropShadowEffect Color="Black" BlurRadius="15" ShadowDepth="0" Opacity="0.4" Direction="270"/>
+                    </Border.Effect>
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <!-- 非漫画模式且显示侧边栏且非全屏时显示 -->
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsMangaMode}" Value="False"/>
+                                        <Condition Binding="{Binding Settings.ShowSidebar}" Value="True"/>
+                                        <Condition Binding="{Binding IsFullScreen}" Value="False"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
 
-                <!-- Image Display Area -->
-                <Grid Grid.Column="1" Background="{DynamicResource ImageBackgroundBrush}">
-
-                    <!-- Single/Double Page Mode -->
+                    <!-- 底边栏内容 - 横向列表 -->
                     <Grid>
-                        <Grid.Style>
-                            <Style TargetType="Grid">
-                                <Setter Property="Visibility" Value="Visible"/>
-                                <Style.Triggers>
-                                    <!-- 漫画模式时隐藏 -->
-                                    <DataTrigger Binding="{Binding IsMangaMode}" Value="True">
-                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                    </DataTrigger>
-                                    <!-- 瀑布流显示时隐藏 -->
-                                    <DataTrigger Binding="{Binding ShowWaterfallView}" Value="True">
-                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Grid.Style>
-                        <ScrollViewer x:Name="ImageScrollViewer"
-                                  PanningMode="Both"
-                                  SizeChanged="ImageScrollViewer_SizeChanged">
-                            <ScrollViewer.Style>
-                                <Style TargetType="ScrollViewer">
-                                    <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
-                                    <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding FitToWindow}" Value="True">
-                                            <Setter Property="HorizontalScrollBarVisibility" Value="Hidden"/>
-                                            <Setter Property="VerticalScrollBarVisibility" Value="Hidden"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </ScrollViewer.Style>
-                            <Grid x:Name="ImageContainer" 
-                              MouseLeftButtonDown="ImageContainer_MouseLeftButtonDown"
-                              MouseLeftButtonUp="ImageContainer_MouseLeftButtonUp"
-                              MouseMove="ImageContainer_MouseMove"
-                              Background="Transparent">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.LayoutTransform>
-                                    <ScaleTransform x:Name="ImageScaleTransform" 
-                                                ScaleX="{Binding ZoomLevel}" 
-                                                ScaleY="{Binding ZoomLevel}"/>
-                                </Grid.LayoutTransform>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Grid.Column="1" HorizontalAlignment="Center">
-                                    <!-- 静态图片显示（非动画 GIF 或其他格式） -->
-                                    <Image x:Name="MainImage" Source="{Binding DisplayImage}" 
-                                         Stretch="None" RenderOptions.BitmapScalingMode="HighQuality">
-                                        <Image.Style>
-                                            <Style TargetType="Image">
-                                                <!-- 仅在非动画 GIF 时显示 -->
-                                                <Setter Property="Visibility" Value="Visible"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsCurrentAnimatedGif}" Value="True">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                    </DataTrigger>
-                                                    <Trigger Property="Source" Value="{x:Null}">
-                                                        <Setter Property="Opacity" Value="0"/>
-                                                    </Trigger>
-                                                    <EventTrigger RoutedEvent="Loaded">
-                                                        <BeginStoryboard>
-                                                            <Storyboard>
-                                                                <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                                 From="0" To="1" Duration="0:0:0.15"/>
-                                                            </Storyboard>
-                                                        </BeginStoryboard>
-                                                    </EventTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Image.Style>
-                                    </Image>
-
-                                    <!-- GIF 动画播放控件（仅动画 GIF 时显示） -->
-                                    <controls:GifViewerControl x:Name="GifViewer"
-                                           Source="{Binding CurrentGifData}"
-                                           IsPlaying="True"
-                                           Speed="1.0"
-                                           LoopMode="Infinite">
-                                        <controls:GifViewerControl.Style>
-                                            <Style TargetType="controls:GifViewerControl">
-                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsCurrentAnimatedGif}" Value="True">
-                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </controls:GifViewerControl.Style>
-                                    </controls:GifViewerControl>
-
-
-                                    <Image x:Name="SecondImageControl" Source="{Binding SecondDisplayImage}" 
-                                       Stretch="None" RenderOptions.BitmapScalingMode="HighQuality"
-                                       Visibility="{Binding IsDoublePage, Converter={StaticResource BoolToVisibilityConverter}}"
-                                       Margin="8,0,0,0"/>
+                        <!-- 标题区 -->
+                        <Border Grid.Column="0" Padding="12,8" Background="{DynamicResource BackgroundLightBrush}" Width="120">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <StackPanel Grid.Row="0" VerticalAlignment="Center">
+                                    <TextBlock Text="图片列表" Foreground="{DynamicResource ForegroundBrush}" 
+                               FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding PositionText}" Foreground="{DynamicResource ForegroundDimBrush}" 
+                               FontSize="12" Margin="0,4,0,0" HorizontalAlignment="Center"/>
                                 </StackPanel>
+                                <Button Grid.Row="1"
+                            Style="{StaticResource IconButtonStyle}"
+                            Width="28" Height="28"
+                            Margin="0,8,0,0"
+                            HorizontalAlignment="Center"
+                            ToolTip="收藏/取消收藏当前路径"
+                            Command="{Binding ToggleCurrentFolderBookmarkCommand}"
+                            IsEnabled="{Binding IsCurrentFolderBookmarkAvailable}">
+                                    <Grid>
+                                        <Path Data="M12 2 L15 9 H22 L17 13 L19 20 L12 16 L5 20 L7 13 L2 9 H9 Z"
+                                  Stroke="{DynamicResource ForegroundBrush}"
+                                  StrokeThickness="1.6"
+                                  Fill="Transparent"
+                                  Width="16" Height="16" Stretch="Uniform"
+                                  Visibility="{Binding IsCurrentFolderBookmarked, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}"/>
+                                        <Path Data="M12 2 L15 9 H22 L17 13 L19 20 L12 16 L5 20 L7 13 L2 9 H9 Z"
+                                  Fill="{DynamicResource PrimaryBrush}"
+                                  Stroke="{DynamicResource PrimaryBrush}"
+                                  StrokeThickness="1.2"
+                                  Width="16" Height="16" Stretch="Uniform"
+                                  Visibility="{Binding IsCurrentFolderBookmarked, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                    </Grid>
+                                </Button>
                             </Grid>
-                        </ScrollViewer>
+                        </Border>
 
-                        <!-- Click Zones -->
-                        <Grid Visibility="{Binding HasImages, Converter={StaticResource BoolToVisibilityConverter}}">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="2*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <!-- 左侧点击区域 -->
-                            <Border Grid.Column="0" Background="Transparent" Cursor="Hand"
-            MouseLeftButtonUp="PreviousZone_Click"
-            x:Name="PreviousZone">
-                                <!-- 左箭头提示 -->
-                                <Path Data="M15 18l-6-6 6-6" 
-              Stroke="{DynamicResource ForegroundBrush}" 
-              StrokeThickness="3"
-              Width="40" 
-              Height="40"
-              Stretch="Uniform"
-              HorizontalAlignment="Center"
-              VerticalAlignment="Center"
-              Opacity="0">
-                                    <Path.Effect>
-                                        <DropShadowEffect Color="Black" 
-                                  Direction="0" 
-                                  ShadowDepth="0" 
-                                  BlurRadius="8" 
-                                  Opacity="0.5"/>
-                                    </Path.Effect>
-                                    <Path.Style>
-                                        <Style TargetType="Path">
-                                            <Style.Triggers>
-                                                <!-- 鼠标悬停时显示 -->
-                                                <DataTrigger Binding="{Binding IsMouseOver, ElementName=PreviousZone}" Value="True">
-                                                    <DataTrigger.EnterActions>
-                                                        <BeginStoryboard>
-                                                            <Storyboard>
-                                                                <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                                         To="0.7" Duration="0:0:0.2"/>
-                                                            </Storyboard>
-                                                        </BeginStoryboard>
-                                                    </DataTrigger.EnterActions>
-                                                    <DataTrigger.ExitActions>
-                                                        <BeginStoryboard>
-                                                            <Storyboard>
-                                                                <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                                         To="0" Duration="0:0:0.2"/>
-                                                            </Storyboard>
-                                                        </BeginStoryboard>
-                                                    </DataTrigger.ExitActions>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Path.Style>
-                                </Path>
-                            </Border>
-
-                            <!-- 右侧点击区域 -->
-                            <Border Grid.Column="2" Background="Transparent" Cursor="Hand"
-            MouseLeftButtonUp="NextZone_Click"
-            x:Name="NextZone">
-                                <!-- 右箭头提示 -->
-                                <Path Data="M9 18l6-6-6-6" 
-              Stroke="{DynamicResource ForegroundBrush}" 
-              StrokeThickness="3"
-              Width="40" 
-              Height="40"
-              Stretch="Uniform"
-              HorizontalAlignment="Center"
-              VerticalAlignment="Center"
-              Opacity="0">
-                                    <Path.Effect>
-                                        <DropShadowEffect Color="Black" 
-                                  Direction="0" 
-                                  ShadowDepth="0" 
-                                  BlurRadius="8" 
-                                  Opacity="0.5"/>
-                                    </Path.Effect>
-                                    <Path.Style>
-                                        <Style TargetType="Path">
-                                            <Style.Triggers>
-                                                <!-- 鼠标悬停时显示 -->
-                                                <DataTrigger Binding="{Binding IsMouseOver, ElementName=NextZone}" Value="True">
-                                                    <DataTrigger.EnterActions>
-                                                        <BeginStoryboard>
-                                                            <Storyboard>
-                                                                <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                                         To="0.7" Duration="0:0:0.2"/>
-                                                            </Storyboard>
-                                                        </BeginStoryboard>
-                                                    </DataTrigger.EnterActions>
-                                                    <DataTrigger.ExitActions>
-                                                        <BeginStoryboard>
-                                                            <Storyboard>
-                                                                <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                                         To="0" Duration="0:0:0.2"/>
-                                                            </Storyboard>
-                                                        </BeginStoryboard>
-                                                    </DataTrigger.ExitActions>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Path.Style>
-                                </Path>
-                            </Border>
-                        </Grid>
-                    </Grid>
-
-                    <!-- Manga Mode -->
-                    <ScrollViewer x:Name="MangaScrollViewer"
-                              HorizontalScrollBarVisibility="Disabled"
-                              VerticalScrollBarVisibility="Auto"
-                              PreviewMouseLeftButtonDown="MangaScrollViewer_PreviewMouseLeftButtonDown"
-                              ScrollChanged="MangaScrollViewer_ScrollChanged"
-                              MouseLeftButtonDown="MangaScrollViewer_MouseLeftButtonDown">
-                        <ScrollViewer.Style>
-                            <Style TargetType="ScrollViewer">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <!-- 仅在漫画模式且非瀑布流时显示 -->
-                                    <MultiDataTrigger>
-                                        <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding IsMangaMode}" Value="True"/>
-                                            <Condition Binding="{Binding ShowWaterfallView}" Value="False"/>
-                                        </MultiDataTrigger.Conditions>
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </MultiDataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ScrollViewer.Style>
-                        <Grid>
-                            <Grid.LayoutTransform>
-                                <ScaleTransform ScaleX="{Binding MangaZoomLevel}"
-                                            ScaleY="{Binding MangaZoomLevel}"/>
-                            </Grid.LayoutTransform>
-
-                            <ItemsControl x:Name="MangaItemsControl"
-                                      ItemsSource="{Binding Images}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center"/>
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Margin="{Binding DataContext.Settings.MangaGap, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource DoubleToThicknessConverter}}"
-                                            Background="{DynamicResource BackgroundDarkBrush}" 
-                                            CornerRadius="0"
-                                            Cursor="Hand"
-                                            BorderThickness="0"
-                                            MouseLeftButtonUp="WaterfallItem_Click"
-                                            Tag="{Binding}">
-                                            <Border.MinHeight>
-                                                <MultiBinding Converter="{StaticResource MangaPlaceholderHeightConverter}">
-                                                    <Binding Path="FullImage"/>
-                                                    <Binding Path="Thumbnail"/>
-                                                    <Binding ElementName="RootWindow" Path="DataContext.Settings.MangaDecodeWidth"/>
-                                                </MultiBinding>
-                                            </Border.MinHeight>
-                                            <Border.Style>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="BorderBrush" Value="Transparent"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                                            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Border.Style>
-
-                                            <Image Stretch="Uniform" 
-                                               RenderOptions.BitmapScalingMode="HighQuality"
-                                               MaxWidth="{Binding ElementName=RootWindow, Path=DataContext.Settings.MangaDecodeWidth, FallbackValue=1600}">
-                                                <Image.Source>
-                                                    <MultiBinding Converter="{StaticResource MangaImageSourceConverter}">
-                                                        <Binding Path="FullImage"/>
-                                                        <Binding Path="Thumbnail"/>
-                                                    </MultiBinding>
-                                                </Image.Source>
-                                            </Image>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </Grid>
-                    </ScrollViewer>
-
-                    <!-- Waterfall View (瀑布流视图) -->
-                    <ScrollViewer x:Name="WaterfallScrollViewer"
-                              VerticalScrollBarVisibility="Auto"
-                              HorizontalScrollBarVisibility="Disabled"
-                              PreviewMouseLeftButtonDown="WaterfallScrollViewer_PreviewMouseLeftButtonDown"
-                              Background="{DynamicResource ImageBackgroundBrush}"
-                              Visibility="{Binding ShowWaterfallView, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <ItemsControl ItemsSource="{Binding Images}">
-                            <ItemsControl.LayoutTransform>
-                                <ScaleTransform ScaleX="{Binding WaterfallZoomLevel}" ScaleY="{Binding WaterfallZoomLevel}"/>
-                            </ItemsControl.LayoutTransform>
-                            <ItemsControl.ItemsPanel>
+                        <!-- 横向缩略图列表 -->
+                        <ListBox x:Name="BottomThumbnailList"
+                     Grid.Column="1"
+                     ItemsSource="{Binding Images}" 
+                     SelectedIndex="{Binding CurrentIndex, Mode=TwoWay}"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                     ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                     ItemContainerStyle="{StaticResource ThumbnailListBoxItemStyle}"
+                     SelectionChanged="ThumbnailList_SelectionChanged"
+                     VirtualizingPanel.IsVirtualizing="True"
+                     VirtualizingPanel.VirtualizationMode="Recycling"
+                     VirtualizingPanel.CacheLength="10,10"
+                     VirtualizingPanel.CacheLengthUnit="Item">
+                            <ListBox.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
+                                    <VirtualizingStackPanel Orientation="Horizontal"/>
                                 </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
+                            </ListBox.ItemsPanel>
+                            <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Margin="4" Background="{DynamicResource BackgroundDarkBrush}" 
-                                        CornerRadius="4" Cursor="Hand"
-                                        MouseLeftButtonUp="WaterfallItem_Click"
-                                        Tag="{Binding}">
-                                        <Border.Style>
-                                            <Style TargetType="Border">
-                                                <Setter Property="BorderThickness" Value="2"/>
-                                                <Setter Property="BorderBrush" Value="Transparent"/>
-                                                <Style.Triggers>
-                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource BackgroundLightBrush}"/>
-                                                    </Trigger>
-                                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                        <Grid Width="180" Height="140">
-                                            <Image Source="{Binding Thumbnail}" Stretch="Uniform" 
-                                               RenderOptions.BitmapScalingMode="HighQuality"
-                                               Margin="4"/>
-
-                                            <!-- Loading indicator -->
-                                            <Border Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"
-                                                Background="#80000000">
-                                                <TextBlock Text="..." Foreground="White" FontSize="20"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Border>
-
-                                            <!-- Error indicator -->
-                                            <Border Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}"
-                                                Background="#80000000">
-                                                <Path Width="24" Height="24"
-                                                  Stretch="Uniform"
-     
-                                                  StrokeThickness="2"
-                                                  HorizontalAlignment="Center"
-                                                  VerticalAlignment="Center"
-                                                  Data="M3,3 L21,21 M21,3 L3,21"/>
-                                            </Border>
-
-                                            <!-- Bookmark indicator -->
-                                            <Path Width="16" Height="16"
-                                          Stretch="Uniform"
-                                          Fill="#FFD700"
-                                          HorizontalAlignment="Right"
-                                          VerticalAlignment="Top"
-                                          Margin="0,4,4,0"
-                                          Visibility="{Binding IsBookmarked, Converter={StaticResource BoolToVisibilityConverter}}"
-                                          Data="M8,0 L9.76,5.17 L15.3,5.64 L10.8,9.02 
-                                                L12.24,14.36 L8,11.4 L3.76,14.36 
-                                                L5.2,9.02 L0.7,5.64 L6.24,5.17 Z"/>
-
-                                            <!-- File name overlay -->
-                                            <Border VerticalAlignment="Bottom" Background="#AA000000" Padding="4,2">
-                                                <TextBlock Text="{Binding FileName}" 
-                                                       Foreground="White"
-                                                       FontSize="10" TextTrimming="CharacterEllipsis"
-                                                       TextAlignment="Center"/>
-                                            </Border>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-
-                    <!-- Empty State -->
-                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
-                            Visibility="{Binding ShowEmptyState, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <Path
-                        Data="
-                    M4 5 H20 V19 H4 Z
-                    M4 16 L9 11 L14 16 L17 13 L20 16
-                    M7 9 A 1.5 1.5 0 1 0 7 6 A 1.5 1.5 0 1 0 7 9
-                    M17 18 A 3 3 0 1 0 23 18 A 3 3 0 1 0 17 18
-                    M22 20 L25 23"
-                        Stroke="{DynamicResource ForegroundBrush}"
-                        StrokeThickness="4"
-                        Width="72"
-                        Height="72"
-                        Stretch="Uniform"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Opacity="0.3" />
-                        <TextBlock Text="拖拽图片或文件夹到此处" 
-                               Foreground="{DynamicResource ForegroundDimBrush}"
-                               FontSize="18" HorizontalAlignment="Center" Margin="0,16,0,0"/>
-                        <TextBlock Text="或点击工具栏打开文件/文件夹" 
-                               Foreground="{DynamicResource ForegroundDimBrush}"
-                               FontSize="14" HorizontalAlignment="Center" Margin="0,8,0,0" Opacity="0.7"/>
-
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,24,0,0">
-                            <Button Content="打开图片" Style="{StaticResource ModernButtonStyle}"
-                                Command="{Binding OpenFileCommand}" Margin="0,0,8,0"/>
-                            <Button Content="打开文件夹" Style="{StaticResource ModernButtonStyle}"
-                                Command="{Binding OpenFolderCommand}"/>
-                        </StackPanel>
-
-
-
-                        <!-- 快捷键指南 - 分组美化版 -->
-                        <Border Background="{DynamicResource BackgroundLightBrush}"
-                                CornerRadius="8"
-                                Padding="24,16"
-                                Margin="0,32,0,0"
-                                BorderBrush="{DynamicResource ForegroundDimBrush}"
-                                BorderThickness="1"
-                                MaxWidth="800">
-                            <Border.Effect>
-                                <DropShadowEffect Color="#80000000" 
-                                          Opacity="0.3" 
-                                          BlurRadius="10" 
-                                          ShadowDepth="3"/>
-                            </Border.Effect>
-
-                            <StackPanel>
-                                <!-- 标题 -->
-                                <TextBlock Text="快捷键指南"
+                                    <Grid Width="100" Margin="4" ToolTip="{Binding FileName}">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <Border Grid.Row="0" Background="{DynamicResource BackgroundDarkBrush}" CornerRadius="2">
+                                            <Grid>
+                                                <Image Source="{Binding Thumbnail}" Stretch="Uniform" 
+                                       RenderOptions.BitmapScalingMode="HighQuality"/>
+                                                <Path Width="14" Height="14"
+                                      Stretch="Uniform"
+                                      Fill="#FFD700"
+                                      HorizontalAlignment="Right"
+                                      VerticalAlignment="Top"
+                                      Margin="0,2,2,0"
+                                      Visibility="{Binding IsBookmarked, Converter={StaticResource BoolToVisibilityConverter}}"
+                                      Data="M8,0 L9.76,5.17 L15.3,5.64 L10.8,9.02 L12.24,14.36 L8,11.4 L3.76,14.36 L5.2,9.02 L0.7,5.64 L6.24,5.17 Z"/>
+                                            </Grid>
+                                        </Border>
+                                        <TextBlock Grid.Row="1" Text="{Binding FileName}" 
                                    Foreground="{DynamicResource ForegroundBrush}"
-                                   FontSize="14"
-                                   FontWeight="SemiBold"
-                                   HorizontalAlignment="Center"
-                                   Margin="0,0,0,12"/>
+                                   FontSize="10" TextTrimming="CharacterEllipsis"
+                                   Margin="0,2,0,0" TextAlignment="Center"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </Border>
 
-                                <!-- 主分隔线 -->
-                                <Border Height="1"
-                                        Background="{DynamicResource ForegroundDimBrush}"
-                                        Opacity="0.3"
-                                        Margin="0,0,0,16"/>
+                <!-- ========== 全屏模式下的自动显示面板 ========== -->
 
-                                <!-- 两列布局 -->
-                                <Grid>
-                                    <Grid.Resources>
-                                        <!-- 按键样式 -->
-                                        <Style x:Key="KeyStyle" TargetType="Border">
-                                            <Setter Property="Background" Value="{DynamicResource BackgroundDarkBrush}"/>
-                                            <Setter Property="CornerRadius" Value="3"/>
-                                            <Setter Property="Padding" Value="6,3"/>
-                                            <Setter Property="Margin" Value="0,0,4,0"/>
-                                        </Style>
+                <!-- 全屏底边栏（单图/双页模式） - 覆盖层 -->
+                <Border x:Name="FullScreenBottomBar"
+            VerticalAlignment="Bottom"
+            Background="{DynamicResource BackgroundMediumBrush}"
+            Height="{Binding Settings.BottomBarHeight}"
+            Opacity="0"
+            IsHitTestVisible="False"
+            Panel.ZIndex="100">
+                    <Border.Effect>
+                        <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="0" Opacity="0.5" Direction="270"/>
+                    </Border.Effect>
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <!-- 全屏、非漫画模式、启用自动显示时激活 -->
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsFullScreen}" Value="True"/>
+                                        <Condition Binding="{Binding IsMangaMode}" Value="False"/>
+                                        <Condition Binding="{Binding Settings.ShowBottomBarInFullScreen}" Value="True"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
 
-                                        <Style x:Key="KeyTextStyle" TargetType="TextBlock">
-                                            <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
-                                            <Setter Property="FontSize" Value="11"/>
-                                            <Setter Property="FontFamily" Value="Consolas"/>
-                                            <Setter Property="FontWeight" Value="SemiBold"/>
-                                        </Style>
+                    <!-- 横向缩略图内容 -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                                        <Style x:Key="DescTextStyle" TargetType="TextBlock">
-                                            <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
-                                            <Setter Property="FontSize" Value="12"/>
-                                            <Setter Property="VerticalAlignment" Value="Center"/>
-                                        </Style>
-
-                                        <Style x:Key="CategoryStyle" TargetType="TextBlock">
-                                            <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
-                                            <Setter Property="FontSize" Value="11"/>
-                                            <Setter Property="FontWeight" Value="SemiBold"/>
-                                            <Setter Property="Margin" Value="0,0,0,6"/>
-                                        </Style>
-                                    </Grid.Resources>
-
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="24"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <!-- 左列 -->
-                                    <StackPanel Grid.Column="0">
-                                        <!-- 文件操作 -->
-                                        <TextBlock Text="文件操作" Style="{StaticResource CategoryStyle}"/>
-                                        <Grid Margin="0,0,0,4">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="12"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                                <Border Style="{StaticResource KeyStyle}">
-                                                    <TextBlock Text="Ctrl+O" Style="{StaticResource KeyTextStyle}"/>
-                                                </Border>
-                                                <Border Style="{StaticResource KeyStyle}">
-                                                    <TextBlock Text="Ctrl+F" Style="{StaticResource KeyTextStyle}"/>
-                                                </Border>
-                                            </StackPanel>
-                                            <TextBlock Grid.Column="2" Text="打开文件/文件夹" Style="{StaticResource DescTextStyle}"/>
-                                        </Grid>
-                                        <Grid Margin="0,0,0,4">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="12"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                                <Border Style="{StaticResource KeyStyle}">
-                                                    <TextBlock Text="Ctrl+Tab" Style="{StaticResource KeyTextStyle}"/>
-                                                </Border>
-                                            </StackPanel>
-                                            <TextBlock Grid.Column="2" Text="收藏文件夹切换" Style="{StaticResource DescTextStyle}"/>
-                                        </Grid>
-                                        <Grid Margin="0,0,0,4">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="12"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                                <Border Style="{StaticResource KeyStyle}">
-                                                    <TextBlock Text="Ctrl+Shift+B" Style="{StaticResource KeyTextStyle}"/>
-                                                </Border>
-                                            </StackPanel>
-                                            <TextBlock Grid.Column="2" Text="打开收藏页面" Style="{StaticResource DescTextStyle}"/>
-                                        </Grid>
-
-                                        <!-- 图片导航 -->
-                                        <TextBlock Text="图片导航" Style="{StaticResource CategoryStyle}" Margin="0,12,0,6"/>
-                                        <Grid Margin="0,0,0,4">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="12"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                                <Border Style="{StaticResource KeyStyle}">
-                                                    <TextBlock Text="← →" Style="{StaticResource KeyTextStyle}"/>
-                                                </Border>
-                                                <Border Style="{StaticResource KeyStyle}">
-                                                    <TextBlock Text="A D" Style="{StaticResource KeyTextStyle}"/>
-                                                </Border>
-                                            </StackPanel>
-                                            <TextBlock Grid.Column="2" Text="上一张/下一张" Style="{StaticResource DescTextStyle}"/>
-                                        </Grid>
-                                        <Grid Margin="0,0,0,4">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="12"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
-                                                <TextBlock Text="Space" Style="{StaticResource KeyTextStyle}"/>
-                                            </Border>
-                                            <TextBlock Grid.Column="2" Text="下一张" Style="{StaticResource DescTextStyle}"/>
-                                        </Grid>
-                                        <Grid Margin="0,0,0,4">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="12"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                                <Border Style="{StaticResource KeyStyle}">
-                                                    <TextBlock Text="PgUp" Style="{StaticResource KeyTextStyle}"/>
-                                                </Border>
-                                                <Border Style="{StaticResource KeyStyle}">
-                                                    <TextBlock Text="PgDn" Style="{StaticResource KeyTextStyle}"/>
-                                                </Border>
-                                            </StackPanel>
-                                            <TextBlock Grid.Column="2" Text="上一张/下一张" Style="{StaticResource DescTextStyle}"/>
-                                        </Grid>
-                                        <Grid Margin="0,0,0,4">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="12"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                                <Border Style="{StaticResource KeyStyle}">
-                                                    <TextBlock Text="Home" Style="{StaticResource KeyTextStyle}"/>
-                                                </Border>
-                                                <Border Style="{StaticResource KeyStyle}">
-                                                    <TextBlock Text="End" Style="{StaticResource KeyTextStyle}"/>
-                                                </Border>
-                                            </StackPanel>
-                                            <TextBlock Grid.Column="2" Text="首张/末张" Style="{StaticResource DescTextStyle}"/>
-                                        </Grid>
-
-                                        <!-- 视图控制 -->
-                                        <TextBlock Text="视图控制" Style="{StaticResource CategoryStyle}" Margin="0,12,0,6"/>
-                                        <Grid Margin="0,0,0,4">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="12"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
-                                                <TextBlock Text="F11" Style="{StaticResource KeyTextStyle}"/>
-                                            </Border>
-                                            <TextBlock Grid.Column="2" Text="全屏切换" Style="{StaticResource DescTextStyle}"/>
-                                        </Grid>
-                                        <Grid Margin="0,0,0,4">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="12"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
-                                                <TextBlock Text="ESC" Style="{StaticResource KeyTextStyle}"/>
-                                            </Border>
-                                            <TextBlock Grid.Column="2" Text="退出全屏/关闭" Style="{StaticResource DescTextStyle}"/>
-                                        </Grid>
-                                        <Grid Margin="0,0,0,4">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="12"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                                <Border Style="{StaticResource KeyStyle}">
-                                                    <TextBlock Text="+" Style="{StaticResource KeyTextStyle}"/>
-                                                </Border>
-                                                <Border Style="{StaticResource KeyStyle}">
-                                                    <TextBlock Text="-" Style="{StaticResource KeyTextStyle}"/>
-                                                </Border>
-                                            </StackPanel>
-                                            <TextBlock Grid.Column="2" Text="放大/缩小" Style="{StaticResource DescTextStyle}"/>
-                                        </Grid>
-                                        <Grid Margin="0,0,0,4">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="12"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
-                                                <TextBlock Text="Ctrl+0" Style="{StaticResource KeyTextStyle}"/>
-                                            </Border>
-                                            <TextBlock Grid.Column="2" Text="适应/原始尺寸切换" Style="{StaticResource DescTextStyle}"/>
-                                        </Grid>
-                                    </StackPanel>
-
-                                    <!-- 中间分隔线 -->
-                                    <Border Grid.Column="1" Width="1" 
-                                            Background="{DynamicResource ForegroundDimBrush}"
-                                            Opacity="0.3"
-                                            Margin="12,0"/>
-
-                                    <!-- 右列 -->
-                                    <StackPanel Grid.Column="2">
-                                        <!-- 功能操作 -->
-                                        <TextBlock Text="功能操作" Style="{StaticResource CategoryStyle}"/>
-                                        <Grid Margin="0,0,0,4">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="12"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
-                                                <TextBlock Text="M" Style="{StaticResource KeyTextStyle}"/>
-                                            </Border>
-                                            <TextBlock Grid.Column="2" Text="切换浏览模式" Style="{StaticResource DescTextStyle}"/>
-                                        </Grid>
-                                        <Grid Margin="0,0,0,4">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="12"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
-                                                <TextBlock Text="S" Style="{StaticResource KeyTextStyle}"/>
-                                            </Border>
-                                            <TextBlock Grid.Column="2" Text="开始/停止幻灯片" Style="{StaticResource DescTextStyle}"/>
-                                        </Grid>
-                                        <Grid Margin="0,0,0,4">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="12"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
-                                                <TextBlock Text="B" Style="{StaticResource KeyTextStyle}"/>
-                                            </Border>
-                                            <TextBlock Grid.Column="2" Text="收藏/取消收藏" Style="{StaticResource DescTextStyle}"/>
-                                        </Grid>
-                                        <Grid Margin="0,0,0,4">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="12"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
-                                                <TextBlock Text="Ctrl+C" Style="{StaticResource KeyTextStyle}"/>
-                                            </Border>
-                                            <TextBlock Grid.Column="2" Text="复制到剪贴板" Style="{StaticResource DescTextStyle}"/>
-                                        </Grid>
-                                        <Grid Margin="0,0,0,4">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="12"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
-                                                <TextBlock Text="Delete" Style="{StaticResource KeyTextStyle}"/>
-                                            </Border>
-                                            <TextBlock Grid.Column="2" Text="删除当前图片" Style="{StaticResource DescTextStyle}"/>
-                                        </Grid>
-                                        <Grid Margin="0,0,0,4">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="12"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
-                                                <TextBlock Text="Ctrl+Shift+F" Style="{StaticResource KeyTextStyle}"/>
-                                            </Border>
-                                            <TextBlock Grid.Column="2" Text="启用/关闭过滤" Style="{StaticResource DescTextStyle}"/>
-                                        </Grid>
-                                        <Grid Margin="0,0,0,4">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="12"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
-                                                <TextBlock Text="Ctrl+P" Style="{StaticResource KeyTextStyle}"/>
-                                            </Border>
-                                            <TextBlock Grid.Column="2" Text="打印" Style="{StaticResource DescTextStyle}"/>
-                                        </Grid>
-                                    </StackPanel>
-                                </Grid>
+                        <Border Grid.Column="0" Padding="12,8" Background="{DynamicResource BackgroundLightBrush}" Width="120">
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="图片列表" Foreground="{DynamicResource ForegroundBrush}" 
+                           FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                <TextBlock Text="{Binding PositionText}" Foreground="{DynamicResource ForegroundDimBrush}" 
+                           FontSize="12" Margin="0,4,0,0" HorizontalAlignment="Center"/>
                             </StackPanel>
                         </Border>
 
+                        <ListBox x:Name="FullScreenBottomThumbnailList"
+                     Grid.Column="1"
+                     ItemsSource="{Binding Images}" 
+                     SelectedIndex="{Binding CurrentIndex, Mode=TwoWay}"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                     ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                     SelectionChanged="ThumbnailList_SelectionChanged"
+                     VirtualizingPanel.IsVirtualizing="True"
+                     VirtualizingPanel.VirtualizationMode="Recycling">
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <VirtualizingStackPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Width="100" Margin="4" ToolTip="{Binding FileName}">
+                                        <Border Background="{DynamicResource BackgroundDarkBrush}" CornerRadius="2">
+                                            <Image Source="{Binding Thumbnail}" Stretch="Uniform"/>
+                                        </Border>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </Border>
 
-                    </StackPanel>
+                <!-- 全屏侧边栏（漫画模式） - 覆盖层 -->
+                <Border x:Name="FullScreenSidebar"
+            HorizontalAlignment="Left"
+            Background="{DynamicResource BackgroundMediumBrush}"
+            Width="{Binding Settings.SidebarWidth}"
+            Opacity="0"
+            IsHitTestVisible="False"
+            Panel.ZIndex="100">
+                    <Border.Effect>
+                        <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="0" Opacity="0.5" Direction="0"/>
+                    </Border.Effect>
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <!-- 全屏、漫画模式、启用自动显示时激活 -->
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsFullScreen}" Value="True"/>
+                                        <Condition Binding="{Binding IsMangaMode}" Value="True"/>
+                                        <Condition Binding="{Binding Settings.ShowSidebarInMangaFullScreen}" Value="True"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
 
-                    <!-- Image Info Panel -->
-                    <Border x:Name="ImageInfoPanel"
-                        Padding="12"
-                        Background="#CC000000"
-                        CornerRadius="8"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Top"
-                        Margin="12"
-                        MaxWidth="360">
-                        <Border.Effect>
-                            <DropShadowEffect Color="#99000000" BlurRadius="12" ShadowDepth="0"/>
-                        </Border.Effect>
-                        <Border.Style>
-                            <Style TargetType="Border">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <MultiDataTrigger>
-                                        <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding IsInfoPanelVisible}" Value="True"/>
-                                            <Condition Binding="{Binding HasImages}" Value="True"/>
-                                        </MultiDataTrigger.Conditions>
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </MultiDataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
+                    <!-- 纵向缩略图内容 -->
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
 
-                        <Grid>
-
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Button Grid.Column="1" Width="24" Height="24" HorizontalAlignment="Right" VerticalAlignment="Top"
-                                Style="{StaticResource IconButtonStyle}"
-                                Command="{Binding ToggleInfoPanelCommand}"
-                                ToolTip="关闭信息面板">
-                                <Path Data="M6 6 L18 18 M18 6 L6 18"
-                                  Stroke="{DynamicResource ForegroundBrush}"
-                                  StrokeThickness="2"
-                                  Width="14" Height="14" Stretch="Uniform"/>
-                            </Button>
-
-                            <StackPanel Grid.Column="0" Margin="0,4,0,0">
-                                <TextBlock Text="{Binding CurrentImage.FileName}"
-                                       Foreground="{DynamicResource ForegroundBrush}"
-                                       FontWeight="SemiBold"
-                                       FontSize="14"
-                                       TextTrimming="CharacterEllipsis"
-                                       MaxWidth="320"/>
-                                <TextBlock Text="{Binding PositionText}"
-                                       Foreground="{DynamicResource ForegroundDimBrush}"
-                                       FontSize="11" Margin="0,2,0,6"/>
-                                <TextBlock Text="{Binding CurrentImage.DimensionsFormatted, StringFormat='分辨率：{0}'}"
-                                       Foreground="{DynamicResource ForegroundBrush}"
-                                       FontSize="12"/>
-                                <TextBlock Text="{Binding CurrentImage.BitDepth, StringFormat='位深：{0} bpp'}"
-                                       Foreground="{DynamicResource ForegroundBrush}"
-                                       FontSize="12" Margin="0,2,0,0"/>
-                                <TextBlock Text="{Binding CurrentImage.FileSizeFormatted, StringFormat='大小：{0}'}"
-                                       Foreground="{DynamicResource ForegroundBrush}"
-                                       FontSize="12" Margin="0,2,0,0"/>
-                                <TextBlock Text="{Binding CurrentImage.DateModified, StringFormat='修改：{0:yyyy-MM-dd HH:mm}'}"
-                                       Foreground="{DynamicResource ForegroundBrush}"
-                                       FontSize="12" Margin="0,2,0,0"/>
-                                <TextBlock Text="{Binding CurrentImage.FilePath}"
-                                       Foreground="{DynamicResource ForegroundDimBrush}"
-                                       FontSize="11"
-                                       Margin="0,8,0,0"
-                                       TextTrimming="CharacterEllipsis"
-                                       MaxWidth="320"/>
+                        <Border Grid.Row="0" Padding="12,8" Background="{DynamicResource BackgroundLightBrush}">
+                            <StackPanel>
+                                <TextBlock Text="图片列表" Foreground="{DynamicResource ForegroundBrush}" 
+                           FontSize="14" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding PositionText}" Foreground="{DynamicResource ForegroundDimBrush}" 
+                           FontSize="12" Margin="0,4,0,0"/>
                             </StackPanel>
-                        </Grid>
-                    </Border>
+                        </Border>
 
-                    <!-- Loading Overlay -->
-                    <Border Background="#80000000" 
-                        Visibility="{Binding IsBusyLoading, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <TextBlock Text="⟳" FontSize="48" Foreground="{DynamicResource PrimaryBrush}"
-                                   HorizontalAlignment="Center">
-                                <TextBlock.RenderTransform>
-                                    <RotateTransform x:Name="LoadingRotation"/>
-                                </TextBlock.RenderTransform>
-                                <TextBlock.Triggers>
-                                    <EventTrigger RoutedEvent="Loaded">
-                                        <BeginStoryboard>
-                                            <Storyboard RepeatBehavior="Forever">
-                                                <DoubleAnimation Storyboard.TargetName="LoadingRotation"
-                                                             Storyboard.TargetProperty="Angle"
-                                                             From="0" To="360" Duration="0:0:1"/>
-                                            </Storyboard>
-                                        </BeginStoryboard>
-                                    </EventTrigger>
-                                </TextBlock.Triggers>
-                            </TextBlock>
-                            <TextBlock Text="加载中..." Foreground="White" FontSize="14" Margin="0,12,0,0"/>
-                        </StackPanel>
-                    </Border>
-                </Grid>
+                        <ListBox x:Name="FullScreenSidebarThumbnailList"
+                     Grid.Row="1" 
+                     ItemsSource="{Binding Images}" 
+                     SelectedIndex="{Binding CurrentIndex, Mode=TwoWay}"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     SelectionChanged="ThumbnailList_SelectionChanged"
+                     VirtualizingPanel.IsVirtualizing="True"
+                     VirtualizingPanel.VirtualizationMode="Recycling">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Width="160" ToolTip="{Binding FileName}" Margin="4">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="100"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <Border Grid.Row="0" Background="{DynamicResource BackgroundDarkBrush}" CornerRadius="2">
+                                            <Image Source="{Binding Thumbnail}" Stretch="Uniform"/>
+                                        </Border>
+                                        <TextBlock Grid.Row="1" Text="{Binding FileName}" 
+                                   Foreground="{DynamicResource ForegroundBrush}"
+                                   FontSize="11" TextTrimming="CharacterEllipsis"
+                                   Margin="0,4,0,0" TextAlignment="Center"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </Border>
+
             </Grid>
 
             <!-- Status Bar -->

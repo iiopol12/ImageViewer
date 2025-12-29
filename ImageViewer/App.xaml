@@ -20,7 +20,10 @@
             <converters:GifVisibilityConverter x:Key="GifVisibilityConverter"/>
             <converters:MangaPlaceholderHeightConverter x:Key="MangaPlaceholderHeightConverter"/>
             <converters:MangaImageSourceConverter x:Key="MangaImageSourceConverter"/>
-
+            <converters:MangaSidebarWidthConverter x:Key="MangaSidebarWidthConverter"/>
+            <converters:BottomBarHeightConverter x:Key="BottomBarHeightConverter"/>
+            
+            
             <!-- Pixel snapping (reduce Path jitter during resize) -->
             <Style TargetType="{x:Type Path}">
                 <Setter Property="SnapsToDevicePixels" Value="True"/>

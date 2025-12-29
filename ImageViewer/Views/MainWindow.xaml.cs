@@ -101,7 +101,11 @@ namespace ImageViewer.Views
         private Storyboard? _resizeFreezeStoryboard;
         private Visibility _mainLayoutVisibilityBeforeResize = Visibility.Visible;
 
-
+        // 全屏模式下缩略图栏自动显示相关
+        private const double FullScreenBarTriggerZone = 60; // 触发区域像素
+        private bool _isFullScreenBarVisible;
+        private readonly DispatcherTimer _fullScreenBarHideTimer;
+        
         public MainWindow()
         {
             InitializeComponent();
@@ -117,7 +121,11 @@ namespace ImageViewer.Views
                 Interval = _cursorHideDelay
             };
             _cursorHideTimer.Tick += CursorHideTimer_Tick;
-
+            _fullScreenBarHideTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1)
+            };
+            _fullScreenBarHideTimer.Tick += FullScreenBarHideTimer_Tick;
             ContentRendered += (s, e) =>
             {
                 // 注册全局快捷键
@@ -855,6 +863,8 @@ namespace ImageViewer.Views
         /// </summary>
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+          
+
             if (_isResizeFreezeActive)
             {
                 MainLayout.Visibility = _mainLayoutVisibilityBeforeResize;
@@ -865,6 +875,9 @@ namespace ImageViewer.Views
             {
                 ExitFullScreen();
             }
+
+            // 停止全屏栏隐藏计时器
+            _fullScreenBarHideTimer?.Stop();
 
             // 注销所有快捷键
             _hotKeyManager?.Dispose();
@@ -881,6 +894,9 @@ namespace ImageViewer.Views
                 ViewModel.Settings.WindowTop = Top;
                 ViewModel.Settings.IsMaximized = WindowState == WindowState.Maximized;
             }
+
+        
+
             // 保存设置到文件
             ViewModel.SaveSettings();
             ViewModel.Dispose();
@@ -1677,7 +1693,147 @@ namespace ImageViewer.Views
             {
                 _cursorHideTimer.Stop();
             }
+
+            // 全屏模式下检测鼠标位置，自动显示缩略图栏 ===
+            if (ViewModel.IsFullScreen)
+            {
+                HandleFullScreenBarVisibility(e.GetPosition(this));
+            }
         }
+
+        /// <summary>
+        /// 处理全屏模式下缩略图栏的自动显示/隐藏
+        /// </summary>
+        private void HandleFullScreenBarVisibility(Point mousePos)
+        {
+            bool shouldShow = false;
+
+            if (ViewModel.IsMangaMode && ViewModel.Settings.ShowSidebarInMangaFullScreen)
+            {
+                // 漫画模式：检测左侧边缘
+                shouldShow = mousePos.X <= FullScreenBarTriggerZone;
+
+                // 如果鼠标在侧边栏上方，也保持显示
+                if (_isFullScreenBarVisible && mousePos.X <= ViewModel.Settings.SidebarWidth)
+                {
+                    shouldShow = true;
+                }
+
+                if (shouldShow)
+                {
+                    ShowFullScreenSidebar();
+                }
+                else if (_isFullScreenBarVisible)
+                {
+                    StartFullScreenBarHideTimer();
+                }
+            }
+            else if (!ViewModel.IsMangaMode && ViewModel.Settings.ShowBottomBarInFullScreen)
+            {
+                // 单图/双页模式：检测底部边缘
+                shouldShow = mousePos.Y >= ActualHeight - FullScreenBarTriggerZone;
+
+                // 如果鼠标在底边栏上方，也保持显示
+                if (_isFullScreenBarVisible && mousePos.Y >= ActualHeight - ViewModel.Settings.BottomBarHeight)
+                {
+                    shouldShow = true;
+                }
+
+                if (shouldShow)
+                {
+                    ShowFullScreenBottomBar();
+                }
+                else if (_isFullScreenBarVisible)
+                {
+                    StartFullScreenBarHideTimer();
+                }
+            }
+        }
+        /// <summary>
+        /// 显示全屏底边栏
+        /// </summary>
+        private void ShowFullScreenBottomBar()
+        {
+            _fullScreenBarHideTimer.Stop();
+            _isFullScreenBarVisible = true;
+
+            FullScreenBottomBar.IsHitTestVisible = true;
+
+            // 淡入动画
+            var animation = new DoubleAnimation
+            {
+                To = 1,
+                Duration = TimeSpan.FromMilliseconds(200),
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+            FullScreenBottomBar.BeginAnimation(OpacityProperty, animation);
+        }
+
+        /// <summary>
+        /// 显示全屏侧边栏
+        /// </summary>
+        private void ShowFullScreenSidebar()
+        {
+            _fullScreenBarHideTimer.Stop();
+            _isFullScreenBarVisible = true;
+
+            FullScreenSidebar.IsHitTestVisible = true;
+
+            // 淡入动画
+            var animation = new DoubleAnimation
+            {
+                To = 1,
+                Duration = TimeSpan.FromMilliseconds(200),
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+            FullScreenSidebar.BeginAnimation(OpacityProperty, animation);
+        }
+
+        /// <summary>
+        /// 启动隐藏计时器
+        /// </summary>
+        private void StartFullScreenBarHideTimer()
+        {
+            _fullScreenBarHideTimer.Stop();
+            _fullScreenBarHideTimer.Start();
+        }
+
+
+        /// <summary>
+        /// 隐藏计时器触发
+        /// </summary>
+        private void FullScreenBarHideTimer_Tick(object? sender, EventArgs e)
+        {
+            _fullScreenBarHideTimer.Stop();
+            HideFullScreenBars();
+        }
+
+        /// <summary>
+        /// 隐藏全屏缩略图栏
+        /// </summary>
+        private void HideFullScreenBars()
+        {
+            _isFullScreenBarVisible = false;
+
+            // 淡出动画
+            var animation = new DoubleAnimation
+            {
+                To = 0,
+                Duration = TimeSpan.FromMilliseconds(300),
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn }
+            };
+
+            animation.Completed += (s, e) =>
+            {
+                FullScreenBottomBar.IsHitTestVisible = false;
+                FullScreenSidebar.IsHitTestVisible = false;
+            };
+
+            FullScreenBottomBar.BeginAnimation(OpacityProperty, animation);
+            FullScreenSidebar.BeginAnimation(OpacityProperty, animation);
+        }
+
+        
         /// <summary>
         /// 鼠标滚轮预览事件
         /// </summary>
@@ -2222,6 +2378,15 @@ namespace ImageViewer.Views
             Top = currentScreen.Bounds.Top;
             Width = currentScreen.Bounds.Width;
             Height = currentScreen.Bounds.Height;
+
+            // 重置全屏缩略图栏状态
+            _isFullScreenBarVisible = false;
+            _fullScreenBarHideTimer.Stop();
+            FullScreenBottomBar.Opacity = 0;
+            FullScreenBottomBar.IsHitTestVisible = false;
+            FullScreenSidebar.Opacity = 0;
+            FullScreenSidebar.IsHitTestVisible = false;
+
         }
 
 
@@ -2246,6 +2411,10 @@ namespace ImageViewer.Views
 
             ViewModel.Settings.ShowStatusBar = _previousShowStatusBar;
             ViewModel.Settings.ShowSidebar = _previousShowSidebar;
+
+            // 隐藏全屏缩略图栏
+            _fullScreenBarHideTimer.Stop();
+            HideFullScreenBars();
         }
         /// <summary>
         /// 获取窗口当前所在的屏幕

@@ -167,7 +167,24 @@ namespace ImageViewer.Models
         [ObservableProperty]
         private double _MangaGap = 4;
 
+        // === 全屏模式下底边栏/侧边栏自动显示设置 ===
+        /// <summary>
+        /// 单图/双页模式全屏时，鼠标靠近底部是否自动显示底边缩略图栏
+        /// </summary>
+        [ObservableProperty]
+        private bool _showBottomBarInFullScreen = true;
 
+        /// <summary>
+        /// 漫画模式全屏时，鼠标靠近侧边是否自动显示侧边栏
+        /// </summary>
+        [ObservableProperty]
+        private bool _showSidebarInMangaFullScreen = true;
+
+        /// <summary>
+        /// 底边栏高度（单图/双页模式）
+        /// </summary>
+        [ObservableProperty]
+        private double _bottomBarHeight = 120;
 
         [ObservableProperty]
         private string _localSendPath = string.Empty;

@@ -1,0 +1,74 @@
+<!-- =====================================================
+    MenuInterface.xaml 修改部分
+    
+    在"行为设置"卡片（Behavior Settings）中添加以下内容。
+    位置：在 "显示底边栏（状态栏）" CheckBox 之后添加
+===================================================== -->
+
+<!-- 在现有的行为设置卡片中，找到以下位置并添加新设置 -->
+<!-- 原代码大约在第358行附近 -->
+
+<!-- ========== 在 ShowStatusBarCheckBox 之后添加以下内容 ========== -->
+
+<!-- 分隔线 -->
+<Border Height="1" Background="{DynamicResource BackgroundLightBrush}" Margin="0,12,0,12"/>
+
+<!-- 全屏模式缩略图栏设置 -->
+<TextBlock Text="全屏模式缩略图栏" Foreground="{DynamicResource ForegroundBrush}"
+           FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8"/>
+
+<TextBlock Text="在全屏模式下，鼠标靠近边缘时自动显示缩略图栏，不影响图片显示位置和大小。"
+           Foreground="{DynamicResource ForegroundDimBrush}"
+           FontSize="11"
+           TextWrapping="Wrap"
+           Margin="0,0,0,12"/>
+
+<CheckBox x:Name="ShowBottomBarInFullScreenCheckBox" 
+          Content="单图/双页模式：鼠标靠近底部自动显示底边缩略图栏"
+          Foreground="{DynamicResource ForegroundBrush}" 
+          IsChecked="True" 
+          Margin="0,4"/>
+
+<CheckBox x:Name="ShowSidebarInMangaFullScreenCheckBox" 
+          Content="漫画模式：鼠标靠近左侧自动显示侧边缩略图栏"
+          Foreground="{DynamicResource ForegroundBrush}" 
+          IsChecked="True" 
+          Margin="0,4"/>
+
+<Grid Margin="0,12,0,0">
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="150"/>
+        <ColumnDefinition Width="*"/>
+    </Grid.ColumnDefinitions>
+    <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    
+    <TextBlock Grid.Row="0" Grid.Column="0" Text="底边栏高度"
+               Foreground="{DynamicResource ForegroundDimBrush}" 
+               VerticalAlignment="Center"/>
+    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
+        <Slider x:Name="BottomBarHeightSlider" 
+                Width="150" 
+                Minimum="80" 
+                Maximum="200"
+                Value="120" 
+                TickFrequency="10" 
+                IsSnapToTickEnabled="True"/>
+        <TextBlock x:Name="BottomBarHeightText" 
+                   Text="120" 
+                   Foreground="{DynamicResource ForegroundBrush}"
+                   VerticalAlignment="Center" 
+                   Margin="12,0,0,0"
+                   Width="30"/>
+        <TextBlock Text="px" 
+                   Foreground="{DynamicResource ForegroundDimBrush}"
+                   VerticalAlignment="Center"/>
+    </StackPanel>
+</Grid>
+
+<TextBlock Text="提示：单图/双页模式下缩略图栏显示在底部，漫画模式下显示在左侧。"
+           Foreground="{DynamicResource ForegroundDimBrush}"
+           FontSize="11"
+           FontStyle="Italic"
+           Margin="0,12,0,0"/>
