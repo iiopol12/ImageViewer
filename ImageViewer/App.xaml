@@ -20,10 +20,10 @@
             <converters:GifVisibilityConverter x:Key="GifVisibilityConverter"/>
             <converters:MangaPlaceholderHeightConverter x:Key="MangaPlaceholderHeightConverter"/>
             <converters:MangaImageSourceConverter x:Key="MangaImageSourceConverter"/>
-            <converters:MangaSidebarWidthConverter x:Key="MangaSidebarWidthConverter"/>
+            <converters:MangaSidebarWidthConverter x:Key="MangaSidebarWidthConverter"/>
             <converters:BottomBarHeightConverter x:Key="BottomBarHeightConverter"/>
-            
-            
+
+
             <!-- Pixel snapping (reduce Path jitter during resize) -->
             <Style TargetType="{x:Type Path}">
                 <Setter Property="SnapsToDevicePixels" Value="True"/>
@@ -171,8 +171,8 @@
                 </Setter>
             </Style>
 
-            <!-- ScrollBar Style -->
-            <Style TargetType="ScrollBar">
+            <!-- Vertical ScrollBar Style -->
+            <Style x:Key="VerticalScrollBarStyle" TargetType="ScrollBar">
                 <Setter Property="Background" Value="Transparent"/>
                 <Setter Property="Width" Value="8"/>
                 <Setter Property="Template">
@@ -196,6 +196,88 @@
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
+            </Style>
+
+            <!-- Horizontal ScrollBar Style -->
+            <Style x:Key="HorizontalScrollBarStyle" TargetType="ScrollBar">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Height" Value="8"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ScrollBar">
+                            <Grid>
+                                <Track x:Name="PART_Track" IsDirectionReversed="False">
+                                    <Track.Thumb>
+                                        <Thumb>
+                                            <Thumb.Template>
+                                                <ControlTemplate TargetType="Thumb">
+                                                    <Border Background="{DynamicResource BackgroundLightBrush}" 
+                                                            CornerRadius="4"
+                                                            Margin="1"/>
+                                                </ControlTemplate>
+                                            </Thumb.Template>
+                                        </Thumb>
+                                    </Track.Thumb>
+                                </Track>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Default ScrollBar Style (auto-detect orientation) -->
+            <Style TargetType="ScrollBar">
+                <Setter Property="Background" Value="Transparent"/>
+                <Style.Triggers>
+                    <Trigger Property="Orientation" Value="Vertical">
+                        <Setter Property="Width" Value="8"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ScrollBar">
+                                    <Grid>
+                                        <Track x:Name="PART_Track" IsDirectionReversed="True">
+                                            <Track.Thumb>
+                                                <Thumb>
+                                                    <Thumb.Template>
+                                                        <ControlTemplate TargetType="Thumb">
+                                                            <Border Background="{DynamicResource BackgroundLightBrush}" 
+                                                                    CornerRadius="4"
+                                                                    Margin="1"/>
+                                                        </ControlTemplate>
+                                                    </Thumb.Template>
+                                                </Thumb>
+                                            </Track.Thumb>
+                                        </Track>
+                                    </Grid>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Trigger>
+                    <Trigger Property="Orientation" Value="Horizontal">
+                        <Setter Property="Height" Value="8"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ScrollBar">
+                                    <Grid>
+                                        <Track x:Name="PART_Track" IsDirectionReversed="False">
+                                            <Track.Thumb>
+                                                <Thumb>
+                                                    <Thumb.Template>
+                                                        <ControlTemplate TargetType="Thumb">
+                                                            <Border Background="{DynamicResource BackgroundLightBrush}" 
+                                                                    CornerRadius="4"
+                                                                    Margin="1"/>
+                                                        </ControlTemplate>
+                                                    </Thumb.Template>
+                                                </Thumb>
+                                            </Track.Thumb>
+                                        </Track>
+                                    </Grid>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Trigger>
+                </Style.Triggers>
             </Style>
 
             <!-- ListBox Item Style -->

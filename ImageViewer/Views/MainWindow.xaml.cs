@@ -105,7 +105,7 @@ namespace ImageViewer.Views
         private const double FullScreenBarTriggerZone = 60; // 触发区域像素
         private bool _isFullScreenBarVisible;
         private readonly DispatcherTimer _fullScreenBarHideTimer;
-        
+
         public MainWindow()
         {
             InitializeComponent();
@@ -863,7 +863,7 @@ namespace ImageViewer.Views
         /// </summary>
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-          
+
 
             if (_isResizeFreezeActive)
             {
@@ -895,7 +895,7 @@ namespace ImageViewer.Views
                 ViewModel.Settings.IsMaximized = WindowState == WindowState.Maximized;
             }
 
-        
+
 
             // 保存设置到文件
             ViewModel.SaveSettings();
@@ -1833,29 +1833,90 @@ namespace ImageViewer.Views
             FullScreenSidebar.BeginAnimation(OpacityProperty, animation);
         }
 
-        
+        /// <summary>
+        /// 检查鼠标是否在缩略图栏上
+        /// </summary>
+        private bool IsMouseOverThumbnailBar(Point mousePos)
+        {
+            // 检查非全屏底边栏
+            if (BottomThumbnailBar.Visibility == Visibility.Visible)
+            {
+                var barTop = ActualHeight - ViewModel.Settings.BottomBarHeight;
+                if (mousePos.Y >= barTop)
+                    return true;
+            }
+
+            // 检查全屏底边栏
+            if (FullScreenBottomBar.Visibility == Visibility.Visible &&
+                FullScreenBottomBar.Opacity > 0 &&
+                FullScreenBottomBar.IsHitTestVisible)
+            {
+                var barTop = ActualHeight - ViewModel.Settings.BottomBarHeight;
+                if (mousePos.Y >= barTop)
+                    return true;
+            }
+
+            // 检查漫画模式侧边栏
+            if (MangaSidebar.Visibility == Visibility.Visible)
+            {
+                if (mousePos.X <= ViewModel.Settings.SidebarWidth)
+                    return true;
+            }
+
+            // 检查全屏侧边栏
+            if (FullScreenSidebar.Visibility == Visibility.Visible &&
+                FullScreenSidebar.Opacity > 0 &&
+                FullScreenSidebar.IsHitTestVisible)
+            {
+                if (mousePos.X <= ViewModel.Settings.SidebarWidth)
+                    return true;
+            }
+
+            return false;
+        }
         /// <summary>
         /// 鼠标滚轮预览事件
         /// </summary>
         private void Window_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (!Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+            // 如果鼠标在底边栏或侧边栏上，不处理（让底边栏自己处理滚动）
+            var mousePos = e.GetPosition(this);
+            if (IsMouseOverThumbnailBar(mousePos))
+            {
+                return; // 让底边栏/侧边栏自己处理
+            }
+
+            bool ctrlPressed = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+
+            // Ctrl+滚轮始终是缩放
+            if (ctrlPressed)
+            {
+                if (ViewModel.ShowWaterfallView)
+                {
+                    HandleWaterfallZoomWithMouseWheel(e);
+                }
+                else if (ViewModel.IsMangaMode)
+                {
+                    HandleMangaZoomWithMouseWheel(e);
+                }
+                else
+                {
+                    HandleZoomWithMouseWheel(e);
+                }
+                e.Handled = true;
                 return;
-
-            if (ViewModel.ShowWaterfallView)
-            {
-                HandleWaterfallZoomWithMouseWheel(e);
-            }
-            else if (ViewModel.IsMangaMode)
-            {
-                HandleMangaZoomWithMouseWheel(e);
-            }
-            else
-            {
-                HandleZoomWithMouseWheel(e);
             }
 
-            e.Handled = true;
+            // 非Ctrl时，根据设置决定行为
+            if (ViewModel.Settings.ScrollWheelBehavior == ScrollWheelBehavior.Navigate)
+            {
+                // 翻页模式：非漫画模式下全局翻页
+                if (!ViewModel.IsMangaMode && !ViewModel.ShowWaterfallView)
+                {
+                    ViewModel.HandleMouseWheel(e.Delta, ctrlPressed);
+                    e.Handled = true;
+                }
+            }
         }
         /// <summary>
         /// 光标隐藏计时器触发事件 - 在全屏模式下自动隐藏光标
@@ -1900,8 +1961,15 @@ namespace ImageViewer.Views
         /// </summary>
         private void Window_MouseWheel(object sender, MouseWheelEventArgs e)
         {
+            // 如果鼠标在底边栏或侧边栏上，不处理（让底边栏自己处理滚动）
+            var mousePos = e.GetPosition(this);
+            if (IsMouseOverThumbnailBar(mousePos))
+            {
+                return; // 底边栏/侧边栏已经通过PreviewMouseWheel处理了滚动
+            }
 
             bool ctrlPressed = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+
             if (ViewModel.ShowWaterfallView)
             {
                 if (ctrlPressed)
@@ -1911,6 +1979,7 @@ namespace ImageViewer.Views
                 }
                 return;
             }
+
             bool forceZoom = ctrlPressed || ViewModel.Settings.ScrollWheelBehavior == ScrollWheelBehavior.Zoom;
 
             if (forceZoom)
@@ -1923,12 +1992,13 @@ namespace ImageViewer.Views
                 {
                     HandleZoomWithMouseWheel(e);
                 }
-                e.Handled = true; // 阻止滚动查看器处理事件
+                e.Handled = true;
             }
             else
             {
-                // 默认行为:导航到上一张/下一张
+                // 翻页行为：全局生效
                 ViewModel.HandleMouseWheel(e.Delta, ctrlPressed);
+                e.Handled = true; // 标记事件已处理
             }
         }
 
@@ -2560,7 +2630,7 @@ namespace ImageViewer.Views
             double imageHeight = GetImageDipHeight(ViewModel.DisplayImage);
             // 如果是双页模式，需要考虑第二张图片
             if (ViewModel.IsDoublePage && ViewModel.SecondDisplayImage != null)
-            { 
+            {
                 imageWidth += GetImageDipWidth(ViewModel.SecondDisplayImage) + 8;
                 imageHeight = Math.Max(imageHeight, GetImageDipHeight(ViewModel.SecondDisplayImage));
             }
@@ -2638,6 +2708,72 @@ namespace ImageViewer.Views
                 }
             }
         }
+        /// <summary>
+        /// 缩略图列表滚轮事件 - 实现水平滚动（用于旧版兼容）
+        /// </summary>
+        private void ThumbnailList_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (sender is not System.Windows.Controls.ListBox listBox)
+                return;
+
+            // 查找ListBox内的ScrollViewer
+            var scrollViewer = FindVisualChild<ScrollViewer>(listBox);
+            if (scrollViewer == null)
+                return;
+
+            // 水平滚动（滚轮向上滚动时向左，向下滚动时向右）
+            double scrollAmount = e.Delta > 0 ? -60 : 60;
+            scrollViewer.ScrollToHorizontalOffset(scrollViewer.HorizontalOffset + scrollAmount);
+
+            e.Handled = true; // 阻止事件继续冒泡
+        }
+
+        /// <summary>
+        /// 底边栏横向缩略图列表滚轮事件 - 实现平滑水平滚动
+        /// </summary>
+        private void BottomThumbnailList_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (sender is not System.Windows.Controls.ListBox listBox)
+                return;
+
+            // 查找ListBox内的ScrollViewer
+            var scrollViewer = FindVisualChild<ScrollViewer>(listBox);
+            if (scrollViewer == null)
+                return;
+
+            // 使用与漫画模式侧边栏类似的平滑滚动量
+            // 每个缩略图约108像素宽（100宽度+8边距），滚动约2-3个缩略图的距离
+            double scrollAmount = e.Delta > 0 ? -240 : 240;
+
+            // 计算新的滚动位置
+            double newOffset = scrollViewer.HorizontalOffset + scrollAmount;
+
+            // 限制在有效范围内
+            newOffset = Math.Max(0, Math.Min(newOffset, scrollViewer.ScrollableWidth));
+
+            scrollViewer.ScrollToHorizontalOffset(newOffset);
+
+            e.Handled = true; // 阻止事件继续冒泡，防止触发翻页
+        }
+
+        /// <summary>
+        /// 查找视觉树中的子元素
+        /// </summary>
+        private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T found)
+                    return found;
+
+                var result = FindVisualChild<T>(child);
+                if (result != null)
+                    return result;
+            }
+            return null;
+        }
+
 
         #endregion
 

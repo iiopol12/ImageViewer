@@ -1434,14 +1434,18 @@ x:Name="NextZone">
                      SelectedIndex="{Binding CurrentIndex, Mode=TwoWay}"
                      Background="Transparent"
                      BorderThickness="0"
-                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                     ScrollViewer.HorizontalScrollBarVisibility="Visible"
                      ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                     ScrollViewer.CanContentScroll="True"
                      ItemContainerStyle="{StaticResource ThumbnailListBoxItemStyle}"
                      SelectionChanged="ThumbnailList_SelectionChanged"
+                     PreviewMouseWheel="BottomThumbnailList_PreviewMouseWheel"
+                                
                      VirtualizingPanel.IsVirtualizing="True"
                      VirtualizingPanel.VirtualizationMode="Recycling"
-                     VirtualizingPanel.CacheLength="10,10"
-                     VirtualizingPanel.CacheLengthUnit="Item">
+                     VirtualizingPanel.CacheLength="10,10"         
+                     VirtualizingPanel.CacheLengthUnit="Item"
+                     VirtualizingPanel.ScrollUnit="Pixel">
                             <ListBox.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <VirtualizingStackPanel Orientation="Horizontal"/>
@@ -1531,11 +1535,14 @@ x:Name="NextZone">
                      SelectedIndex="{Binding CurrentIndex, Mode=TwoWay}"
                      Background="Transparent"
                      BorderThickness="0"
-                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                     ScrollViewer.HorizontalScrollBarVisibility="Visible"
                      ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                     ScrollViewer.CanContentScroll="True"
                      SelectionChanged="ThumbnailList_SelectionChanged"
+                     PreviewMouseWheel="BottomThumbnailList_PreviewMouseWheel"
                      VirtualizingPanel.IsVirtualizing="True"
-                     VirtualizingPanel.VirtualizationMode="Recycling">
+                     VirtualizingPanel.VirtualizationMode="Recycling"
+                     VirtualizingPanel.ScrollUnit="Pixel">
                             <ListBox.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <VirtualizingStackPanel Orientation="Horizontal"/>
