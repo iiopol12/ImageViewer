@@ -3,7 +3,7 @@
                     xmlns:s="clr-namespace:System;assembly=mscorlib">
 
     <!-- ==================== App Title ==================== -->
-    <s:String x:Key="App_Title">ImageViewer</s:String>
+    <s:String x:Key="App_Title">漫游</s:String>
 
     <!-- ==================== Window Title ==================== -->
     <s:String x:Key="Settings_WindowTitle">Settings</s:String>
