@@ -1,0 +1,310 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:s="clr-namespace:System;assembly=mscorlib">
+
+    <!-- ==================== App Title ==================== -->
+    <s:String x:Key="App_Title">ImageViewer</s:String>
+
+    <!-- ==================== Window Title ==================== -->
+    <s:String x:Key="Settings_WindowTitle">Settings</s:String>
+
+    <!-- ==================== Left Navigation ==================== -->
+    <s:String x:Key="Nav_Settings">Settings</s:String>
+    <s:String x:Key="Nav_Favorites">Favorites</s:String>
+    <s:String x:Key="Nav_Associations">Assoc</s:String>
+
+    <!-- ==================== Page Titles ==================== -->
+    <s:String x:Key="Page_GeneralSettings">General Settings</s:String>
+    <s:String x:Key="Page_Favorites">Favorites</s:String>
+    <s:String x:Key="Page_Associations">Association Settings</s:String>
+
+    <!-- ==================== General Settings Header ==================== -->
+
+    <s:String x:Key="Settings_HeaderSubtitle">Customize view mode, theme and display options</s:String>
+
+    <!-- ==================== Basic Settings ==================== -->
+    <s:String x:Key="Settings_DefaultViewMode">Default View Mode</s:String>
+    <s:String x:Key="ViewMode_Single">Single Image</s:String>
+    <s:String x:Key="ViewMode_Manga">Manga Mode</s:String>
+    <s:String x:Key="ViewMode_DoublePage">Double Page</s:String>
+
+    <s:String x:Key="Settings_Theme">Theme</s:String>
+    <s:String x:Key="Theme_Dark">Dark</s:String>
+    <s:String x:Key="Theme_Light">Light</s:String>
+    <s:String x:Key="Theme_SoftPink">Soft Pink</s:String>
+    <s:String x:Key="Theme_HotRed">Hot Red</s:String>
+    <s:String x:Key="Theme_Ocean">Ocean Blue</s:String>
+    <s:String x:Key="Theme_Forest">Forest Green</s:String>
+
+    <s:String x:Key="Settings_Language">语言 / Language</s:String>
+    <s:String x:Key="Language_Chinese">简体中文</s:String>
+    <s:String x:Key="Language_English">English</s:String>
+
+    <s:String x:Key="Settings_ScrollWheel">Scroll Wheel</s:String>
+    <s:String x:Key="ScrollWheel_Zoom">Zoom</s:String>
+    <s:String x:Key="ScrollWheel_Navigate">Navigate</s:String>
+
+    <s:String x:Key="Settings_MangaGap">Manga Gap (px)</s:String>
+
+    <!-- ==================== Slideshow Settings ==================== -->
+    <s:String x:Key="Settings_SlideshowTitle">Slideshow Settings</s:String>
+    <s:String x:Key="Settings_SlideshowInterval">Interval (seconds)</s:String>
+    <s:String x:Key="Settings_SlideshowShuffle">Shuffle</s:String>
+    <s:String x:Key="Settings_ShuffleEnabled">Enable shuffle (Single mode)</s:String>
+
+    <!-- ==================== Performance Settings ==================== -->
+    <s:String x:Key="Settings_PerformanceTitle">Performance Settings</s:String>
+    <s:String x:Key="Settings_PreloadCount">Preload Count</s:String>
+    <s:String x:Key="Settings_ThumbnailSize">Thumbnail Size</s:String>
+    <s:String x:Key="Settings_MangaDecodeWidth">Manga Decode Width (px)</s:String>
+    <s:String x:Key="Settings_ArchiveStrategy">Archive Loading</s:String>
+    <s:String x:Key="Archive_Stream">Memory Stream (Default)</s:String>
+    <s:String x:Key="Archive_TempExtract">Extract to Temp</s:String>
+
+    <!-- ==================== Filter Settings ==================== -->
+    <s:String x:Key="Settings_FilterTitle">Filter Settings</s:String>
+    <s:String x:Key="Settings_FilterHint">0 means no limit, Ctrl+Shift+F to toggle filters</s:String>
+    <s:String x:Key="Settings_EnableFilters">Enable filters (folders only)</s:String>
+    <s:String x:Key="Settings_SizeFilter">Enable size filter</s:String>
+    <s:String x:Key="Settings_MinWidth">Min Width</s:String>
+    <s:String x:Key="Settings_MinHeight">Min Height</s:String>
+    <s:String x:Key="Settings_MaxWidth">Max Width</s:String>
+    <s:String x:Key="Settings_MaxHeight">Max Height</s:String>
+    <s:String x:Key="Settings_FileSizeFilter">Enable file size filter</s:String>
+    <s:String x:Key="Settings_MinFileSize">Min Size (KB)</s:String>
+    <s:String x:Key="Settings_MaxFileSize">Max Size (MB)</s:String>
+
+    <!-- ==================== Behavior Settings ==================== -->
+    <s:String x:Key="Settings_BehaviorTitle">Behavior Settings</s:String>
+    <s:String x:Key="Settings_RememberPosition">Remember window position and size</s:String>
+    <s:String x:Key="Settings_RememberReading">Remember last reading position</s:String>
+    <s:String x:Key="Settings_FreezeDuringResize">Freeze during resize (reduce jitter)</s:String>
+    <s:String x:Key="Settings_ShowStatusBar">Show status bar</s:String>
+    <s:String x:Key="Settings_ScanSubfolders">Scan subfolders (include subdirectory images)</s:String>
+    <s:String x:Key="Settings_ScanDepth">Scan Depth</s:String>
+    <s:String x:Key="ScanDepth_Current">0 (Current only)</s:String>
+    <s:String x:Key="ScanDepth_Infinite">Unlimited</s:String>
+
+    <!-- ==================== LocalSend ==================== -->
+    <s:String x:Key="Settings_LocalSendTitle">LocalSend Settings</s:String>
+    <s:String x:Key="Settings_LocalSendPath">Executable Path</s:String>
+    <s:String x:Key="Button_Browse">Browse...</s:String>
+
+    <!-- ==================== Version and Community ==================== -->
+    <s:String x:Key="Settings_AboutTitle">Version &amp; Community</s:String>
+    <s:String x:Key="Settings_CurrentVersion">Current Version:</s:String>
+    <s:String x:Key="Settings_Website">Website:</s:String>
+    <s:String x:Key="Button_OpenWebsite">Open Website</s:String>
+
+    <!-- ==================== Bottom Buttons ==================== -->
+    <s:String x:Key="Button_Cancel">Cancel</s:String>
+    <s:String x:Key="Button_Save">Save</s:String>
+    <s:String x:Key="Button_OpenImage">Open Image</s:String>
+    <s:String x:Key="Button_OpenFolder">Open Folder</s:String>
+    <s:String x:Key="Button_Print">Print</s:String>
+    <s:String x:Key="Button_Confirm">OK</s:String>
+
+    <!-- ==================== Favorites Page ==================== -->
+    <s:String x:Key="Favorites_FoldersTitle">Favorite Folders</s:String>
+    <s:String x:Key="Favorites_FoldersHint">Expand cards to view images, Ctrl+Tab to switch</s:String>
+    <s:String x:Key="Favorites_Folders">Folders</s:String>
+    <s:String x:Key="Favorites_Sort">Sort</s:String>
+    <s:String x:Key="Favorites_SortByTime">By Date Added</s:String>
+    <s:String x:Key="Favorites_SortByName">By Name</s:String>
+    <s:String x:Key="Button_AddFolder">Add Folder</s:String>
+    <s:String x:Key="Button_AddCurrentFolder">Add Current Folder</s:String>
+    <s:String x:Key="Favorites_BatchRemove">Batch Remove</s:String>
+    <s:String x:Key="Button_RemoveSelected">Remove Selected</s:String>
+    <s:String x:Key="Button_Clear">Clear All</s:String>
+    <s:String x:Key="Favorites_NoFolders">No favorite folders</s:String>
+    <s:String x:Key="Favorites_NoFoldersHint">Click "Add Folder" or "Add Current Folder" to start</s:String>
+    <s:String x:Key="Favorites_NoImages">No favorite images in this folder</s:String>
+    <s:String x:Key="Favorites_FavoriteCount">Favorites</s:String>
+    <s:String x:Key="Favorites_ItemCountPrefix">Total </s:String>
+    <s:String x:Key="Favorites_ItemCountSuffix"> items</s:String>
+    <s:String x:Key="Favorites_InvalidPath">Invalid Path</s:String>
+    <s:String x:Key="Button_Open">Open</s:String>
+    <s:String x:Key="Button_Locate">Locate</s:String>
+    <s:String x:Key="Button_Remove">Remove</s:String>
+    <s:String x:Key="Button_Unfavorite">Unfavorite</s:String>
+    <s:String x:Key="Button_Expand">Expand</s:String>
+    <s:String x:Key="Button_Collapse">Collapse</s:String>
+    <s:String x:Key="Button_ExpandCollapseNote">Expand/Collapse Favorite Images</s:String>
+    <s:String x:Key="Status_Loading">Loading...</s:String>
+    <s:String x:Key="Status_NoPreview">No Preview</s:String>
+    <s:String x:Key="Status_FileNotExists">File Not Found</s:String>
+    <s:String x:Key="Button_Back">Back</s:String>
+    <s:String x:Key="Favorites_NoImagesInFolder">No favorite images in this folder</s:String>
+    <!-- ==================== Associations Page ==================== -->
+    <s:String x:Key="Associations_Title">Association Settings</s:String>
+    <s:String x:Key="Associations_Subtitle">Select image formats to associate with ImageViewer</s:String>
+    <s:String x:Key="Associations_Normal">Normal</s:String>
+ 
+    <s:String x:Key="Associations_NoteTitle">Notes</s:String>
+    <s:String x:Key="Associations_Note1">PDF, RAR/CAR, ZIP/CAZ can be opened in-app but are not available for file association.</s:String>
+    <s:String x:Key="Associations_Note2">RAW formats use system WIC decoder first (install Raw Image Extension from Microsoft Store); falls back to Magick.NET if unsupported.</s:String>
+    <s:String x:Key="Associations_FormatSelect">Format Selection</s:String>
+    <s:String x:Key="Associations_TotalPrefix">Total </s:String>
+    <x:Static x:Key="Associations_TotalSuffix" Member="s:String.Empty"/>
+    <s:String x:Key="Button_SelectAll">Select</s:String>
+    <s:String x:Key="Button_DeselectAll">Deselect</s:String>
+    <s:String x:Key="Associations_NormalFormats">Normal Formats</s:String>
+    <s:String x:Key="Associations_RawFormats">RAW Formats</s:String>
+    <s:String x:Key="Button_ApplyAssociations">Apply Associations</s:String>
+
+    <!-- ==================== Message Dialogs ==================== -->
+    <s:String x:Key="Msg_SelectFormat">Please select at least one format.</s:String>
+    <s:String x:Key="Msg_Hint">Notice</s:String>
+    <s:String x:Key="Msg_Complete">Complete</s:String>
+    <s:String x:Key="Msg_AssociationSuccess">Registry updated. The following formats will now open with ImageViewer: {0}.
+If File Explorer doesn't update immediately, try reopening it or restart the system.</s:String>
+    <s:String x:Key="Msg_AssociationFailed">Failed to write some registry entries: {0}
+Try running as administrator or set defaults manually.</s:String>
+    <s:String x:Key="Msg_LanguageChanged">Language setting changed. Some UI elements will update after reopening the Settings window.</s:String>
+    <s:String x:Key="Msg_ConfirmClearFolders">Are you sure you want to clear all favorite folders?</s:String>
+    <s:String x:Key="Msg_Confirm">Confirm</s:String>
+    <s:String x:Key="Error_CannotDeterminePath">Cannot determine program path</s:String>
+    <s:String x:Key="Error_CannotGetMainWindow">Cannot get main window.</s:String>
+    <s:String x:Key="Error_CannotGetMainWindowData">Cannot get main window data.</s:String>
+    <s:String x:Key="Dialog_SelectFavoriteFolder">Select a folder to favorite</s:String>
+    <s:String x:Key="Error_FolderAlreadyInFavorites">This folder is already in favorites.</s:String>
+    <s:String x:Key="Error_PathNotExist">The path does not exist.</s:String>
+    <s:String x:Key="Error_NoCurrentPathToFavorite">There is no current path to favorite.</s:String>
+    <s:String x:Key="Error_FileNotExistOrCannotOpen">The file does not exist or cannot be opened.</s:String>
+    <s:String x:Key="Dialog_SelectLocalSendExecutable">Select LocalSend executable</s:String>
+    <s:String x:Key="Filter_LocalSendExecutable">LocalSend executable|LocalSend.exe;localsend.exe;localsend_app.exe|Executable files|.exe|All files|.*</s:String>
+    <s:String x:Key="Error_WebsiteUrlNotSet">Please set the website address first.</s:String>
+    <s:String x:Key="Error_OpenWebsiteFailed">Failed to open website: {0}</s:String>
+
+
+
+    <!-- ==================== Toolbar ToolTips ==================== -->
+    <s:String x:Key="ToolTip_OpenFile">Open File (Ctrl+O)</s:String>
+    <s:String x:Key="ToolTip_OpenFolder">Open Folder (Ctrl+F)</s:String>
+    <s:String x:Key="ToolTip_ZoomOut">Zoom Out (-)</s:String>
+    <s:String x:Key="ToolTip_ZoomIn">Zoom In (+)</s:String>
+    <s:String x:Key="ToolTip_SwitchToOriginalSize">Switch to Original Size (Ctrl+0)</s:String>
+    <s:String x:Key="ToolTip_SwitchToFitWindow">Switch to Fit Window (Ctrl+0)</s:String>
+    <s:String x:Key="ToolTip_SingleMode">Single Image Mode</s:String>
+    <s:String x:Key="ToolTip_MangaMode">Manga Mode</s:String>
+    <s:String x:Key="ToolTip_DoublePageMode">Double Page Mode</s:String>
+    <s:String x:Key="ToolTip_Rotate90">Rotate 90°</s:String>
+    <s:String x:Key="ToolTip_Bookmark">Bookmark (B)</s:String>
+    <s:String x:Key="ToolTip_ShareCurrentImage">Share current image via LocalSend</s:String>
+    <s:String x:Key="ToolTip_Print">Print (Ctrl+P)</s:String>
+    <s:String x:Key="ToolTip_SlideShow">Slide Show (S)</s:String>
+    <s:String x:Key="ToolTip_FullScreen">Full Screen (F11)</s:String>
+    <s:String x:Key="ToolTip_ToggleSidebar">Toggle Sidebar</s:String>
+    <s:String x:Key="ToolTip_ToggleWaterfallView">Toggle Waterfall View</s:String>
+    <s:String x:Key="ToolTip_BookmarkCurrentFolder">Bookmark/Unbookmark current path</s:String>
+    <s:String x:Key="ToolTip_ViewImageInfo">View image information</s:String>
+    <s:String x:Key="ToolTip_BookmarkCurrentImage">Bookmark current image (Single mode only)</s:String>
+    <s:String x:Key="ToolTip_CloseInfoPanel">Close info panel</s:String>
+    <s:String x:Key="ToolTip_OpenWebsite">Open website in default browser</s:String>
+
+
+    <!-- ==================== Empty State ==================== -->
+    <s:String x:Key="EmptyState_DragDropHint">Drag and drop images or folders here</s:String>
+    <s:String x:Key="EmptyState_ClickToolbarHint">or click toolbar to open file/folder</s:String>
+    <s:String x:Key="EmptyState_ShortcutGuide">Shortcut Guide</s:String>
+
+    <!-- ==================== Main Window Empty State ==================== -->
+    <s:String x:Key="MainWindow_DragDropHint">Drag and drop images or folders here</s:String>
+    <s:String x:Key="MainWindow_ClickToolbarHint">or click toolbar to open file/folder</s:String>
+    <s:String x:Key="MainWindow_ShortcutGuide">Shortcut Guide</s:String>
+
+    <!-- ==================== Shortcut Guide ==================== -->
+    <s:String x:Key="ShortcutGuide_FileOperations">File Operations</s:String>
+    <s:String x:Key="ShortcutGuide_ImageNavigation">Image Navigation</s:String>
+    <s:String x:Key="ShortcutGuide_ViewControl">View Control</s:String>
+    <s:String x:Key="ShortcutGuide_FunctionOperations">Function Operations</s:String>
+
+    <!-- ==================== Shortcut Descriptions ==================== -->
+    <s:String x:Key="Shortcut_OpenFileFolder">Open file/folder</s:String>
+    <s:String x:Key="Shortcut_FavoriteFolderSwitch">Switch favorite folders</s:String>
+    <s:String x:Key="Shortcut_OpenFavoritesPage">Open favorites page</s:String>
+    <s:String x:Key="Shortcut_PreviousNextImage">Previous/Next image</s:String>
+    <s:String x:Key="Shortcut_NextImage">Next image</s:String>
+    <s:String x:Key="Shortcut_FirstLastImage">First/Last image</s:String>
+    <s:String x:Key="Shortcut_ToggleFullScreen">Toggle full screen</s:String>
+    <s:String x:Key="Shortcut_ExitFullScreenClose">Exit full screen/Close</s:String>
+    <s:String x:Key="Shortcut_ZoomInOut">Zoom in/out</s:String>
+    <s:String x:Key="Shortcut_FitActualToggle">Fit/Actual size toggle</s:String>
+    <s:String x:Key="Shortcut_SwitchViewMode">Switch view mode</s:String>
+    <s:String x:Key="Shortcut_StartStopSlideshow">Start/Stop slideshow</s:String>
+    <s:String x:Key="Shortcut_ToggleBookmark">Bookmark/Unbookmark</s:String>
+    <s:String x:Key="Shortcut_CopyToClipboard">Copy to clipboard</s:String>
+    <s:String x:Key="Shortcut_DeleteImage">Delete current image</s:String>
+    <s:String x:Key="Shortcut_ToggleFilter">Enable/Disable filter</s:String>
+    <s:String x:Key="Shortcut_Print">Print</s:String>
+
+    <!-- ==================== Print Window ==================== -->
+    <s:String x:Key="PrintWindow_Title">Print Image</s:String>
+    <s:String x:Key="PrintWindow_Preview">Print Preview</s:String>
+    <s:String x:Key="PrintWindow_Printer">Printer</s:String>
+    <s:String x:Key="PrintWindow_PaperSize">Paper Size</s:String>
+    <s:String x:Key="PrintWindow_PaperPhoto4x6">4x6 Photo (102 × 152 mm)</s:String>
+    <s:String x:Key="PrintWindow_PaperPhoto5x7">5x7 Photo (127 × 178 mm)</s:String>
+    <s:String x:Key="PrintWindow_Orientation">Orientation</s:String>
+    <s:String x:Key="PrintWindow_OrientationPortrait">Portrait</s:String>
+    <s:String x:Key="PrintWindow_OrientationLandscape">Landscape</s:String>
+    <s:String x:Key="PrintWindow_ScaleMode">Image Scaling</s:String>
+    <s:String x:Key="PrintWindow_ScaleModeFit">Fit to page (keep aspect)</s:String>
+    <s:String x:Key="PrintWindow_ScaleModeFill">Fill page (may crop)</s:String>
+    <s:String x:Key="PrintWindow_ScaleModeOriginal">Original size</s:String>
+    <s:String x:Key="PrintWindow_ScaleModeStretch">Stretch to fill</s:String>
+    <s:String x:Key="PrintWindow_Copies">Copies</s:String>
+    <s:String x:Key="PrintWindow_Margins">Margins (mm)</s:String>
+    <s:String x:Key="PrintWindow_MarginTop">Top</s:String>
+    <s:String x:Key="PrintWindow_MarginBottom">Bottom</s:String>
+    <s:String x:Key="PrintWindow_MarginLeft">Left</s:String>
+    <s:String x:Key="PrintWindow_MarginRight">Right</s:String>
+    <s:String x:Key="PrintWindow_CenterImage">Center image</s:String>
+    <s:String x:Key="PrintWindow_ImageInfo">Image info</s:String>
+
+    <!-- ==================== Archive Password Dialog ==================== -->
+    <s:String x:Key="ArchivePassword_Title">Password Required</s:String>
+    <s:String x:Key="ArchivePassword_Prompt">This archive requires a password</s:String>
+
+    <!-- ==================== Folder Navigation ==================== -->
+    <s:String x:Key="FolderNav_Title">Quick Navigation</s:String>
+    <s:String x:Key="FolderNav_Empty">No subfolders</s:String>
+    <s:String x:Key="FolderNav_HintDefault">Arrow keys to move  •  Enter to open  •  Esc to cancel</s:String>
+    <s:String x:Key="FolderNav_HintCtrlTab">Arrow keys to move  •  Enter to open  •  Esc to cancel  •  Release Ctrl to confirm</s:String>
+
+    <!-- ==================== Info Panel ==================== -->
+    <s:String x:Key="InfoPanel_Dimensions">Resolution: </s:String>
+    <s:String x:Key="InfoPanel_BitDepth">Bit depth: </s:String>
+    <s:String x:Key="InfoPanel_BitDepthSuffix"> bpp</s:String>
+    <s:String x:Key="InfoPanel_FileSize">Size: </s:String>
+    <s:String x:Key="InfoPanel_DateModified">Modified: </s:String>
+
+    <!-- ==================== Sidebar ==================== -->
+    <s:String x:Key="Sidebar_Title">Image List</s:String>
+
+    <!-- ==================== Folder Switch Overlay ==================== -->
+    <s:String x:Key="FolderSwitch_Title">Switch Favorite Folder</s:String>
+    <s:String x:Key="FolderSwitch_Instructions">←/→ or Tab to select, Enter/Release Ctrl to enter, Esc/Q to cancel</s:String>
+
+    <!-- ====================  ContextMenu ==================== -->
+    <s:String x:Key="ContextMenu_OpenFile">Open File (Ctrl+O)</s:String>
+    <s:String x:Key="ContextMenu_OpenFolder">Open Folder (Ctrl+F)</s:String>
+    <s:String x:Key="ContextMenu_Previous">Previous (←)</s:String>
+    <s:String x:Key="ContextMenu_Next">Next (→)</s:String>
+    <s:String x:Key="ContextMenu_ZoomIn">Zoom In (+)</s:String>
+    <s:String x:Key="ContextMenu_ZoomOut">Zoom Out (-)</s:String>
+    <s:String x:Key="ContextMenu_ZoomToFit">Fit to Window</s:String>
+    <s:String x:Key="ContextMenu_ZoomToActual">Actual Size</s:String>
+    <s:String x:Key="ContextMenu_Rotate90">Rotate 90°</s:String>
+    <s:String x:Key="ContextMenu_ToggleBookmark">Add/Remove Bookmark (B)</s:String>
+    <s:String x:Key="ContextMenu_CopyToClipboard">Copy to Clipboard (Ctrl+C)</s:String>
+    <s:String x:Key="ContextMenu_ShareCurrentImage">Share Current Image (LocalSend)</s:String>
+    <s:String x:Key="ContextMenu_OpenInExplorer">Open in Explorer</s:String>
+    <s:String x:Key="ContextMenu_DeleteImage">Delete (Delete)</s:String>
+    <s:String x:Key="ContextMenu_Print">Print (Ctrl+P)</s:String>
+    <s:String x:Key="ContextMenu_FullScreen">Full Screen (F11)</s:String>
+    <s:String x:Key="ContextMenu_SlideShow">Slide Show (S)</s:String>
+    <s:String x:Key="ContextMenu_ToggleViewMode">Switch Mode (M)</s:String>
+    <s:String x:Key="ContextMenu_Settings">Settings</s:String>
+    
+</ResourceDictionary>

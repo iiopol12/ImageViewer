@@ -9,7 +9,7 @@
         xmlns:controls="clr-namespace:ImageViewer.Controls"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         mc:Ignorable="d"
-        Title="漫游" 
+        Title="{DynamicResource App_Title}" 
         Height="Auto" Width="Auto"
        
         MinHeight="500" MinWidth="650"
@@ -78,7 +78,7 @@
                   Stretch="Uniform"
                   VerticalAlignment="Center"
                   Margin="0,0,8,0"/>
-                    <TextBlock Text="漫游" Foreground="{DynamicResource ForegroundBrush}" 
+                    <TextBlock Text="{DynamicResource App_Title}" Foreground="{DynamicResource ForegroundBrush}" 
                            VerticalAlignment="Center" FontSize="13"/>
 
 
@@ -189,13 +189,13 @@
                     <StackPanel Grid.Column="0" Orientation="Horizontal">
                         <Button Style="{StaticResource IconButtonStyle}" 
                         Command="{Binding OpenFileCommand}" 
-                        ToolTip="打开文件 (Ctrl+O)">
+                        ToolTip="{DynamicResource ContextMenu_OpenFile}">
                             <Path Data="M6 2 L14 2 L18 6 L18 22 L6 22 Z M14 2 L14 6 L18 6" 
                           Stroke="{DynamicResource ForegroundBrush}" StrokeThickness="2" Width="18" Height="18" Stretch="Uniform"/>
                         </Button>
                         <Button Style="{StaticResource IconButtonStyle}" 
         Command="{Binding OpenFolderCommand}" 
-        ToolTip="打开文件夹 (Ctrl+F)">
+        ToolTip="{DynamicResource ContextMenu_OpenFolder}">
                             <!-- Data说明：后背板 + 前盖板，形成开口效果 -->
                             <Path Data="M4 4 L10 4 L12 6 L20 6 L20 10 M2 10 L22 10 L20 20 L4 20 L2 10" 
           Stroke="{DynamicResource ForegroundBrush}" StrokeThickness="2" Width="18" Height="18" Stretch="Uniform"/>
@@ -206,7 +206,7 @@
 
 
                         <Button   Style="{StaticResource IconButtonStyle}"  FontFamily="Segoe UI Emoji"
-                            Command="{Binding ZoomOutCommand}" ToolTip="缩小 (-)" IsEnabled="{Binding HasImages}"
+                            Command="{Binding ZoomOutCommand}" ToolTip="{DynamicResource ContextMenu_ZoomOut}" IsEnabled="{Binding HasImages}"
                                   >
                             <Path Data="M15 3h4a2 2 0 0 1 2 2v4m0 6v4a2 2 0 0 1-2 2h-4m-6 0H5a2 2 0 0 1-2-2v-4m0-6V5a2 2 0 0 1 2-2h4 M9 11h6" 
                                      Stroke="{DynamicResource ForegroundBrush}" 
@@ -220,7 +220,7 @@
                                Foreground="{DynamicResource ForegroundBrush}" VerticalAlignment="Center" 
                                Width="50" TextAlignment="Center" FontSize="12"/>
                         <Button Style="{StaticResource IconButtonStyle}"   FontFamily="Segoe UI Emoji"
-                            Command="{Binding ZoomInCommand}" ToolTip="放大 (+)" IsEnabled="{Binding HasImages}">
+                            Command="{Binding ZoomInCommand}" ToolTip="{DynamicResource ContextMenu_ZoomIn}" IsEnabled="{Binding HasImages}">
                             <Path Data="M15 3h4a2 2 0 0 1 2 2v4m0 6v4a2 2 0 0 1-2 2h-4m-6 0H5a2 2 0 0 1-2-2v-4m0-6V5a2 2 0 0 1 2-2h4 M12 8v6 M9 11h6" 
                                      Stroke="{DynamicResource ForegroundBrush}" 
                                      StrokeThickness="2"
@@ -236,11 +236,11 @@
                                     <Style.Triggers>
                                         <!-- 当FitToWindow为True时，显示"适应窗口"图标和提示 -->
                                         <DataTrigger Binding="{Binding FitToWindow}" Value="True">
-                                            <Setter Property="ToolTip" Value="切换到原始尺寸 (Ctrl+0)"/>
+                                            <Setter Property="ToolTip" Value="{DynamicResource ToolTip_SwitchToOriginalSize}"/>
                                         </DataTrigger>
                                         <!-- 当FitToWindow为False时，显示"原始尺寸"图标和提示 -->
                                         <DataTrigger Binding="{Binding FitToWindow}" Value="False">
-                                            <Setter Property="ToolTip" Value="切换到适应窗口 (Ctrl+0)"/>
+                                            <Setter Property="ToolTip" Value="{DynamicResource ToolTip_SwitchToFitWindow}"/>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
@@ -272,7 +272,7 @@
 
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <Button Style="{StaticResource IconButtonStyle}" ToolTip="单图模式" 
+                        <Button Style="{StaticResource IconButtonStyle}" ToolTip="{DynamicResource ToolTip_SingleMode}" 
                         IsEnabled="{Binding HasImages}"
                         Command="{Binding SetViewModeCommand}" 
                         CommandParameter="{x:Static models:ViewMode.Single}">
@@ -280,7 +280,7 @@
                           Stroke="{DynamicResource ForegroundBrush}" StrokeThickness="2" Width="18" Height="18" Stretch="Uniform"/>
                         </Button>
                         <!-- 漫画模式 (Vertical Scroll/Strip) -->
-                        <Button Style="{StaticResource IconButtonStyle}" ToolTip="漫画模式" 
+                        <Button Style="{StaticResource IconButtonStyle}" ToolTip="{DynamicResource ToolTip_MangaMode}" 
                         IsEnabled="{Binding HasImages}"
                         Command="{Binding SetViewModeCommand}" 
                         CommandParameter="{x:Static models:ViewMode.Manga}">
@@ -289,7 +289,7 @@
                           Stroke="{DynamicResource ForegroundBrush}" StrokeThickness="2" Width="18" Height="18" Stretch="Uniform"/>
                         </Button>
                         <!-- 双页模式 (Two Rectangles) -->
-                        <Button Style="{StaticResource IconButtonStyle}" ToolTip="双页模式" 
+                        <Button Style="{StaticResource IconButtonStyle}" ToolTip="{DynamicResource ToolTip_DoublePageMode}" 
                             IsEnabled="{Binding HasImages}"
                             Command="{Binding SetViewModeCommand}" 
                             CommandParameter="{x:Static models:ViewMode.DoublePage}">
@@ -302,7 +302,7 @@
                         <Button Style="{StaticResource IconButtonStyle}"
                         FontFamily="Segoe UI Symbol"
                         Command="{Binding Rotate90Command}"
-                        ToolTip="旋转90°"
+                       ToolTip="{DynamicResource ToolTip_Rotate90}"
                         IsEnabled="{Binding HasImages}"
                         FontSize="18">
                             <Path
@@ -312,7 +312,7 @@
                         Height="18"
                         Stretch="Uniform"/>
                         </Button>
-                        <Button Style="{StaticResource IconButtonStyle}" ToolTip="书签 (B)" 
+                        <Button Style="{StaticResource IconButtonStyle}" ToolTip="{DynamicResource ToolTip_Bookmark}" 
                             Command="{Binding ToggleBookmarkCommand}" IsEnabled="{Binding HasImages}"
                             FontSize="16">
                             <Path x:Name="BookmarkIcon"
@@ -324,13 +324,13 @@
                                  Stretch="Uniform"/>
                         </Button>
 
-                        <Button Style="{StaticResource IconButtonStyle}" ToolTip="通过 LocalSend 分享当前图片" 
+                        <Button Style="{StaticResource IconButtonStyle}" ToolTip="{DynamicResource ToolTip_ShareCurrentImage}" 
                             Command="{Binding ShareCurrentImageCommand}" IsEnabled="{Binding HasImages}">
                             <Path Data="M3 11 L21 3 12 21 11 13 3 11 Z M11 13 L21 3" 
                               Stroke="{DynamicResource ForegroundBrush}" StrokeThickness="2" Width="18" Height="18" Stretch="Uniform"/>
                         </Button>
 
-                        <Button Style="{StaticResource IconButtonStyle}" ToolTip="打印 (Ctrl+P)" 
+                        <Button Style="{StaticResource IconButtonStyle}" ToolTip="{DynamicResource ToolTip_Print}" 
                             Click="PrintButton_Click" IsEnabled="{Binding HasImages}">
                             <!-- 打印机图标 -->
                             <Path Data="M6 9V2h12v7 M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2 M6 14h12v8H6z"
@@ -342,7 +342,7 @@
                         </Button>
 
                         <Button Style="{StaticResource IconButtonStyle}" FontFamily="Segoe UI Symbol"
-                            Command="{Binding ToggleSlideShowCommand}" ToolTip="幻灯片 (S)" IsEnabled="{Binding HasImages}">
+                            Command="{Binding ToggleSlideShowCommand}" ToolTip="{DynamicResource ToolTip_SlideShow}" IsEnabled="{Binding HasImages}">
                             <Path x:Name="PlayIcon"
                                  Data="M5 3l14 9-14 9V3" 
                                  Stroke="{DynamicResource ForegroundBrush}" 
@@ -352,7 +352,7 @@
                                  Stretch="Uniform"/>
                         </Button>
                         <Button Style="{StaticResource IconButtonStyle}"  FontFamily="Segoe UI Symbol"
-                            Command="{Binding ToggleFullScreenCommand}" ToolTip="全屏 (F11)" FontSize="18">
+                            Command="{Binding ToggleFullScreenCommand}" ToolTip="{DynamicResource ToolTip_FullScreen}" FontSize="18">
                             <Path Data="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" 
                                  Stroke="{DynamicResource ForegroundBrush}" 
                                  StrokeThickness="2"
@@ -365,7 +365,7 @@
 
                         <Button Style="{StaticResource IconButtonStyle}" 
                         Command="{Binding ToggleSidebarCommand}" 
-                        ToolTip="切换侧边栏"
+                        ToolTip="{DynamicResource ToolTip_ToggleSidebar}"
                              IsEnabled="{Binding IsMangaMode, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
                             <!-- 外框 + 左侧分割线 -->
                             <Path Data="M4 4 H20 V20 H4 Z M9 4 V20" 
@@ -373,7 +373,7 @@
                         </Button>
                         <Button Style="{StaticResource IconButtonStyle}" 
                         Command="{Binding ToggleWaterfallViewCommand}" 
-                        ToolTip="切换瀑布流视图"
+                        ToolTip="{DynamicResource ToolTip_ToggleWaterfallView}"
                         IsEnabled="{Binding HasImages}">
                             <!-- 瀑布流网格图标 -->
                             <Path Data="M3 3h8v6H3z M13 3h8v10h-8z M3 11h8v10H3z M13 15h8v6h-8z"
@@ -507,24 +507,24 @@
 
                                 <!-- 左侧点击区域 -->
                                 <Border Grid.Column="0" Background="Transparent" Cursor="Hand"
-MouseLeftButtonUp="PreviousZone_Click"
-x:Name="PreviousZone">
+                                 MouseLeftButtonUp="PreviousZone_Click"
+                                x:Name="PreviousZone">
                                     <!-- 左箭头提示 -->
                                     <Path Data="M15 18l-6-6 6-6" 
-  Stroke="{DynamicResource ForegroundBrush}" 
-  StrokeThickness="3"
-  Width="40" 
-  Height="40"
-  Stretch="Uniform"
-  HorizontalAlignment="Center"
-  VerticalAlignment="Center"
-  Opacity="0">
+                                          Stroke="{DynamicResource ForegroundBrush}" 
+                                          StrokeThickness="3"
+                                          Width="40" 
+                                          Height="40"
+                                          Stretch="Uniform"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          Opacity="0">
                                         <Path.Effect>
                                             <DropShadowEffect Color="Black" 
-                      Direction="0" 
-                      ShadowDepth="0" 
-                      BlurRadius="8" 
-                      Opacity="0.5"/>
+                                          Direction="0" 
+                                          ShadowDepth="0" 
+                                          BlurRadius="8" 
+                                          Opacity="0.5"/>
                                         </Path.Effect>
                                         <Path.Style>
                                             <Style TargetType="Path">
@@ -535,7 +535,7 @@ x:Name="PreviousZone">
                                                             <BeginStoryboard>
                                                                 <Storyboard>
                                                                     <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                             To="0.7" Duration="0:0:0.2"/>
+                                                                      To="0.7" Duration="0:0:0.2"/>
                                                                 </Storyboard>
                                                             </BeginStoryboard>
                                                         </DataTrigger.EnterActions>
@@ -543,7 +543,7 @@ x:Name="PreviousZone">
                                                             <BeginStoryboard>
                                                                 <Storyboard>
                                                                     <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                             To="0" Duration="0:0:0.2"/>
+                                                                  To="0" Duration="0:0:0.2"/>
                                                                 </Storyboard>
                                                             </BeginStoryboard>
                                                         </DataTrigger.ExitActions>
@@ -556,24 +556,24 @@ x:Name="PreviousZone">
 
                                 <!-- 右侧点击区域 -->
                                 <Border Grid.Column="2" Background="Transparent" Cursor="Hand"
-MouseLeftButtonUp="NextZone_Click"
-x:Name="NextZone">
+                                        MouseLeftButtonUp="NextZone_Click"
+                                        x:Name="NextZone">
                                     <!-- 右箭头提示 -->
                                     <Path Data="M9 18l6-6-6-6" 
-  Stroke="{DynamicResource ForegroundBrush}" 
-  StrokeThickness="3"
-  Width="40" 
-  Height="40"
-  Stretch="Uniform"
-  HorizontalAlignment="Center"
-  VerticalAlignment="Center"
-  Opacity="0">
+                                          Stroke="{DynamicResource ForegroundBrush}" 
+                                          StrokeThickness="3"
+                                          Width="40" 
+                                          Height="40"
+                                          Stretch="Uniform"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          Opacity="0">
                                         <Path.Effect>
                                             <DropShadowEffect Color="Black" 
-                      Direction="0" 
-                      ShadowDepth="0" 
-                      BlurRadius="8" 
-                      Opacity="0.5"/>
+                                          Direction="0" 
+                                          ShadowDepth="0" 
+                                          BlurRadius="8" 
+                                          Opacity="0.5"/>
                                         </Path.Effect>
                                         <Path.Style>
                                             <Style TargetType="Path">
@@ -774,37 +774,37 @@ x:Name="NextZone">
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
                 Visibility="{Binding ShowEmptyState, Converter={StaticResource BoolToVisibilityConverter}}">
                             <Path
-            Data="
-        M4 5 H20 V19 H4 Z
-        M4 16 L9 11 L14 16 L17 13 L20 16
-        M7 9 A 1.5 1.5 0 1 0 7 6 A 1.5 1.5 0 1 0 7 9
-        M17 18 A 3 3 0 1 0 23 18 A 3 3 0 1 0 17 18
-        M22 20 L25 23"
-            Stroke="{DynamicResource ForegroundBrush}"
-            StrokeThickness="4"
-            Width="72"
-            Height="72"
-            Stretch="Uniform"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Opacity="0.3" />
-                            <TextBlock Text="拖拽图片或文件夹到此处" 
+                                Data="
+                            M4 5 H20 V19 H4 Z
+                            M4 16 L9 11 L14 16 L17 13 L20 16
+                            M7 9 A 1.5 1.5 0 1 0 7 6 A 1.5 1.5 0 1 0 7 9
+                            M17 18 A 3 3 0 1 0 23 18 A 3 3 0 1 0 17 18
+                            M22 20 L25 23"
+                                Stroke="{DynamicResource ForegroundBrush}"
+                                StrokeThickness="4"
+                                Width="72"
+                                Height="72"
+                                Stretch="Uniform"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Opacity="0.3" />
+                            <TextBlock Text="{DynamicResource MainWindow_DragDropHint}" 
                    Foreground="{DynamicResource ForegroundDimBrush}"
                    FontSize="18" HorizontalAlignment="Center" Margin="0,16,0,0"/>
-                            <TextBlock Text="或点击工具栏打开文件/文件夹" 
+                            <TextBlock Text="{DynamicResource MainWindow_ClickToolbarHint}" 
                    Foreground="{DynamicResource ForegroundDimBrush}"
                    FontSize="14" HorizontalAlignment="Center" Margin="0,8,0,0" Opacity="0.7"/>
 
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,24,0,0">
-                                <Button Content="打开图片" Style="{StaticResource ModernButtonStyle}"
+                                <Button Content="{DynamicResource Button_OpenImage}" Style="{StaticResource ModernButtonStyle}"
                     Command="{Binding OpenFileCommand}" Margin="0,0,8,0"/>
-                                <Button Content="打开文件夹" Style="{StaticResource ModernButtonStyle}"
+                                <Button Content="{DynamicResource Button_OpenFolder}" Style="{StaticResource ModernButtonStyle}"
                     Command="{Binding OpenFolderCommand}"/>
                             </StackPanel>
 
 
 
-                            <!-- 快捷键指南 - 分组美化版 -->
+                            <!-- 快捷键指南 -->
                             <Border Background="{DynamicResource BackgroundLightBrush}"
                     CornerRadius="8"
                     Padding="24,16"
@@ -821,7 +821,7 @@ x:Name="NextZone">
 
                                 <StackPanel>
                                     <!-- 标题 -->
-                                    <TextBlock Text="快捷键指南"
+                                    <TextBlock Text="{DynamicResource MainWindow_ShortcutGuide}"
                        Foreground="{DynamicResource ForegroundBrush}"
                        FontSize="14"
                        FontWeight="SemiBold"
@@ -875,7 +875,7 @@ x:Name="NextZone">
                                         <!-- 左列 -->
                                         <StackPanel Grid.Column="0">
                                             <!-- 文件操作 -->
-                                            <TextBlock Text="文件操作" Style="{StaticResource CategoryStyle}"/>
+                                            <TextBlock Text="{DynamicResource ShortcutGuide_FileOperations}" Style="{StaticResource CategoryStyle}"/>
                                             <Grid Margin="0,0,0,4">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="Auto"/>
@@ -890,7 +890,7 @@ x:Name="NextZone">
                                                         <TextBlock Text="Ctrl+F" Style="{StaticResource KeyTextStyle}"/>
                                                     </Border>
                                                 </StackPanel>
-                                                <TextBlock Grid.Column="2" Text="打开文件/文件夹" Style="{StaticResource DescTextStyle}"/>
+                                                <TextBlock Grid.Column="2" Text="{DynamicResource Shortcut_OpenFileFolder}" Style="{StaticResource DescTextStyle}"/>
                                             </Grid>
                                             <Grid Margin="0,0,0,4">
                                                 <Grid.ColumnDefinitions>
@@ -903,7 +903,7 @@ x:Name="NextZone">
                                                         <TextBlock Text="Ctrl+Tab" Style="{StaticResource KeyTextStyle}"/>
                                                     </Border>
                                                 </StackPanel>
-                                                <TextBlock Grid.Column="2" Text="收藏文件夹切换" Style="{StaticResource DescTextStyle}"/>
+                                                <TextBlock Grid.Column="2" Text="{DynamicResource Shortcut_FavoriteFolderSwitch}" Style="{StaticResource DescTextStyle}"/>
                                             </Grid>
                                             <Grid Margin="0,0,0,4">
                                                 <Grid.ColumnDefinitions>
@@ -916,11 +916,11 @@ x:Name="NextZone">
                                                         <TextBlock Text="Ctrl+Shift+B" Style="{StaticResource KeyTextStyle}"/>
                                                     </Border>
                                                 </StackPanel>
-                                                <TextBlock Grid.Column="2" Text="打开收藏页面" Style="{StaticResource DescTextStyle}"/>
+                                                <TextBlock Grid.Column="2" Text="{DynamicResource Shortcut_OpenFavoritesPage}" Style="{StaticResource DescTextStyle}"/>
                                             </Grid>
 
                                             <!-- 图片导航 -->
-                                            <TextBlock Text="图片导航" Style="{StaticResource CategoryStyle}" Margin="0,12,0,6"/>
+                                            <TextBlock Text="{DynamicResource ShortcutGuide_ImageNavigation}" Style="{StaticResource CategoryStyle}" Margin="0,12,0,6"/>
                                             <Grid Margin="0,0,0,4">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="Auto"/>
@@ -935,7 +935,7 @@ x:Name="NextZone">
                                                         <TextBlock Text="A D" Style="{StaticResource KeyTextStyle}"/>
                                                     </Border>
                                                 </StackPanel>
-                                                <TextBlock Grid.Column="2" Text="上一张/下一张" Style="{StaticResource DescTextStyle}"/>
+                                                <TextBlock Grid.Column="2" Text="{DynamicResource Shortcut_PreviousNextImage}" Style="{StaticResource DescTextStyle}"/>
                                             </Grid>
                                             <Grid Margin="0,0,0,4">
                                                 <Grid.ColumnDefinitions>
@@ -946,7 +946,7 @@ x:Name="NextZone">
                                                 <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
                                                     <TextBlock Text="Space" Style="{StaticResource KeyTextStyle}"/>
                                                 </Border>
-                                                <TextBlock Grid.Column="2" Text="下一张" Style="{StaticResource DescTextStyle}"/>
+                                                <TextBlock Grid.Column="2" Text="{DynamicResource Shortcut_NextImage}" Style="{StaticResource DescTextStyle}"/>
                                             </Grid>
                                             <Grid Margin="0,0,0,4">
                                                 <Grid.ColumnDefinitions>
@@ -962,7 +962,7 @@ x:Name="NextZone">
                                                         <TextBlock Text="PgDn" Style="{StaticResource KeyTextStyle}"/>
                                                     </Border>
                                                 </StackPanel>
-                                                <TextBlock Grid.Column="2" Text="上一张/下一张" Style="{StaticResource DescTextStyle}"/>
+                                                <TextBlock Grid.Column="2" Text="{DynamicResource Shortcut_PreviousNextImage}" Style="{StaticResource DescTextStyle}"/>
                                             </Grid>
                                             <Grid Margin="0,0,0,4">
                                                 <Grid.ColumnDefinitions>
@@ -978,11 +978,11 @@ x:Name="NextZone">
                                                         <TextBlock Text="End" Style="{StaticResource KeyTextStyle}"/>
                                                     </Border>
                                                 </StackPanel>
-                                                <TextBlock Grid.Column="2" Text="首张/末张" Style="{StaticResource DescTextStyle}"/>
+                                                <TextBlock Grid.Column="2" Text="{DynamicResource Shortcut_FirstLastImage}" Style="{StaticResource DescTextStyle}"/>
                                             </Grid>
 
                                             <!-- 视图控制 -->
-                                            <TextBlock Text="视图控制" Style="{StaticResource CategoryStyle}" Margin="0,12,0,6"/>
+                                            <TextBlock Text="{DynamicResource ShortcutGuide_ViewControl}" Style="{StaticResource CategoryStyle}" Margin="0,12,0,6"/>
                                             <Grid Margin="0,0,0,4">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="Auto"/>
@@ -992,7 +992,7 @@ x:Name="NextZone">
                                                 <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
                                                     <TextBlock Text="F11" Style="{StaticResource KeyTextStyle}"/>
                                                 </Border>
-                                                <TextBlock Grid.Column="2" Text="全屏切换" Style="{StaticResource DescTextStyle}"/>
+                                                <TextBlock Grid.Column="2" Text="{DynamicResource Shortcut_ToggleFullScreen}" Style="{StaticResource DescTextStyle}"/>
                                             </Grid>
                                             <Grid Margin="0,0,0,4">
                                                 <Grid.ColumnDefinitions>
@@ -1003,7 +1003,7 @@ x:Name="NextZone">
                                                 <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
                                                     <TextBlock Text="ESC" Style="{StaticResource KeyTextStyle}"/>
                                                 </Border>
-                                                <TextBlock Grid.Column="2" Text="退出全屏/关闭" Style="{StaticResource DescTextStyle}"/>
+                                                <TextBlock Grid.Column="2" Text="{DynamicResource Shortcut_ExitFullScreenClose}" Style="{StaticResource DescTextStyle}"/>
                                             </Grid>
                                             <Grid Margin="0,0,0,4">
                                                 <Grid.ColumnDefinitions>
@@ -1019,7 +1019,7 @@ x:Name="NextZone">
                                                         <TextBlock Text="-" Style="{StaticResource KeyTextStyle}"/>
                                                     </Border>
                                                 </StackPanel>
-                                                <TextBlock Grid.Column="2" Text="放大/缩小" Style="{StaticResource DescTextStyle}"/>
+                                                <TextBlock Grid.Column="2" Text="{DynamicResource Shortcut_ZoomInOut}" Style="{StaticResource DescTextStyle}"/>
                                             </Grid>
                                             <Grid Margin="0,0,0,4">
                                                 <Grid.ColumnDefinitions>
@@ -1030,20 +1030,20 @@ x:Name="NextZone">
                                                 <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
                                                     <TextBlock Text="Ctrl+0" Style="{StaticResource KeyTextStyle}"/>
                                                 </Border>
-                                                <TextBlock Grid.Column="2" Text="适应/原始尺寸切换" Style="{StaticResource DescTextStyle}"/>
+                                                <TextBlock Grid.Column="2" Text="{DynamicResource Shortcut_FitActualToggle}" Style="{StaticResource DescTextStyle}"/>
                                             </Grid>
                                         </StackPanel>
 
                                         <!-- 中间分隔线 -->
                                         <Border Grid.Column="1" Width="1" 
-                                Background="{DynamicResource ForegroundDimBrush}"
-                                Opacity="0.3"
-                                Margin="12,0"/>
+                                            Background="{DynamicResource ForegroundDimBrush}"
+                                            Opacity="0.3"
+                                            Margin="12,0"/>
 
                                         <!-- 右列 -->
                                         <StackPanel Grid.Column="2">
                                             <!-- 功能操作 -->
-                                            <TextBlock Text="功能操作" Style="{StaticResource CategoryStyle}"/>
+                                            <TextBlock Text="{DynamicResource ShortcutGuide_FunctionOperations}" Style="{StaticResource CategoryStyle}"/>
                                             <Grid Margin="0,0,0,4">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="Auto"/>
@@ -1053,7 +1053,7 @@ x:Name="NextZone">
                                                 <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
                                                     <TextBlock Text="M" Style="{StaticResource KeyTextStyle}"/>
                                                 </Border>
-                                                <TextBlock Grid.Column="2" Text="切换浏览模式" Style="{StaticResource DescTextStyle}"/>
+                                                <TextBlock Grid.Column="2" Text="{DynamicResource Shortcut_SwitchViewMode}" Style="{StaticResource DescTextStyle}"/>
                                             </Grid>
                                             <Grid Margin="0,0,0,4">
                                                 <Grid.ColumnDefinitions>
@@ -1064,7 +1064,7 @@ x:Name="NextZone">
                                                 <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
                                                     <TextBlock Text="S" Style="{StaticResource KeyTextStyle}"/>
                                                 </Border>
-                                                <TextBlock Grid.Column="2" Text="开始/停止幻灯片" Style="{StaticResource DescTextStyle}"/>
+                                                <TextBlock Grid.Column="2" Text="{DynamicResource Shortcut_StartStopSlideshow}" Style="{StaticResource DescTextStyle}"/>
                                             </Grid>
                                             <Grid Margin="0,0,0,4">
                                                 <Grid.ColumnDefinitions>
@@ -1075,7 +1075,7 @@ x:Name="NextZone">
                                                 <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
                                                     <TextBlock Text="B" Style="{StaticResource KeyTextStyle}"/>
                                                 </Border>
-                                                <TextBlock Grid.Column="2" Text="收藏/取消收藏" Style="{StaticResource DescTextStyle}"/>
+                                                <TextBlock Grid.Column="2" Text="{DynamicResource Shortcut_ToggleBookmark}" Style="{StaticResource DescTextStyle}"/>
                                             </Grid>
                                             <Grid Margin="0,0,0,4">
                                                 <Grid.ColumnDefinitions>
@@ -1086,7 +1086,7 @@ x:Name="NextZone">
                                                 <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
                                                     <TextBlock Text="Ctrl+C" Style="{StaticResource KeyTextStyle}"/>
                                                 </Border>
-                                                <TextBlock Grid.Column="2" Text="复制到剪贴板" Style="{StaticResource DescTextStyle}"/>
+                                                <TextBlock Grid.Column="2" Text="{DynamicResource Shortcut_CopyToClipboard}" Style="{StaticResource DescTextStyle}"/>
                                             </Grid>
                                             <Grid Margin="0,0,0,4">
                                                 <Grid.ColumnDefinitions>
@@ -1097,7 +1097,7 @@ x:Name="NextZone">
                                                 <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
                                                     <TextBlock Text="Delete" Style="{StaticResource KeyTextStyle}"/>
                                                 </Border>
-                                                <TextBlock Grid.Column="2" Text="删除当前图片" Style="{StaticResource DescTextStyle}"/>
+                                                <TextBlock Grid.Column="2" Text="{DynamicResource Shortcut_DeleteImage}" Style="{StaticResource DescTextStyle}"/>
                                             </Grid>
                                             <Grid Margin="0,0,0,4">
                                                 <Grid.ColumnDefinitions>
@@ -1108,7 +1108,7 @@ x:Name="NextZone">
                                                 <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
                                                     <TextBlock Text="Ctrl+Shift+F" Style="{StaticResource KeyTextStyle}"/>
                                                 </Border>
-                                                <TextBlock Grid.Column="2" Text="启用/关闭过滤" Style="{StaticResource DescTextStyle}"/>
+                                                <TextBlock Grid.Column="2" Text="{DynamicResource Shortcut_ToggleFilter}" Style="{StaticResource DescTextStyle}"/>
                                             </Grid>
                                             <Grid Margin="0,0,0,4">
                                                 <Grid.ColumnDefinitions>
@@ -1119,7 +1119,7 @@ x:Name="NextZone">
                                                 <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
                                                     <TextBlock Text="Ctrl+P" Style="{StaticResource KeyTextStyle}"/>
                                                 </Border>
-                                                <TextBlock Grid.Column="2" Text="打印" Style="{StaticResource DescTextStyle}"/>
+                                                <TextBlock Grid.Column="2" Text="{DynamicResource Shortcut_Print}" Style="{StaticResource DescTextStyle}"/>
                                             </Grid>
                                         </StackPanel>
                                     </Grid>
@@ -1165,7 +1165,7 @@ x:Name="NextZone">
                                 <Button Grid.Column="1" Width="24" Height="24" HorizontalAlignment="Right" VerticalAlignment="Top"
                     Style="{StaticResource IconButtonStyle}"
                     Command="{Binding ToggleInfoPanelCommand}"
-                    ToolTip="关闭信息面板">
+                    ToolTip="{DynamicResource ToolTip_CloseInfoPanel}">
                                     <Path Data="M6 6 L18 18 M18 6 L6 18"
                       Stroke="{DynamicResource ForegroundBrush}"
                       StrokeThickness="2"
@@ -1182,18 +1182,27 @@ x:Name="NextZone">
                                     <TextBlock Text="{Binding PositionText}"
                            Foreground="{DynamicResource ForegroundDimBrush}"
                            FontSize="11" Margin="0,2,0,6"/>
-                                    <TextBlock Text="{Binding CurrentImage.DimensionsFormatted, StringFormat='分辨率：{0}'}"
-                           Foreground="{DynamicResource ForegroundBrush}"
-                           FontSize="12"/>
-                                    <TextBlock Text="{Binding CurrentImage.BitDepth, StringFormat='位深：{0} bpp'}"
-                           Foreground="{DynamicResource ForegroundBrush}"
-                           FontSize="12" Margin="0,2,0,0"/>
-                                    <TextBlock Text="{Binding CurrentImage.FileSizeFormatted, StringFormat='大小：{0}'}"
-                           Foreground="{DynamicResource ForegroundBrush}"
-                           FontSize="12" Margin="0,2,0,0"/>
-                                    <TextBlock Text="{Binding CurrentImage.DateModified, StringFormat='修改：{0:yyyy-MM-dd HH:mm}'}"
-                           Foreground="{DynamicResource ForegroundBrush}"
-                           FontSize="12" Margin="0,2,0,0"/>
+                                    <TextBlock Foreground="{DynamicResource ForegroundBrush}"
+                           FontSize="12">
+                                        <Run Text="{DynamicResource InfoPanel_Dimensions}"/>
+                                        <Run Text="{Binding CurrentImage.DimensionsFormatted}"/>
+                                    </TextBlock>
+                                    <TextBlock Foreground="{DynamicResource ForegroundBrush}"
+                           FontSize="12" Margin="0,2,0,0">
+                                        <Run Text="{DynamicResource InfoPanel_BitDepth}"/>
+                                        <Run Text="{Binding CurrentImage.BitDepth}"/>
+                                        <Run Text="{DynamicResource InfoPanel_BitDepthSuffix}"/>
+                                    </TextBlock>
+                                    <TextBlock Foreground="{DynamicResource ForegroundBrush}"
+                           FontSize="12" Margin="0,2,0,0">
+                                        <Run Text="{DynamicResource InfoPanel_FileSize}"/>
+                                        <Run Text="{Binding CurrentImage.FileSizeFormatted}"/>
+                                    </TextBlock>
+                                    <TextBlock Foreground="{DynamicResource ForegroundBrush}"
+                           FontSize="12" Margin="0,2,0,0">
+                                        <Run Text="{DynamicResource InfoPanel_DateModified}"/>
+                                        <Run Text="{Binding CurrentImage.DateModified, StringFormat={}{0:yyyy-MM-dd HH:mm}}"/>
+                                    </TextBlock>
                                     <TextBlock Text="{Binding CurrentImage.FilePath}"
                            Foreground="{DynamicResource ForegroundDimBrush}"
                            FontSize="11"
@@ -1225,7 +1234,7 @@ x:Name="NextZone">
                                         </EventTrigger>
                                     </TextBlock.Triggers>
                                 </TextBlock>
-                                <TextBlock Text="加载中..." Foreground="White" FontSize="14" Margin="0,12,0,0"/>
+                                <TextBlock Text="{DynamicResource Status_Loading}" Foreground="White" FontSize="14" Margin="0,12,0,0"/>
                             </StackPanel>
                         </Border>
                     </Grid>
@@ -1271,7 +1280,7 @@ x:Name="NextZone">
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Text="图片列表" Foreground="{DynamicResource ForegroundBrush}" 
+                                    <TextBlock Text="{DynamicResource Sidebar_Title}" Foreground="{DynamicResource ForegroundBrush}" 
                                        FontSize="14" FontWeight="SemiBold"/>
                                     <TextBlock Text="{Binding PositionText}" Foreground="{DynamicResource ForegroundDimBrush}" 
                                        FontSize="12" Margin="0,4,0,0"/>
@@ -1280,7 +1289,7 @@ x:Name="NextZone">
                                     Style="{StaticResource IconButtonStyle}"
                                     Width="28" Height="28"
                                     Margin="8,0,0,0"
-                                    ToolTip="收藏/取消收藏当前路径"
+                                    ToolTip="{DynamicResource ToolTip_BookmarkCurrentFolder}"
                                     Command="{Binding ToggleCurrentFolderBookmarkCommand}"
                                     IsEnabled="{Binding IsCurrentFolderBookmarkAvailable}">
                                     <Grid>
@@ -1396,7 +1405,7 @@ x:Name="NextZone">
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 <StackPanel Grid.Row="0" VerticalAlignment="Center">
-                                    <TextBlock Text="图片列表" Foreground="{DynamicResource ForegroundBrush}" 
+                                    <TextBlock Text="{DynamicResource Sidebar_Title}" Foreground="{DynamicResource ForegroundBrush}" 
                                FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                                     <TextBlock Text="{Binding PositionText}" Foreground="{DynamicResource ForegroundDimBrush}" 
                                FontSize="12" Margin="0,4,0,0" HorizontalAlignment="Center"/>
@@ -1406,7 +1415,7 @@ x:Name="NextZone">
                             Width="28" Height="28"
                             Margin="0,8,0,0"
                             HorizontalAlignment="Center"
-                            ToolTip="收藏/取消收藏当前路径"
+                            ToolTip="{DynamicResource ToolTip_BookmarkCurrentFolder}"
                             Command="{Binding ToggleCurrentFolderBookmarkCommand}"
                             IsEnabled="{Binding IsCurrentFolderBookmarkAvailable}">
                                     <Grid>
@@ -1522,7 +1531,7 @@ x:Name="NextZone">
 
                         <Border Grid.Column="0" Padding="12,8" Background="{DynamicResource BackgroundLightBrush}" Width="120">
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="图片列表" Foreground="{DynamicResource ForegroundBrush}" 
+                                <TextBlock Text="{DynamicResource Sidebar_Title}" Foreground="{DynamicResource ForegroundBrush}" 
                            FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                                 <TextBlock Text="{Binding PositionText}" Foreground="{DynamicResource ForegroundDimBrush}" 
                            FontSize="12" Margin="0,4,0,0" HorizontalAlignment="Center"/>
@@ -1598,7 +1607,7 @@ x:Name="NextZone">
 
                         <Border Grid.Row="0" Padding="12,8" Background="{DynamicResource BackgroundLightBrush}">
                             <StackPanel>
-                                <TextBlock Text="图片列表" Foreground="{DynamicResource ForegroundBrush}" 
+                                <TextBlock Text="{DynamicResource Sidebar_Title}" Foreground="{DynamicResource ForegroundBrush}" 
                            FontSize="14" FontWeight="SemiBold"/>
                                 <TextBlock Text="{Binding PositionText}" Foreground="{DynamicResource ForegroundDimBrush}" 
                            FontSize="12" Margin="0,4,0,0"/>
@@ -1652,7 +1661,7 @@ x:Name="NextZone">
 
                     <Button Grid.Column="0" Width="32" Height="26"
                         Command="{Binding ToggleBookmarkCommand}"
-                        ToolTip="收藏当前图片（仅单图模式）"
+                        ToolTip="{DynamicResource ToolTip_BookmarkCurrentImage}"
                         Margin="0,0,8,0">
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource IconButtonStyle}">
@@ -1688,7 +1697,7 @@ x:Name="NextZone">
 
                     <Button Grid.Column="1" Style="{StaticResource IconButtonStyle}" Width="32" Height="26"
                         Command="{Binding ToggleInfoPanelCommand}"
-                        ToolTip="查看图片信息" Margin="0,0,8,0"
+                        ToolTip="{DynamicResource ToolTip_ViewImageInfo}" Margin="0,0,8,0"
                         IsEnabled="{Binding HasImages}">
                         <Path Data="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6z M12 8v2 M12 12v5"
                   Stroke="{DynamicResource ForegroundBrush}" StrokeThickness="1.8"  StrokeLineJoin="Round"
@@ -1777,7 +1786,7 @@ x:Name="NextZone">
                 </Border.Resources>
 
                 <StackPanel>
-                    <TextBlock Text="切换收藏文件夹"
+                    <TextBlock Text="{DynamicResource FolderSwitch_Title}"
                                Foreground="{DynamicResource ForegroundBrush}"
                                FontSize="14"
                                FontWeight="SemiBold"
@@ -1876,7 +1885,7 @@ x:Name="NextZone">
                                    Visibility="Collapsed"/>
                     </Grid>
 
-                    <TextBlock Text="←/→或Tab选择，Enter/松开Ctrl进入，Esc/Q取消"
+                    <TextBlock Text="{DynamicResource FolderSwitch_Instructions}"
                                Foreground="{DynamicResource ForegroundDimBrush}"
                                FontSize="11"
                                Margin="0,12,0,0"
@@ -1905,33 +1914,33 @@ x:Name="NextZone">
 
     <Window.ContextMenu>
         <ContextMenu>
-            <MenuItem Header="打开文件 (Ctrl+O)" Command="{Binding OpenFileCommand}"/>
-            <MenuItem Header="打开文件夹 (Ctrl+F)" Command="{Binding OpenFolderCommand}"/>
+            <MenuItem Header="{DynamicResource ContextMenu_OpenFile}" Command="{Binding OpenFileCommand}"/>
+            <MenuItem Header="{DynamicResource ContextMenu_OpenFolder}" Command="{Binding OpenFolderCommand}"/>
             <Separator/>
-            <MenuItem Header="上一张 (←)" Command="{Binding GoPreviousCommand}"/>
-            <MenuItem Header="下一张 (→)" Command="{Binding GoNextCommand}"/>
+            <MenuItem Header="{DynamicResource ContextMenu_Previous}" Command="{Binding GoPreviousCommand}"/>
+            <MenuItem Header="{DynamicResource ContextMenu_Next}" Command="{Binding GoNextCommand}"/>
             <Separator/>
-            <MenuItem Header="放大 (+)" Command="{Binding ZoomInCommand}"/>
-            <MenuItem Header="缩小 (-)" Command="{Binding ZoomOutCommand}"/>
-            <MenuItem Header="适应窗口" Command="{Binding ZoomToFitCommand}"/>
-            <MenuItem Header="原始尺寸" Command="{Binding ZoomToActualCommand}"/>
+            <MenuItem Header="{DynamicResource ContextMenu_ZoomIn}" Command="{Binding ZoomInCommand}"/>
+            <MenuItem Header="{DynamicResource ContextMenu_ZoomOut}" Command="{Binding ZoomOutCommand}"/>
+            <MenuItem Header="{DynamicResource ContextMenu_ZoomToFit}" Command="{Binding ZoomToFitCommand}"/>
+            <MenuItem Header="{DynamicResource ContextMenu_ZoomToActual}" Command="{Binding ZoomToActualCommand}"/>
             <Separator/>
-            <MenuItem Header="旋转90°" Command="{Binding Rotate90Command}"/>
-            <MenuItem Header="添加/移除书签 (B)" Command="{Binding ToggleBookmarkCommand}"/>
+            <MenuItem Header="{DynamicResource ContextMenu_Rotate90}" Command="{Binding Rotate90Command}"/>
+            <MenuItem Header="{DynamicResource ContextMenu_ToggleBookmark}" Command="{Binding ToggleBookmarkCommand}"/>
             <Separator/>
-            <MenuItem Header="复制到剪贴板 (Ctrl+C)" Command="{Binding CopyToClipboardCommand}"/>
-            <MenuItem Header="分享当前图片 (LocalSend)" Command="{Binding ShareCurrentImageCommand}"/>
-            <MenuItem Header="在资源管理器中显示" Command="{Binding OpenInExplorerCommand}"/>
-            <MenuItem Header="删除 (Delete)" Command="{Binding DeleteImageCommand}"/>
+            <MenuItem Header="{DynamicResource ContextMenu_CopyToClipboard}" Command="{Binding CopyToClipboardCommand}"/>
+            <MenuItem Header="{DynamicResource ContextMenu_ShareCurrentImage}" Command="{Binding ShareCurrentImageCommand}"/>
+            <MenuItem Header="{DynamicResource ContextMenu_OpenInExplorer}" Command="{Binding OpenInExplorerCommand}"/>
+            <MenuItem Header="{DynamicResource ContextMenu_DeleteImage}" Command="{Binding DeleteImageCommand}"/>
             <Separator/>
-            <MenuItem Header="打印 (Ctrl+P)" Click="PrintMenuItem_Click"/>
+            <MenuItem Header="{DynamicResource ContextMenu_Print}" Click="PrintMenuItem_Click"/>
             <Separator/>
-            <MenuItem Header="全屏 (F11)" Command="{Binding ToggleFullScreenCommand}"/>
-            <MenuItem Header="幻灯片 (S)" Command="{Binding ToggleSlideShowCommand}"/>
+            <MenuItem Header="{DynamicResource ContextMenu_FullScreen}" Command="{Binding ToggleFullScreenCommand}"/>
+            <MenuItem Header="{DynamicResource ContextMenu_SlideShow}" Command="{Binding ToggleSlideShowCommand}"/>
             <Separator/>
-            <MenuItem Header="切换模式 (M)" Command="{Binding ToggleViewModeCommand}"/>
+            <MenuItem Header="{DynamicResource ContextMenu_ToggleViewMode}" Command="{Binding ToggleViewModeCommand}"/>
             <Separator/>
-            <MenuItem Header="设置" Click="OpenSettingsMenuItem_Click"/>
+            <MenuItem Header="{DynamicResource ContextMenu_Settings}" Click="OpenSettingsMenuItem_Click"/>
         </ContextMenu>
     </Window.ContextMenu>
 </Window>

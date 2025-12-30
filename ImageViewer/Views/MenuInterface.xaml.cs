@@ -77,7 +77,7 @@ namespace ImageViewer.Views
         };
 
 
-      
+
 
 
         public MenuInterface(AppSettings settings)
@@ -132,13 +132,13 @@ namespace ImageViewer.Views
             switch (page)
             {
                 case MenuPage.Settings:
-                    PageTitleText.Text = "常规设置";
+                    PageTitleText.Text = LanguageManager.GetString("Page_GeneralSettings");
                     break;
                 case MenuPage.Favorites:
-                    PageTitleText.Text = "收藏";
+                    PageTitleText.Text = LanguageManager.GetString("Page_Favorites");
                     break;
                 case MenuPage.Associations:
-                    PageTitleText.Text = "关联设置";
+                    PageTitleText.Text = LanguageManager.GetString("Page_Associations");
                     break;
             }
         }
@@ -268,31 +268,44 @@ namespace ImageViewer.Views
             MinFileSizeTextBox.Text = _settings.MinFileSizeKB.ToString();
             MaxFileSizeTextBox.Text = _settings.MaxFileSizeMB.ToString();
 
-             RememberPositionCheckBox.IsChecked = _settings.RememberWindowPosition;
-             RememberReadingCheckBox.IsChecked = _settings.RememberReadingPosition;
-             FreezeDuringResizeCheckBox.IsChecked = _settings.FreezeDuringResize;
-             ShowStatusBarCheckBox.IsChecked = _settings.ShowStatusBar;
+            RememberPositionCheckBox.IsChecked = _settings.RememberWindowPosition;
+            RememberReadingCheckBox.IsChecked = _settings.RememberReadingPosition;
+            FreezeDuringResizeCheckBox.IsChecked = _settings.FreezeDuringResize;
+            ShowStatusBarCheckBox.IsChecked = _settings.ShowStatusBar;
 
-             ScanSubfoldersCheckBox.IsChecked = _settings.ScanSubfoldersEnabled;
-             foreach (ComboBoxItem item in ScanSubfoldersDepthComboBox.Items)
-             {
-                 if (int.TryParse(item.Tag?.ToString(), out var depth) && depth == _settings.ScanSubfoldersDepth)
-                 {
-                     ScanSubfoldersDepthComboBox.SelectedItem = item;
-                     break;
-                 }
-             }
- 
-             LocalSendPathTextBox.Text = _settings.LocalSendPath;
-         }
+            ScanSubfoldersCheckBox.IsChecked = _settings.ScanSubfoldersEnabled;
+            foreach (ComboBoxItem item in ScanSubfoldersDepthComboBox.Items)
+            {
+                if (int.TryParse(item.Tag?.ToString(), out var depth) && depth == _settings.ScanSubfoldersDepth)
+                {
+                    ScanSubfoldersDepthComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+
+            LocalSendPathTextBox.Text = _settings.LocalSendPath;
+
+
+            // 加载语言设置
+            foreach (ComboBoxItem item in LanguageComboBox.Items)
+            {
+                if (item.Tag is AppLanguage lang && lang == _settings.Language)
+                {
+                    LanguageComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+        }
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
+
+
             if (ViewModeComboBox.SelectedItem is ComboBoxItem viewItem && viewItem.Tag is ViewMode mode)
             {
                 _settings.DefaultViewMode = mode;
             }
-
+            // 保存主题
             if (ThemeComboBox.SelectedItem is ComboBoxItem themeItem && themeItem.Tag is AppTheme theme)
             {
                 _settings.Theme = theme;
@@ -327,20 +340,37 @@ namespace ImageViewer.Views
             _settings.MinFileSizeKB = ParseNonNegativeInt(MinFileSizeTextBox.Text);
             _settings.MaxFileSizeMB = ParseNonNegativeInt(MaxFileSizeTextBox.Text);
 
-              _settings.RememberWindowPosition = RememberPositionCheckBox.IsChecked ?? true;
-              _settings.RememberReadingPosition = RememberReadingCheckBox.IsChecked ?? true;
-              _settings.FreezeDuringResize = FreezeDuringResizeCheckBox.IsChecked ?? true;
-              _settings.ShowStatusBar = ShowStatusBarCheckBox.IsChecked ?? true;
+            _settings.RememberWindowPosition = RememberPositionCheckBox.IsChecked ?? true;
+            _settings.RememberReadingPosition = RememberReadingCheckBox.IsChecked ?? true;
+            _settings.FreezeDuringResize = FreezeDuringResizeCheckBox.IsChecked ?? true;
+            _settings.ShowStatusBar = ShowStatusBarCheckBox.IsChecked ?? true;
 
-              _settings.ScanSubfoldersEnabled = ScanSubfoldersCheckBox.IsChecked ?? false;
-              if (ScanSubfoldersDepthComboBox.SelectedItem is ComboBoxItem depthItem &&
-                  int.TryParse(depthItem.Tag?.ToString(), out var depth))
-              {
-                  _settings.ScanSubfoldersDepth = depth;
-              }
- 
-              _settings.LocalSendPath = LocalSendPathTextBox.Text ?? string.Empty;
+            _settings.ScanSubfoldersEnabled = ScanSubfoldersCheckBox.IsChecked ?? false;
+            if (ScanSubfoldersDepthComboBox.SelectedItem is ComboBoxItem depthItem &&
+                int.TryParse(depthItem.Tag?.ToString(), out var depth))
+            {
+                _settings.ScanSubfoldersDepth = depth;
+            }
 
+            _settings.LocalSendPath = LocalSendPathTextBox.Text ?? string.Empty;
+            // 保存语言设置
+            if (LanguageComboBox.SelectedItem is ComboBoxItem langItem &&
+                langItem.Tag is AppLanguage selectedLang)
+            {
+                var oldLang = _settings.Language;
+                _settings.Language = selectedLang;
+
+                // 如果语言改变，应用新语言
+                if (oldLang != selectedLang)
+                {
+                    LanguageManager.Instance.SetLanguage(selectedLang);
+                    //MessageBox.Show(
+                    //    LanguageManager.GetString("Msg_LanguageChanged"),
+                    //    LanguageManager.GetString("Msg_Hint"),
+                    //    MessageBoxButton.OK,
+                    //    MessageBoxImage.Information);
+                }
+            }
             _settings.Save();
             DialogResult = true;
             Close();
@@ -517,7 +547,7 @@ namespace ImageViewer.Views
         {
             var dialog = new System.Windows.Forms.FolderBrowserDialog
             {
-                Description = "选择要收藏的文件夹",
+                Description = LanguageManager.GetString("Dialog_SelectFavoriteFolder"),
                 ShowNewFolderButton = false
             };
 
@@ -535,13 +565,21 @@ namespace ImageViewer.Views
         {
             if (Owner is not MainWindow mainWindow)
             {
-                MessageBox.Show("无法获取主窗口。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+            LanguageManager.GetString("Error_CannotGetMainWindow"),
+            LanguageManager.GetString("Msg_Hint"),
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
                 return;
             }
 
             if (mainWindow.DataContext is not MainViewModel viewModel)
             {
-                MessageBox.Show("无法获取主窗口数据。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+           LanguageManager.GetString("Error_CannotGetMainWindowData"),
+           LanguageManager.GetString("Msg_Hint"),
+           MessageBoxButton.OK,
+           MessageBoxImage.Information); 
                 return;
             }
 
@@ -549,7 +587,11 @@ namespace ImageViewer.Views
             if (string.IsNullOrWhiteSpace(folderPath) ||
                 (!Directory.Exists(folderPath) && !File.Exists(folderPath)))
             {
-                MessageBox.Show("当前没有可收藏的路径。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+           LanguageManager.GetString("Error_NoCurrentPathToFavorite"),
+           LanguageManager.GetString("Msg_Hint"),
+           MessageBoxButton.OK,
+           MessageBoxImage.Information);
                 return;
             }
 
@@ -592,13 +634,21 @@ namespace ImageViewer.Views
             {
                 if (Owner is not MainWindow mainWindow)
                 {
-                    MessageBox.Show("无法获取主窗口。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show(
+                 LanguageManager.GetString("Error_CannotGetMainWindow"),
+                 LanguageManager.GetString("Msg_Hint"),
+                 MessageBoxButton.OK,
+                 MessageBoxImage.Information);
                     return;
                 }
 
                 if (mainWindow.DataContext is not MainViewModel viewModel)
                 {
-                    MessageBox.Show("无法获取主窗口数据。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show(
+               LanguageManager.GetString("Error_CannotGetMainWindowData"),
+               LanguageManager.GetString("Msg_Hint"),
+               MessageBoxButton.OK,
+               MessageBoxImage.Information);
                     return;
                 }
 
@@ -675,7 +725,11 @@ namespace ImageViewer.Views
                 return;
             }
 
-            var result = MessageBox.Show("确定要清空所有收藏文件夹吗？", "确认", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            var result = MessageBox.Show(
+            LanguageManager.GetString("Msg_ConfirmClearFolders"),
+            LanguageManager.GetString("Msg_Confirm"),
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question);
             if (result != MessageBoxResult.Yes)
             {
                 return;
@@ -763,19 +817,31 @@ namespace ImageViewer.Views
 
             if (!item.Exists || string.IsNullOrWhiteSpace(item.FilePath))
             {
-                MessageBox.Show("文件不存在或无法打开。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+            LanguageManager.GetString("Error_FileNotExistOrCannotOpen"),
+            LanguageManager.GetString("Msg_Hint"),
+            MessageBoxButton.OK,
+            MessageBoxImage.Information); 
                 return;
             }
 
             if (Owner is not MainWindow mainWindow)
             {
-                MessageBox.Show("无法获取主窗口。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+            LanguageManager.GetString("Error_CannotGetMainWindow"),
+            LanguageManager.GetString("Msg_Hint"),
+            MessageBoxButton.OK,
+            MessageBoxImage.Information); 
                 return;
             }
 
             if (mainWindow.DataContext is not MainViewModel viewModel)
             {
-                MessageBox.Show("无法获取主窗口数据。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+            LanguageManager.GetString("Error_CannotGetMainWindowData"),
+            LanguageManager.GetString("Msg_Hint"),
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
                 return;
             }
 
@@ -924,7 +990,7 @@ namespace ImageViewer.Views
 
             if (FavoriteFolderImagesTitle != null)
             {
-                FavoriteFolderImagesTitle.Text = "收藏文件夹";
+                FavoriteFolderImagesTitle.Text = LanguageManager.GetString("Favorites_FoldersTitle");
             }
         }
 
@@ -946,7 +1012,11 @@ namespace ImageViewer.Views
             if (string.IsNullOrWhiteSpace(folderPath) ||
                 (!Directory.Exists(folderPath) && !File.Exists(folderPath)))
             {
-                MessageBox.Show("路径不存在。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+                    LanguageManager.GetString("Error_PathNotExist"),
+                    LanguageManager.GetString("Msg_Hint"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
                 return false;
             }
 
@@ -954,7 +1024,11 @@ namespace ImageViewer.Views
             if (_settings.Bookmarks.Any(b => b.Type == BookmarkType.Folder &&
                                              string.Equals(b.FilePath, normalized, StringComparison.OrdinalIgnoreCase)))
             {
-                MessageBox.Show("该文件夹已在收藏中。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+                    LanguageManager.GetString("Error_FolderAlreadyInFavorites"),
+                    LanguageManager.GetString("Msg_Hint"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
                 return false;
             }
 
@@ -977,7 +1051,6 @@ namespace ImageViewer.Views
             _settings.Save();
             return true;
         }
-
         private static bool IsImageUnderFolder(FavoriteItem item, string folderPath)
         {
             return IsPathUnderFolder(item.FilePath, folderPath);
@@ -1043,8 +1116,8 @@ namespace ImageViewer.Views
         {
             var dialog = new OpenFileDialog
             {
-                Filter = "LocalSend 可执行文件|LocalSend.exe;localsend.exe;localsend_app.exe|可执行文件|*.exe|所有文件|*.*",
-                Title = "选择 LocalSend 可执行文件"
+                Filter = LanguageManager.GetString("Filter_LocalSendExecutable"),
+                Title = LanguageManager.GetString("Dialog_SelectLocalSendExecutable")
             };
 
             if (dialog.ShowDialog() == true)
@@ -1052,6 +1125,7 @@ namespace ImageViewer.Views
                 LocalSendPathTextBox.Text = dialog.FileName;
             }
         }
+
 
         private static int ParseNonNegativeInt(string? text)
         {
@@ -1093,14 +1167,20 @@ namespace ImageViewer.Views
                 }
                 else
                 {
-                    System.Windows.MessageBox.Show("请先设置网站地址", "提示",
-                        System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                    System.Windows.MessageBox.Show(
+                        LanguageManager.GetString("Error_WebsiteUrlNotSet"),
+                        LanguageManager.GetString("Msg_Hint"),
+                        System.Windows.MessageBoxButton.OK,
+                        System.Windows.MessageBoxImage.Warning);
                 }
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"打开网站失败：{ex.Message}", "错误",
-                    System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                System.Windows.MessageBox.Show(
+                    string.Format(LanguageManager.GetString("Error_OpenWebsiteFailed"), ex.Message),
+                    LanguageManager.GetString("Msg_Hint"),
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Error);
             }
         }
         private void InitializeAssociationOptions()
@@ -1158,7 +1238,11 @@ namespace ImageViewer.Views
             var selected = AssociationOptions.Where(o => o.IsSelected).Select(o => o.Extension).ToList();
             if (selected.Count == 0)
             {
-                MessageBox.Show("请至少选择一种格式。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+           LanguageManager.GetString("Msg_SelectFormat"),
+           LanguageManager.GetString("Msg_Hint"),
+           MessageBoxButton.OK,
+           MessageBoxImage.Information);
                 return;
             }
 
@@ -1166,17 +1250,20 @@ namespace ImageViewer.Views
             if (result.success)
             {
                 var formats = string.Join("/", selected.Select(e2 => e2.TrimStart('.').ToUpperInvariant()));
+                // 修改：使用本地化字符串
+                var msg = LanguageManager.GetString("Msg_AssociationSuccess", formats);
                 MessageBox.Show(
-                    $"已写入注册表,将以下格式默认打开方式指向 ImageViewer:{formats}。\n如果资源管理器未立即生效,可重新打开资源管理器或重启系统。",
-                    "完成",
+                    msg,
+                    LanguageManager.GetString("Msg_Complete"),
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
             }
             else
             {
+                var msg = LanguageManager.GetString("Msg_AssociationFailed", result.errorMessage ?? "");
                 MessageBox.Show(
-                    $"部分注册表项未能写入:{result.errorMessage}\n可尝试以管理员身份运行或手动在默认应用中设置。",
-                    "提示",
+                    msg,
+                    LanguageManager.GetString("Msg_Hint"),
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
             }
@@ -1192,7 +1279,7 @@ namespace ImageViewer.Views
                 var exePath = Process.GetCurrentProcess().MainModule?.FileName;
                 if (string.IsNullOrWhiteSpace(exePath) || !File.Exists(exePath))
                 {
-                    return (false, "无法确定程序路径");
+                    return (false, LanguageManager.GetString("Error_CannotDeterminePath"));
                 }
 
                 const string progId = "ImageViewer.image";
@@ -1352,6 +1439,3 @@ namespace ImageViewer.Views
         }
     }
 }
-   
-
-

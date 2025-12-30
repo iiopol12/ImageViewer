@@ -1,0 +1,308 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:s="clr-namespace:System;assembly=mscorlib">
+
+    <!-- ==================== 应用标题 ==================== -->
+    <s:String x:Key="App_Title">漫游</s:String>
+
+    <!-- ==================== 窗口标题 ==================== -->
+    <s:String x:Key="Settings_WindowTitle">设置</s:String>
+
+    <!-- ==================== 左侧导航 ==================== -->
+    <s:String x:Key="Nav_Settings">设置</s:String>
+    <s:String x:Key="Nav_Favorites">收藏</s:String>
+    <s:String x:Key="Nav_Associations">关联</s:String>
+
+    <!-- ==================== 页面标题 ==================== -->
+    <s:String x:Key="Page_GeneralSettings">常规设置</s:String>
+    <s:String x:Key="Page_Favorites">收藏</s:String>
+    <s:String x:Key="Page_Associations">关联设置</s:String>
+
+    <!-- ==================== 常规设置页头部 ==================== -->
+
+    <s:String x:Key="Settings_HeaderSubtitle">自定义浏览模式、主题和显示选项</s:String>
+
+    <!-- ==================== 基本设置 ==================== -->
+    <s:String x:Key="Settings_DefaultViewMode">默认浏览模式</s:String>
+    <s:String x:Key="ViewMode_Single">单图模式</s:String>
+    <s:String x:Key="ViewMode_Manga">漫画模式</s:String>
+    <s:String x:Key="ViewMode_DoublePage">双页模式</s:String>
+
+    <s:String x:Key="Settings_Theme">主题</s:String>
+    <s:String x:Key="Theme_Dark">深色</s:String>
+    <s:String x:Key="Theme_Light">浅色</s:String>
+    <s:String x:Key="Theme_SoftPink">柔和粉红</s:String>
+    <s:String x:Key="Theme_HotRed">辣红色</s:String>
+    <s:String x:Key="Theme_Ocean">海洋蓝</s:String>
+    <s:String x:Key="Theme_Forest">森林绿</s:String>
+
+    <s:String x:Key="Settings_Language">语言 / Language</s:String>
+    <s:String x:Key="Language_Chinese">简体中文</s:String>
+    <s:String x:Key="Language_English">English</s:String>
+
+    <s:String x:Key="Settings_ScrollWheel">滚轮行为</s:String>
+    <s:String x:Key="ScrollWheel_Zoom">缩放</s:String>
+    <s:String x:Key="ScrollWheel_Navigate">翻页</s:String>
+
+    <s:String x:Key="Settings_MangaGap">漫画模式间隔(px)</s:String>
+
+    <!-- ==================== 幻灯片设置 ==================== -->
+    <s:String x:Key="Settings_SlideshowTitle">幻灯片设置</s:String>
+    <s:String x:Key="Settings_SlideshowInterval">切换间隔(秒)</s:String>
+    <s:String x:Key="Settings_SlideshowShuffle">随机播放</s:String>
+    <s:String x:Key="Settings_ShuffleEnabled">启用随机（单图模式）</s:String>
+
+    <!-- ==================== 性能设置 ==================== -->
+    <s:String x:Key="Settings_PerformanceTitle">性能设置</s:String>
+    <s:String x:Key="Settings_PreloadCount">预加载数量</s:String>
+    <s:String x:Key="Settings_ThumbnailSize">缩略图大小</s:String>
+    <s:String x:Key="Settings_MangaDecodeWidth">漫画解码宽度(px)</s:String>
+    <s:String x:Key="Settings_ArchiveStrategy">压缩包读取</s:String>
+    <s:String x:Key="Archive_Stream">内存流（默认）</s:String>
+    <s:String x:Key="Archive_TempExtract">解压到临时目录</s:String>
+
+    <!-- ==================== 过滤设置 ==================== -->
+    <s:String x:Key="Settings_FilterTitle">过滤设置</s:String>
+    <s:String x:Key="Settings_FilterHint">0 表示不限制，快捷键 Ctrl+Shift+F 启用/关闭过滤</s:String>
+    <s:String x:Key="Settings_EnableFilters">启用过滤（仅对文件夹生效）</s:String>
+    <s:String x:Key="Settings_SizeFilter">启用尺寸过滤</s:String>
+    <s:String x:Key="Settings_MinWidth">最小宽度</s:String>
+    <s:String x:Key="Settings_MinHeight">最小高度</s:String>
+    <s:String x:Key="Settings_MaxWidth">最大宽度</s:String>
+    <s:String x:Key="Settings_MaxHeight">最大高度</s:String>
+    <s:String x:Key="Settings_FileSizeFilter">启用文件大小过滤</s:String>
+    <s:String x:Key="Settings_MinFileSize">最小大小(KB)</s:String>
+    <s:String x:Key="Settings_MaxFileSize">最大大小(MB)</s:String>
+
+    <!-- ==================== 行为设置 ==================== -->
+    <s:String x:Key="Settings_BehaviorTitle">行为设置</s:String>
+    <s:String x:Key="Settings_RememberPosition">记住窗口位置和大小</s:String>
+    <s:String x:Key="Settings_RememberReading">记住上次阅读位置</s:String>
+    <s:String x:Key="Settings_FreezeDuringResize">拖动缩放时冻结界面（减少抖动）</s:String>
+    <s:String x:Key="Settings_ShowStatusBar">显示底边栏（状态栏）</s:String>
+    <s:String x:Key="Settings_ScanSubfolders">启用穿透子文件夹（包含子目录图片）</s:String>
+    <s:String x:Key="Settings_ScanDepth">穿透层数</s:String>
+    <s:String x:Key="ScanDepth_Current">0（仅当前）</s:String>
+    <s:String x:Key="ScanDepth_Infinite">无限</s:String>
+
+    <!-- ==================== LocalSend ==================== -->
+    <s:String x:Key="Settings_LocalSendTitle">LocalSend 分享设置</s:String>
+    <s:String x:Key="Settings_LocalSendPath">可执行文件路径</s:String>
+    <s:String x:Key="Button_Browse">浏览...</s:String>
+
+    <!-- ==================== 版本和交流 ==================== -->
+    <s:String x:Key="Settings_AboutTitle">版本更新和交流</s:String>
+    <s:String x:Key="Settings_CurrentVersion">当前版本：</s:String>
+    <s:String x:Key="Settings_Website">交流地址：</s:String>
+    <s:String x:Key="Button_OpenWebsite">打开网址</s:String>
+
+    <!-- ==================== 底部按钮 ==================== -->
+    <s:String x:Key="Button_Cancel">取消</s:String>
+    <s:String x:Key="Button_Save">保存</s:String>
+    <s:String x:Key="Button_OpenImage">打开图片</s:String>
+    <s:String x:Key="Button_OpenFolder">打开文件夹</s:String>
+    <s:String x:Key="Button_Print">打印</s:String>
+    <s:String x:Key="Button_Confirm">确定</s:String>
+
+    <!-- ==================== 收藏页 ==================== -->
+    <s:String x:Key="Favorites_FoldersTitle">收藏文件夹</s:String>
+    <s:String x:Key="Favorites_FoldersHint">在卡片内展开查看收藏图片，Ctrl+Tab 快速切换</s:String>
+    <s:String x:Key="Favorites_Folders">文件夹</s:String>
+    <s:String x:Key="Favorites_Sort">排序</s:String>
+    <s:String x:Key="Favorites_SortByTime">按添加时间</s:String>
+    <s:String x:Key="Favorites_SortByName">按名称</s:String>
+    <s:String x:Key="Button_AddFolder">添加文件夹</s:String>
+    <s:String x:Key="Button_AddCurrentFolder">收藏当前目录</s:String>
+    <s:String x:Key="Favorites_BatchRemove">批量移除</s:String>
+    <s:String x:Key="Button_RemoveSelected">移除选中</s:String>
+    <s:String x:Key="Button_Clear">清空</s:String>
+    <s:String x:Key="Favorites_NoFolders">暂无收藏文件夹</s:String>
+    <s:String x:Key="Favorites_NoFoldersHint">点击"添加文件夹"或"收藏当前目录"开始整理</s:String>
+    <s:String x:Key="Favorites_NoImages">该文件夹暂无收藏图片</s:String>
+    <s:String x:Key="Favorites_FavoriteCount">收藏</s:String>
+    <s:String x:Key="Favorites_ItemCountPrefix">共 </s:String>
+    <s:String x:Key="Favorites_ItemCountSuffix"> 项</s:String>
+    <s:String x:Key="Favorites_InvalidPath">路径无效</s:String>
+    <s:String x:Key="Button_Open">打开</s:String>
+    <s:String x:Key="Button_Locate">定位</s:String>
+    <s:String x:Key="Button_Remove">移除</s:String>
+    <s:String x:Key="Button_Unfavorite">取消收藏</s:String>
+    <s:String x:Key="Button_Expand">展开</s:String>
+    <s:String x:Key="Button_Collapse">收起</s:String>
+    <s:String x:Key="Button_ExpandCollapseNote">展开/收起收藏图片</s:String>
+    <s:String x:Key="Status_Loading">加载中...</s:String>
+    <s:String x:Key="Status_NoPreview">无预览</s:String>
+    <s:String x:Key="Status_FileNotExists">文件不存在</s:String>
+    <s:String x:Key="Button_Back">返回</s:String>
+    <s:String x:Key="Favorites_NoImagesInFolder">该文件夹暂无收藏图片</s:String>
+    <!-- ==================== 关联页 ==================== -->
+    <s:String x:Key="Associations_Title">关联设置</s:String>
+    <s:String x:Key="Associations_Subtitle">选择要关联的图片格式，系统将默认用 ImageViewer 打开</s:String>
+    <s:String x:Key="Associations_Normal">普通</s:String>
+  
+    <s:String x:Key="Associations_NoteTitle">说明</s:String>
+    <s:String x:Key="Associations_Note1">PDF RAR/CAR ZIP/CAZ可在应用内打开，但不提供文件关联。</s:String>
+    <s:String x:Key="Associations_Note2">RAW 格式优先使用系统 WIC 解码（建议从微软商店安装 Raw Image Extension）；若系统不支持则自动回退到 Magick.NET。</s:String>
+    <s:String x:Key="Associations_FormatSelect">格式选择</s:String>
+    <s:String x:Key="Associations_TotalPrefix">总计 </s:String>
+    <x:Static x:Key="Associations_TotalSuffix" Member="s:String.Empty"/>
+    <s:String x:Key="Button_SelectAll">全选</s:String>
+    <s:String x:Key="Button_DeselectAll">取消全选</s:String>
+    <s:String x:Key="Associations_NormalFormats">普通格式</s:String>
+    <s:String x:Key="Associations_RawFormats">RAW 格式</s:String>
+    <s:String x:Key="Button_ApplyAssociations">关联所选格式</s:String>
+
+    <!-- ==================== 消息对话框 ==================== -->
+    <s:String x:Key="Msg_SelectFormat">请至少选择一种格式。</s:String>
+    <s:String x:Key="Msg_Hint">提示</s:String>
+    <s:String x:Key="Msg_Complete">完成</s:String>
+    <s:String x:Key="Msg_AssociationSuccess">已写入注册表,将以下格式默认打开方式指向 ImageViewer:{0}。
+如果资源管理器未立即生效,可重新打开资源管理器或重启系统。</s:String>
+    <s:String x:Key="Msg_AssociationFailed">部分注册表项未能写入:{0}
+可尝试以管理员身份运行或手动在默认应用中设置。</s:String>
+    <s:String x:Key="Msg_LanguageChanged">语言设置已更改，部分界面需要重新打开设置窗口后生效。</s:String>
+    <s:String x:Key="Msg_ConfirmClearFolders">确定要清空所有收藏文件夹吗？</s:String>
+    <s:String x:Key="Msg_Confirm">确认</s:String>
+    <s:String x:Key="Error_CannotDeterminePath">无法确定程序路径</s:String>
+    <s:String x:Key="Error_CannotGetMainWindow">无法获取主窗口。</s:String>
+    <s:String x:Key="Error_CannotGetMainWindowData">无法获取主窗口数据。</s:String>
+    <s:String x:Key="Dialog_SelectFavoriteFolder">选择要收藏的文件夹</s:String>
+    <s:String x:Key="Error_FolderAlreadyInFavorites">该文件夹已在收藏中。</s:String>
+    <s:String x:Key="Error_PathNotExist">路径不存在。</s:String>
+    <s:String x:Key="Error_NoCurrentPathToFavorite">当前没有可收藏的路径。</s:String>
+    <s:String x:Key="Error_FileNotExistOrCannotOpen">文件不存在或无法打开。</s:String>
+    <s:String x:Key="Dialog_SelectLocalSendExecutable">选择 LocalSend 可执行文件</s:String>
+    <s:String x:Key="Filter_LocalSendExecutable">LocalSend 可执行文件|LocalSend.exe;localsend.exe;localsend_app.exe|可执行文件|.exe|所有文件|.*</s:String>
+    <s:String x:Key="Error_WebsiteUrlNotSet">请先设置网站地址。</s:String>
+    <s:String x:Key="Error_OpenWebsiteFailed">打开网站失败：{0}</s:String>
+
+
+
+    <!-- ==================== 工具栏工具提示 ==================== -->
+    <s:String x:Key="ToolTip_OpenFile">打开文件 (Ctrl+O)</s:String>
+    <s:String x:Key="ToolTip_OpenFolder">打开文件夹 (Ctrl+F)</s:String>
+    <s:String x:Key="ToolTip_ZoomOut">缩小 (-)</s:String>
+    <s:String x:Key="ToolTip_ZoomIn">放大 (+)</s:String>
+    <s:String x:Key="ToolTip_SwitchToOriginalSize">切换到原始尺寸 (Ctrl+0)</s:String>
+    <s:String x:Key="ToolTip_SwitchToFitWindow">切换到适应窗口 (Ctrl+0)</s:String>
+    <s:String x:Key="ToolTip_SingleMode">单图模式</s:String>
+    <s:String x:Key="ToolTip_MangaMode">漫画模式</s:String>
+    <s:String x:Key="ToolTip_DoublePageMode">双页模式</s:String>
+    <s:String x:Key="ToolTip_Rotate90">旋转90°</s:String>
+    <s:String x:Key="ToolTip_Bookmark">书签 (B)</s:String>
+    <s:String x:Key="ToolTip_ShareCurrentImage">通过 LocalSend 分享当前图片</s:String>
+    <s:String x:Key="ToolTip_Print">打印 (Ctrl+P)</s:String>
+    <s:String x:Key="ToolTip_SlideShow">幻灯片 (S)</s:String>
+    <s:String x:Key="ToolTip_FullScreen">全屏 (F11)</s:String>
+    <s:String x:Key="ToolTip_ToggleSidebar">切换侧边栏</s:String>
+    <s:String x:Key="ToolTip_ToggleWaterfallView">切换瀑布流视图</s:String>
+    <s:String x:Key="ToolTip_BookmarkCurrentFolder">收藏/取消收藏当前路径</s:String>
+    <s:String x:Key="ToolTip_ViewImageInfo">查看图片信息</s:String>
+    <s:String x:Key="ToolTip_BookmarkCurrentImage">收藏当前图片（仅单图模式）</s:String>
+    <s:String x:Key="ToolTip_CloseInfoPanel">关闭信息面板</s:String>
+    <s:String x:Key="ToolTip_OpenWebsite">在默认浏览器中打开网站</s:String>
+    
+    <!-- ==================== 空状态文本 ==================== -->
+    <s:String x:Key="MainWindow_DragDropHint">拖拽图片或文件夹到此处</s:String>
+    <s:String x:Key="MainWindow_ClickToolbarHint">或点击工具栏打开文件/文件夹</s:String>
+    <s:String x:Key="MainWindow_ShortcutGuide">快捷键指南</s:String>
+
+
+    <!-- ==================== 快捷键指南 ==================== -->
+    <s:String x:Key="ShortcutGuide_FileOperations">文件操作</s:String>
+    <s:String x:Key="ShortcutGuide_ImageNavigation">图片导航</s:String>
+    <s:String x:Key="ShortcutGuide_ViewControl">视图控制</s:String>
+    <s:String x:Key="ShortcutGuide_FunctionOperations">功能操作</s:String>
+
+
+    <!-- ==================== 快捷键描述 ==================== -->
+    <s:String x:Key="Shortcut_OpenFileFolder">打开文件/文件夹</s:String>
+    <s:String x:Key="Shortcut_FavoriteFolderSwitch">收藏文件夹切换</s:String>
+    <s:String x:Key="Shortcut_OpenFavoritesPage">打开收藏页面</s:String>
+    <s:String x:Key="Shortcut_PreviousNextImage">上一张/下一张</s:String>
+    <s:String x:Key="Shortcut_NextImage">下一张</s:String>
+    <s:String x:Key="Shortcut_FirstLastImage">首张/末张</s:String>
+    <s:String x:Key="Shortcut_ToggleFullScreen">全屏切换</s:String>
+    <s:String x:Key="Shortcut_ExitFullScreenClose">退出全屏/关闭</s:String>
+    <s:String x:Key="Shortcut_ZoomInOut">放大/缩小</s:String>
+    <s:String x:Key="Shortcut_FitActualToggle">适应/原始尺寸切换</s:String>
+    <s:String x:Key="Shortcut_SwitchViewMode">切换浏览模式</s:String>
+    <s:String x:Key="Shortcut_StartStopSlideshow">开始/停止幻灯片</s:String>
+    <s:String x:Key="Shortcut_ToggleBookmark">收藏/取消收藏</s:String>
+    <s:String x:Key="Shortcut_CopyToClipboard">复制到剪贴板</s:String>
+    <s:String x:Key="Shortcut_DeleteImage">删除当前图片</s:String>
+    <s:String x:Key="Shortcut_ToggleFilter">启用/关闭过滤</s:String>
+    <s:String x:Key="Shortcut_Print">打印</s:String>
+
+    
+    <!-- ==================== 信息面板文本 ==================== -->
+    <s:String x:Key="InfoPanel_Dimensions">分辨率：</s:String>
+    <s:String x:Key="InfoPanel_BitDepth">位深：</s:String>
+    <s:String x:Key="InfoPanel_BitDepthSuffix"> bpp</s:String>
+    <s:String x:Key="InfoPanel_FileSize">大小：</s:String>
+    <s:String x:Key="InfoPanel_DateModified">修改：</s:String>
+
+
+    <!-- ==================== 侧边栏标题 ==================== -->
+    <s:String x:Key="Sidebar_Title">图片列表</s:String>
+
+    <!-- ==================== 收藏文件夹切换面板文本 ==================== -->
+    <s:String x:Key="FolderSwitch_Title">切换收藏文件夹</s:String>
+    <s:String x:Key="FolderSwitch_Instructions">←/→或Tab选择，Enter/松开Ctrl进入，Esc/Q取消</s:String>
+
+    <!-- ==================== 打印窗口 ==================== -->
+    <s:String x:Key="PrintWindow_Title">打印图片</s:String>
+    <s:String x:Key="PrintWindow_Preview">打印预览</s:String>
+    <s:String x:Key="PrintWindow_Printer">打印机</s:String>
+    <s:String x:Key="PrintWindow_PaperSize">纸张大小</s:String>
+    <s:String x:Key="PrintWindow_PaperPhoto4x6">4×6 照片 (102 × 152 mm)</s:String>
+    <s:String x:Key="PrintWindow_PaperPhoto5x7">5×7 照片 (127 × 178 mm)</s:String>
+    <s:String x:Key="PrintWindow_Orientation">方向</s:String>
+    <s:String x:Key="PrintWindow_OrientationPortrait">纵向</s:String>
+    <s:String x:Key="PrintWindow_OrientationLandscape">横向</s:String>
+    <s:String x:Key="PrintWindow_ScaleMode">图片适应方式</s:String>
+    <s:String x:Key="PrintWindow_ScaleModeFit">适应纸张（保持比例）</s:String>
+    <s:String x:Key="PrintWindow_ScaleModeFill">填充纸张（可能裁剪）</s:String>
+    <s:String x:Key="PrintWindow_ScaleModeOriginal">原始大小</s:String>
+    <s:String x:Key="PrintWindow_ScaleModeStretch">拉伸填满</s:String>
+    <s:String x:Key="PrintWindow_Copies">打印份数</s:String>
+    <s:String x:Key="PrintWindow_Margins">边距 (mm)</s:String>
+    <s:String x:Key="PrintWindow_MarginTop">上</s:String>
+    <s:String x:Key="PrintWindow_MarginBottom">下</s:String>
+    <s:String x:Key="PrintWindow_MarginLeft">左</s:String>
+    <s:String x:Key="PrintWindow_MarginRight">右</s:String>
+    <s:String x:Key="PrintWindow_CenterImage">图片居中</s:String>
+    <s:String x:Key="PrintWindow_ImageInfo">图片信息</s:String>
+
+    <!-- ==================== 压缩包密码弹窗 ==================== -->
+    <s:String x:Key="ArchivePassword_Title">需要密码</s:String>
+    <s:String x:Key="ArchivePassword_Prompt">该压缩包需要密码</s:String>
+
+    <!-- ==================== 文件夹快速导航 ==================== -->
+    <s:String x:Key="FolderNav_Title">快速导航</s:String>
+    <s:String x:Key="FolderNav_Empty">没有子文件夹</s:String>
+    <s:String x:Key="FolderNav_HintDefault">方向键移动选择  •  Enter进入  •  Esc取消</s:String>
+    <s:String x:Key="FolderNav_HintCtrlTab">方向键移动选择  •  Enter进入  •  Esc取消  •  松开Ctrl确认</s:String>
+    
+    
+    <!-- ==================== 菜单 ==================== -->
+    <s:String x:Key="ContextMenu_OpenFile">打开文件 (Ctrl+O)</s:String>
+    <s:String x:Key="ContextMenu_OpenFolder">打开文件夹 (Ctrl+F)</s:String>
+    <s:String x:Key="ContextMenu_Previous">上一张 (←)</s:String>
+    <s:String x:Key="ContextMenu_Next">下一张 (→)</s:String>
+    <s:String x:Key="ContextMenu_ZoomIn">放大 (+)</s:String>
+    <s:String x:Key="ContextMenu_ZoomOut">缩小 (-)</s:String>
+    <s:String x:Key="ContextMenu_ZoomToFit">适应窗口</s:String>
+    <s:String x:Key="ContextMenu_ZoomToActual">原始尺寸</s:String>
+    <s:String x:Key="ContextMenu_Rotate90">旋转90°</s:String>
+    <s:String x:Key="ContextMenu_ToggleBookmark">添加/移除书签 (B)</s:String>
+    <s:String x:Key="ContextMenu_CopyToClipboard">复制到剪贴板 (Ctrl+C)</s:String>
+    <s:String x:Key="ContextMenu_ShareCurrentImage">分享当前图片 (LocalSend)</s:String>
+    <s:String x:Key="ContextMenu_OpenInExplorer">在资源管理器中显示</s:String>
+    <s:String x:Key="ContextMenu_DeleteImage">删除 (Delete)</s:String>
+    <s:String x:Key="ContextMenu_Print">打印 (Ctrl+P)</s:String>
+    <s:String x:Key="ContextMenu_FullScreen">全屏 (F11)</s:String>
+    <s:String x:Key="ContextMenu_SlideShow">幻灯片 (S)</s:String>
+    <s:String x:Key="ContextMenu_ToggleViewMode">切换模式 (M)</s:String>
+    <s:String x:Key="ContextMenu_Settings">设置</s:String>
+</ResourceDictionary>

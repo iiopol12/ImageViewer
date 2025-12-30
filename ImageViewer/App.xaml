@@ -5,12 +5,17 @@
              ShutdownMode="OnMainWindowClose">
     <Application.Resources>
         <ResourceDictionary>
+
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources/Strings.zh-CN.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
             <!-- Converters -->
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
             <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
             <converters:BackgroundColorToBrushConverter x:Key="BackgroundColorToBrushConverter"/>
             <converters:ZoomToPercentConverter x:Key="ZoomToPercentConverter"/>
-            <converters:ViewModeToStringConverter x:Key="ViewModeToStringConverter"/>
+         
             <converters:BoolToBookmarkIconConverter x:Key="BoolToBookmarkIconConverter"/>
             <converters:ToolbarVisibilityConverter x:Key="ToolbarVisibilityConverter"/>
             <converters:DoubleToGridLengthConverter x:Key="DoubleToGridLengthConverter"/>
@@ -20,9 +25,10 @@
             <converters:GifVisibilityConverter x:Key="GifVisibilityConverter"/>
             <converters:MangaPlaceholderHeightConverter x:Key="MangaPlaceholderHeightConverter"/>
             <converters:MangaImageSourceConverter x:Key="MangaImageSourceConverter"/>
-            <converters:MangaSidebarWidthConverter x:Key="MangaSidebarWidthConverter"/>
-            <converters:BottomBarHeightConverter x:Key="BottomBarHeightConverter"/>
+            <converters:MangaSidebarWidthConverter x:Key="MangaSidebarWidthConverter"/>
 
+            <converters:BottomBarHeightConverter x:Key="BottomBarHeightConverter"/>
+          
 
             <!-- Pixel snapping (reduce Path jitter during resize) -->
             <Style TargetType="{x:Type Path}">

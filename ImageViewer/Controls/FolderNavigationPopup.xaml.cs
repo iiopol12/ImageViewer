@@ -1,5 +1,6 @@
 ﻿using ImageViewer.Helpers;
 using ImageViewer.Models;
+using ImageViewer.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -252,12 +253,12 @@ namespace ImageViewer.Controls
             if (_useCtrlReleaseMode)
             {
                 // Ctrl+Tab 模式
-                HintText.Text = "方向键移动选择  •  Enter进入  •  Esc取消  •  松开Ctrl确认";
+                HintText.Text = LanguageManager.GetString("FolderNav_HintCtrlTab");
             }
             else
             {
                 // Ctrl+G 等其他模式
-                HintText.Text = "方向键移动选择  •  Enter进入  •  Esc取消";
+                HintText.Text = LanguageManager.GetString("FolderNav_HintDefault");
             }
         }
         #endregion

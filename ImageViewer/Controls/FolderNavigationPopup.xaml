@@ -146,7 +146,7 @@
 
                 <!-- 标题栏 -->
  
-                    <TextBlock Text="快速导航"  VerticalAlignment="Center" Grid.Row="0"
+                    <TextBlock Text="{DynamicResource FolderNav_Title}"  VerticalAlignment="Center" Grid.Row="0"
                                Foreground="#FFFFFF" 
                                FontSize="16"   HorizontalAlignment="Center"
                                FontWeight="SemiBold"
@@ -217,7 +217,7 @@
                             VerticalAlignment="Center"
                             Visibility="Collapsed">
                   
-                    <TextBlock Text="没有子文件夹" 
+                    <TextBlock Text="{DynamicResource FolderNav_Empty}" 
                                Foreground="#888888" 
                                FontSize="12" 
                                Margin="0,8,0,0"/>
@@ -233,7 +233,7 @@
                                Foreground="#888888" 
                                FontSize="10"
                                HorizontalAlignment="Center"
-                               Text="方向键移动选择  •  Enter进入  •  Esc取消"/>
+                               Text="{DynamicResource FolderNav_HintDefault}"/>
                 </Border>
             </Grid>
         </Border>

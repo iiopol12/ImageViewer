@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="打印图片" 
+        Title="{DynamicResource PrintWindow_Title}" 
         Height="600" Width="800"
         MinHeight="500" MinWidth="650"
         WindowStartupLocation="CenterOwner"
@@ -186,7 +186,7 @@
                       Stretch="Uniform"
                       VerticalAlignment="Center"
                       Margin="0,0,8,0"/>
-                <TextBlock Text="打印图片" 
+                <TextBlock Text="{DynamicResource PrintWindow_Title}" 
                            Foreground="{DynamicResource ForegroundBrush}" 
                            VerticalAlignment="Center" 
                            FontSize="13"/>
@@ -249,7 +249,7 @@
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0" 
-                               Text="打印预览" 
+                               Text="{DynamicResource PrintWindow_Preview}" 
                                Foreground="{DynamicResource ForegroundBrush}"
                                FontSize="14"
                                FontWeight="SemiBold"
@@ -291,7 +291,7 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel>
                         <!-- 打印机选择 -->
-                        <TextBlock Text="打印机" 
+                        <TextBlock Text="{DynamicResource PrintWindow_Printer}" 
                                    Foreground="{DynamicResource ForegroundBrush}"
                                    FontSize="13"
                                    FontWeight="SemiBold"
@@ -307,7 +307,7 @@
                         </ComboBox>
 
                         <!-- 纸张大小 -->
-                        <TextBlock Text="纸张大小" 
+                        <TextBlock Text="{DynamicResource PrintWindow_PaperSize}" 
                                    Foreground="{DynamicResource ForegroundBrush}"
                                    FontSize="13"
                                    FontWeight="SemiBold"
@@ -324,33 +324,33 @@
                             <ComboBoxItem Content="A3 (297 × 420 mm)" Tag="A3"/>
                             <ComboBoxItem Content="A5 (148 × 210 mm)" Tag="A5"/>
                             <ComboBoxItem Content="Letter (216 × 279 mm)" Tag="Letter"/>
-                            <ComboBoxItem Content="4×6 照片 (102 × 152 mm)" Tag="4x6"/>
-                            <ComboBoxItem Content="5×7 照片 (127 × 178 mm)" Tag="5x7"/>
+                            <ComboBoxItem Content="{DynamicResource PrintWindow_PaperPhoto4x6}" Tag="4x6"/>
+                            <ComboBoxItem Content="{DynamicResource PrintWindow_PaperPhoto5x7}" Tag="5x7"/>
                         </ComboBox>
 
                         <!-- 方向 -->
-                        <TextBlock Text="方向" 
+                        <TextBlock Text="{DynamicResource PrintWindow_Orientation}" 
                                    Foreground="{DynamicResource ForegroundBrush}"
                                    FontSize="13"
                                    FontWeight="SemiBold"
                                    Margin="0,0,0,8"/>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
                             <RadioButton x:Name="PortraitRadio" 
-                                         Content="纵向" 
+                                         Content="{DynamicResource PrintWindow_OrientationPortrait}" 
                                          IsChecked="True"
                                          Checked="Orientation_Changed"
                                          Foreground="{DynamicResource ForegroundBrush}"
                                          Margin="0,0,16,0"
                                          VerticalContentAlignment="Center"/>
                             <RadioButton x:Name="LandscapeRadio" 
-                                         Content="横向"
+                                         Content="{DynamicResource PrintWindow_OrientationLandscape}"
                                          Checked="Orientation_Changed"
                                          Foreground="{DynamicResource ForegroundBrush}"
                                          VerticalContentAlignment="Center"/>
                         </StackPanel>
 
                         <!-- 缩放选项 -->
-                        <TextBlock Text="图片适应方式" 
+                        <TextBlock Text="{DynamicResource PrintWindow_ScaleMode}" 
                                    Foreground="{DynamicResource ForegroundBrush}"
                                    FontSize="13"
                                    FontWeight="SemiBold"
@@ -363,14 +363,14 @@
                                   BorderBrush="{DynamicResource BackgroundLightBrush}"
                                   Padding="8,6,28,6"
                                   Margin="0,0,0,16">
-                            <ComboBoxItem Content="适应纸张（保持比例）" Tag="Fit" IsSelected="True"/>
-                            <ComboBoxItem Content="填充纸张（可能裁剪）" Tag="Fill"/>
-                            <ComboBoxItem Content="原始大小" Tag="Original"/>
-                            <ComboBoxItem Content="拉伸填满" Tag="Stretch"/>
+                            <ComboBoxItem Content="{DynamicResource PrintWindow_ScaleModeFit}" Tag="Fit" IsSelected="True"/>
+                            <ComboBoxItem Content="{DynamicResource PrintWindow_ScaleModeFill}" Tag="Fill"/>
+                            <ComboBoxItem Content="{DynamicResource PrintWindow_ScaleModeOriginal}" Tag="Original"/>
+                            <ComboBoxItem Content="{DynamicResource PrintWindow_ScaleModeStretch}" Tag="Stretch"/>
                         </ComboBox>
 
                         <!-- 份数 -->
-                        <TextBlock Text="打印份数" 
+                        <TextBlock Text="{DynamicResource PrintWindow_Copies}" 
                                    Foreground="{DynamicResource ForegroundBrush}"
                                    FontSize="13"
                                    FontWeight="SemiBold"
@@ -412,7 +412,7 @@
                         </Grid>
 
                         <!-- 边距设置 -->
-                        <TextBlock Text="边距 (mm)" 
+                        <TextBlock Text="{DynamicResource PrintWindow_Margins}" 
                                    Foreground="{DynamicResource ForegroundBrush}"
                                    FontSize="13"
                                    FontWeight="SemiBold"
@@ -428,7 +428,7 @@
                             </Grid.RowDefinitions>
 
                             <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,4,4">
-                                <TextBlock Text="上" Foreground="{DynamicResource ForegroundDimBrush}" FontSize="11"/>
+                                <TextBlock Text="{DynamicResource PrintWindow_MarginTop}" Foreground="{DynamicResource ForegroundDimBrush}" FontSize="11"/>
                                 <TextBox x:Name="MarginTopTextBox" 
                                          Text="10" 
                                          TextChanged="Margin_TextChanged"
@@ -438,7 +438,7 @@
                                          Padding="6,4"/>
                             </StackPanel>
                             <StackPanel Grid.Row="0" Grid.Column="1" Margin="4,0,0,4">
-                                <TextBlock Text="下" Foreground="{DynamicResource ForegroundDimBrush}" FontSize="11"/>
+                                <TextBlock Text="{DynamicResource PrintWindow_MarginBottom}" Foreground="{DynamicResource ForegroundDimBrush}" FontSize="11"/>
                                 <TextBox x:Name="MarginBottomTextBox" 
                                          Text="10" 
                                          TextChanged="Margin_TextChanged"
@@ -448,7 +448,7 @@
                                          Padding="6,4"/>
                             </StackPanel>
                             <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,4,0">
-                                <TextBlock Text="左" Foreground="{DynamicResource ForegroundDimBrush}" FontSize="11"/>
+                                <TextBlock Text="{DynamicResource PrintWindow_MarginLeft}" Foreground="{DynamicResource ForegroundDimBrush}" FontSize="11"/>
                                 <TextBox x:Name="MarginLeftTextBox" 
                                          Text="10" 
                                          TextChanged="Margin_TextChanged"
@@ -458,7 +458,7 @@
                                          Padding="6,4"/>
                             </StackPanel>
                             <StackPanel Grid.Row="1" Grid.Column="1" Margin="4,0,0,0">
-                                <TextBlock Text="右" Foreground="{DynamicResource ForegroundDimBrush}" FontSize="11"/>
+                                <TextBlock Text="{DynamicResource PrintWindow_MarginRight}" Foreground="{DynamicResource ForegroundDimBrush}" FontSize="11"/>
                                 <TextBox x:Name="MarginRightTextBox" 
                                          Text="10" 
                                          TextChanged="Margin_TextChanged"
@@ -471,7 +471,7 @@
 
                         <!-- 居中选项 -->
                         <CheckBox x:Name="CenterImageCheckBox"
-                                  Content="图片居中"
+                                  Content="{DynamicResource PrintWindow_CenterImage}"
                                   IsChecked="True"
                                   Checked="CenterImage_Changed"
                                   Unchecked="CenterImage_Changed"
@@ -484,7 +484,7 @@
                                 Padding="12"
                                 Margin="0,8,0,0">
                             <StackPanel>
-                                <TextBlock Text="图片信息" 
+                                <TextBlock Text="{DynamicResource PrintWindow_ImageInfo}" 
                                            Foreground="{DynamicResource ForegroundDimBrush}"
                                            FontSize="11"
                                            Margin="0,0,0,4"/>
@@ -517,7 +517,7 @@
                            FontSize="12"/>
 
                 <Button Grid.Column="1" 
-                        Content="取消" 
+                        Content="{DynamicResource Button_Cancel}" 
                         Click="CancelButton_Click"
                         Style="{StaticResource ModernButtonStyle}"
                         Background="{DynamicResource BackgroundLightBrush}"
@@ -525,7 +525,7 @@
                         Padding="24,8"/>
 
                 <Button Grid.Column="2" 
-                        Content="打印" 
+                        Content="{DynamicResource Button_Print}" 
                         Click="PrintButton_Click"
                         Style="{StaticResource ModernButtonStyle}"
                         Background="{DynamicResource PrimaryBrush}"
@@ -540,7 +540,7 @@
                                       Stretch="Uniform"
                                       VerticalAlignment="Center"
                                       Margin="0,0,6,0"/>
-                                <TextBlock Text="打印" VerticalAlignment="Center"/>
+                                <TextBlock Text="{DynamicResource Button_Print}" VerticalAlignment="Center"/>
                             </StackPanel>
                         </DataTemplate>
                     </Button.ContentTemplate>

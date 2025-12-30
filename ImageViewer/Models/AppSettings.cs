@@ -52,6 +52,13 @@ namespace ImageViewer.Models
         Forest          // 森林绿（深色背景）
     }
 
+
+    public enum AppLanguage
+    {
+        ChineseSimplified,  // 简体中文
+        English             // English
+    }
+
     public enum BookmarkType
     {
         Image,
@@ -96,6 +103,9 @@ namespace ImageViewer.Models
 
         [ObservableProperty]
         private AppTheme _theme = AppTheme.Dark;
+
+        [ObservableProperty]
+        private AppLanguage _language = AppLanguage.ChineseSimplified;
 
         [ObservableProperty]
         private double _windowLeft;

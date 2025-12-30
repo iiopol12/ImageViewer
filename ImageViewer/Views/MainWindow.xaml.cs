@@ -1917,6 +1917,23 @@ namespace ImageViewer.Views
                     e.Handled = true;
                 }
             }
+            else if (ViewModel.Settings.ScrollWheelBehavior == ScrollWheelBehavior.Zoom)
+            {
+                // 缩放模式：在PreviewMouseWheel中处理全局缩放，避免被子控件拦截
+                if (ViewModel.ShowWaterfallView)
+                {
+                    HandleWaterfallZoomWithMouseWheel(e);
+                }
+                else if (ViewModel.IsMangaMode)
+                {
+                    HandleMangaZoomWithMouseWheel(e);
+                }
+                else
+                {
+                    HandleZoomWithMouseWheel(e);
+                }
+                e.Handled = true;
+            }
         }
         /// <summary>
         /// 光标隐藏计时器触发事件 - 在全屏模式下自动隐藏光标

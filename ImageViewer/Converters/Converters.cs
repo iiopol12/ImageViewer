@@ -5,6 +5,7 @@ using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using ImageViewer.Models;
+using ImageViewer.Services;
 
 namespace ImageViewer.Converters
 {
@@ -90,29 +91,7 @@ namespace ImageViewer.Converters
         }
     }
 
-    public class ViewModeToStringConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is ViewMode mode)
-            {
-                return mode switch
-                {
-                    ViewMode.Single => "单图模式",
-                    ViewMode.Manga => "漫画模式",
-                    ViewMode.DoublePage => "双页模式",
-
-                    _ => "单图模式"
-                };
-            }
-            return "单图模式";
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }
+    
 
     public class BoolToBookmarkIconConverter : IValueConverter
     {
