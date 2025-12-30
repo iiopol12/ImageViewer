@@ -1185,23 +1185,23 @@
                                     <TextBlock Foreground="{DynamicResource ForegroundBrush}"
                            FontSize="12">
                                         <Run Text="{DynamicResource InfoPanel_Dimensions}"/>
-                                        <Run Text="{Binding CurrentImage.DimensionsFormatted}"/>
+                                        <Run Text="{Binding CurrentImage.DimensionsFormatted, Mode=OneWay}"/>
                                     </TextBlock>
                                     <TextBlock Foreground="{DynamicResource ForegroundBrush}"
                            FontSize="12" Margin="0,2,0,0">
                                         <Run Text="{DynamicResource InfoPanel_BitDepth}"/>
-                                        <Run Text="{Binding CurrentImage.BitDepth}"/>
+                                        <Run Text="{Binding CurrentImage.BitDepth, Mode=OneWay}"/>
                                         <Run Text="{DynamicResource InfoPanel_BitDepthSuffix}"/>
                                     </TextBlock>
                                     <TextBlock Foreground="{DynamicResource ForegroundBrush}"
                            FontSize="12" Margin="0,2,0,0">
                                         <Run Text="{DynamicResource InfoPanel_FileSize}"/>
-                                        <Run Text="{Binding CurrentImage.FileSizeFormatted}"/>
+                                        <Run Text="{Binding CurrentImage.FileSizeFormatted, Mode=OneWay}"/>
                                     </TextBlock>
                                     <TextBlock Foreground="{DynamicResource ForegroundBrush}"
                            FontSize="12" Margin="0,2,0,0">
                                         <Run Text="{DynamicResource InfoPanel_DateModified}"/>
-                                        <Run Text="{Binding CurrentImage.DateModified, StringFormat={}{0:yyyy-MM-dd HH:mm}}"/>
+                                        <Run Text="{Binding CurrentImage.DateModified, Mode=OneWay, StringFormat={}{0:yyyy-MM-dd HH:mm}}"/>
                                     </TextBlock>
                                     <TextBlock Text="{Binding CurrentImage.FilePath}"
                            Foreground="{DynamicResource ForegroundDimBrush}"

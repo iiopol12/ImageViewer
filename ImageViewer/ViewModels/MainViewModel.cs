@@ -1434,6 +1434,7 @@ namespace ImageViewer.ViewModels
                     }
 
                     await LoadCurrentImage();
+                    RefreshViewStateAfterLoad();
 
                     IsBusyLoading = false;
                     OnPropertyChanged(nameof(HasImages));
@@ -1547,6 +1548,7 @@ namespace ImageViewer.ViewModels
                         StatusMessage = "已取消输入密码";
                         return;
                     }
+                    RefreshViewStateAfterLoad();
 
                     IsBusyLoading = false;
                     OnPropertyChanged(nameof(HasImages));
@@ -1672,6 +1674,7 @@ namespace ImageViewer.ViewModels
 
                     // ✓ 加载第一张图后立即放开界面
                     await LoadCurrentImage();
+                    RefreshViewStateAfterLoad();
 
                     // ✓ 提前放开界面，用户可以立即操作
                     IsBusyLoading = false;
@@ -1711,6 +1714,22 @@ namespace ImageViewer.ViewModels
             }
         }
 
+
+        private void RefreshViewStateAfterLoad()
+        {
+            if (Images.Count == 0)
+            {
+                return;
+            }
+
+            // Force view-related bindings to re-evaluate after a new load.
+            OnPropertyChanged(nameof(CurrentViewMode));
+            OnPropertyChanged(nameof(IsDoublePage));
+            OnPropertyChanged(nameof(IsMangaMode));
+            OnPropertyChanged(nameof(IsSingleMode));
+            OnPropertyChanged(nameof(ShowWaterfallView));
+
+        }
 
         /// <summary>
         /// 异步加载所有缩略图
