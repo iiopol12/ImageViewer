@@ -1834,6 +1834,7 @@ namespace ImageViewer.ViewModels
                  {
                      CurrentImage.UpdateMetadata(newDisplay);
                      DisplayImage = newDisplay;
+                     _ = UpdateExifAsync(CurrentImage, _preloadCts.Token);
 
                      if (IsMangaMode && CurrentImage.FullImage == null)
                      {
@@ -1951,6 +1952,35 @@ namespace ImageViewer.ViewModels
                 //OnPropertyChanged(nameof(CanGoPrevious));
                 //OnPropertyChanged(nameof(CanGoNext));
                 OnPropertyChanged(nameof(PositionText));
+            }
+        }
+
+        private async Task UpdateExifAsync(ImageInfo imageInfo, CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                var metadata = await Task.Run(
+                    () => _imageService.ReadExifMetadata(imageInfo, cancellationToken),
+                    cancellationToken);
+
+                if (cancellationToken.IsCancellationRequested || !ReferenceEquals(CurrentImage, imageInfo))
+                {
+                    return;
+                }
+
+                imageInfo.UpdateExifMetadata(metadata);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"读取 EXIF 失败: {ex.Message}");
             }
         }
 

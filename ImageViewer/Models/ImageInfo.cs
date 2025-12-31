@@ -67,6 +67,55 @@ namespace ImageViewer.Models
         public int Height { get; set; }
         public int BitDepth { get; private set; }
         public DateTime DateModified { get; set; }
+
+        private string? _exifDateTaken;
+        public string? ExifDateTaken
+        {
+            get => _exifDateTaken;
+            private set => SetProperty(ref _exifDateTaken, value);
+        }
+
+        private string? _exifCameraModel;
+        public string? ExifCameraModel
+        {
+            get => _exifCameraModel;
+            private set => SetProperty(ref _exifCameraModel, value);
+        }
+
+        private string? _exifAperture;
+        public string? ExifAperture
+        {
+            get => _exifAperture;
+            private set => SetProperty(ref _exifAperture, value);
+        }
+
+        private string? _exifShutterSpeed;
+        public string? ExifShutterSpeed
+        {
+            get => _exifShutterSpeed;
+            private set => SetProperty(ref _exifShutterSpeed, value);
+        }
+
+        private string? _exifIso;
+        public string? ExifIso
+        {
+            get => _exifIso;
+            private set => SetProperty(ref _exifIso, value);
+        }
+
+        private string? _exifFocalLength;
+        public string? ExifFocalLength
+        {
+            get => _exifFocalLength;
+            private set => SetProperty(ref _exifFocalLength, value);
+        }
+
+        private string? _exifGpsLocation;
+        public string? ExifGpsLocation
+        {
+            get => _exifGpsLocation;
+            private set => SetProperty(ref _exifGpsLocation, value);
+        }
         
         [ObservableProperty]
         private BitmapSource? _thumbnail;
@@ -164,6 +213,17 @@ namespace ImageViewer.Models
             OnPropertyChanged(nameof(Height));
             OnPropertyChanged(nameof(DimensionsFormatted));
             OnPropertyChanged(nameof(BitDepth));
+        }
+
+        public void UpdateExifMetadata(ExifMetadata? metadata)
+        {
+            ExifDateTaken = metadata?.DateTaken;
+            ExifCameraModel = metadata?.CameraModel;
+            ExifAperture = metadata?.Aperture;
+            ExifShutterSpeed = metadata?.ShutterSpeed;
+            ExifIso = metadata?.Iso;
+            ExifFocalLength = metadata?.FocalLength;
+            ExifGpsLocation = metadata?.GpsLocation;
         }
 
 

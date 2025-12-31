@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -420,6 +421,494 @@ namespace ImageViewer.Services
             {
                 return false;
             }
+        }
+
+        public ExifMetadata? ReadExifMetadata(ImageInfo imageInfo, CancellationToken cancellationToken = default)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return null;
+            }
+
+            return imageInfo.SourceKind switch
+            {
+                ImageSourceKind.File => TryReadExifFromFile(imageInfo.FilePath),
+                ImageSourceKind.ZipEntry => TryReadExifFromArchive(imageInfo),
+                _ => null
+            };
+        }
+
+        private ExifMetadata? TryReadExifFromFile(string filePath)
+        {
+            if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+            {
+                return null;
+            }
+
+            try
+            {
+                using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                return TryReadExifFromStream(stream);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private ExifMetadata? TryReadExifFromArchive(ImageInfo imageInfo)
+        {
+            if (string.IsNullOrWhiteSpace(imageInfo.ArchivePath) || string.IsNullOrWhiteSpace(imageInfo.ArchiveEntryPath))
+            {
+                return null;
+            }
+
+            try
+            {
+                var data = LoadArchiveEntryBytes(imageInfo.ArchivePath, imageInfo.ArchiveEntryPath);
+                if (data == null || data.Length == 0)
+                {
+                    return null;
+                }
+
+                using var stream = new MemoryStream(data, writable: false);
+                return TryReadExifFromStream(stream);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static ExifMetadata? TryReadExifFromStream(Stream stream)
+        {
+            try
+            {
+                if (stream.CanSeek)
+                {
+                    stream.Position = 0;
+                }
+
+                var decoder = BitmapDecoder.Create(stream, BitmapCreateOptions.DelayCreation, BitmapCacheOption.None);
+                if (decoder.Frames.Count == 0)
+                {
+                    return null;
+                }
+
+                if (decoder.Frames[0].Metadata is not BitmapMetadata metadata)
+                {
+                    return null;
+                }
+
+                return ExtractExif(metadata);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static ExifMetadata? ExtractExif(BitmapMetadata metadata)
+        {
+            var dateTaken = FormatDateTaken(metadata);
+            var cameraModel = FormatCameraModel(metadata);
+            var aperture = FormatAperture(metadata);
+            var shutterSpeed = FormatShutterSpeed(metadata);
+            var iso = FormatIso(metadata);
+            var focalLength = FormatFocalLength(metadata);
+            var gpsLocation = FormatGpsLocation(metadata);
+
+            if (dateTaken == null &&
+                cameraModel == null &&
+                aperture == null &&
+                shutterSpeed == null &&
+                iso == null &&
+                focalLength == null &&
+                gpsLocation == null)
+            {
+                return null;
+            }
+
+            return new ExifMetadata(
+                dateTaken,
+                cameraModel,
+                aperture,
+                shutterSpeed,
+                iso,
+                focalLength,
+                gpsLocation);
+        }
+
+        private static string? FormatDateTaken(BitmapMetadata metadata)
+        {
+            var raw = NormalizeString(metadata.DateTaken)
+                      ?? GetMetadataString(metadata, "/app1/ifd/exif/{ushort=36867}")
+                      ?? GetMetadataString(metadata, "/app1/ifd/exif/{ushort=36868}")
+                      ?? GetMetadataString(metadata, "/app1/ifd/{ushort=306}");
+
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                return null;
+            }
+
+            var formats = new[]
+            {
+                "yyyy:MM:dd HH:mm:ss",
+                "yyyy:MM:dd HH:mm:ssK",
+                "yyyy-MM-dd HH:mm:ss",
+                "yyyy-MM-ddTHH:mm:ss",
+                "yyyy:MM:dd HH:mm:ss.fff"
+            };
+
+            if (DateTime.TryParseExact(raw, formats, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var parsed))
+            {
+                return parsed.ToString("yyyy-MM-dd HH:mm");
+            }
+
+            if (DateTime.TryParse(raw, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out parsed))
+            {
+                return parsed.ToString("yyyy-MM-dd HH:mm");
+            }
+
+            return raw;
+        }
+
+        private static string? FormatCameraModel(BitmapMetadata metadata)
+        {
+            var make = NormalizeString(metadata.CameraManufacturer)
+                       ?? GetMetadataString(metadata, "/app1/ifd/{ushort=271}");
+            var model = NormalizeString(metadata.CameraModel)
+                        ?? GetMetadataString(metadata, "/app1/ifd/{ushort=272}");
+
+            make = NormalizeString(make);
+            model = NormalizeString(model);
+
+            if (string.IsNullOrEmpty(make) && string.IsNullOrEmpty(model))
+            {
+                return null;
+            }
+
+            if (string.IsNullOrEmpty(make))
+            {
+                return model;
+            }
+
+            if (string.IsNullOrEmpty(model))
+            {
+                return make;
+            }
+
+            if (model.Contains(make, StringComparison.OrdinalIgnoreCase))
+            {
+                return model;
+            }
+
+            return $"{make} {model}";
+        }
+
+        private static string? FormatAperture(BitmapMetadata metadata)
+        {
+            var fNumber = GetMetadataRational(metadata, "/app1/ifd/exif/{ushort=33437}");
+            if (!fNumber.HasValue)
+            {
+                var apertureValue = GetMetadataRational(metadata, "/app1/ifd/exif/{ushort=37378}");
+                if (apertureValue.HasValue && apertureValue.Value > 0)
+                {
+                    fNumber = Math.Pow(2, apertureValue.Value / 2.0);
+                }
+            }
+
+            if (!fNumber.HasValue || fNumber.Value <= 0)
+            {
+                return null;
+            }
+
+            return $"f/{fNumber.Value:0.0#}";
+        }
+
+        private static string? FormatShutterSpeed(BitmapMetadata metadata)
+        {
+            var exposureSeconds = GetMetadataRational(metadata, "/app1/ifd/exif/{ushort=33434}");
+            if (!exposureSeconds.HasValue)
+            {
+                var shutterSpeedValue = GetMetadataRational(metadata, "/app1/ifd/exif/{ushort=37377}");
+                if (shutterSpeedValue.HasValue)
+                {
+                    exposureSeconds = Math.Pow(2, -shutterSpeedValue.Value);
+                }
+            }
+
+            return FormatExposureTime(exposureSeconds);
+        }
+
+        private static string? FormatIso(BitmapMetadata metadata)
+        {
+            var iso = GetMetadataInt(metadata, "/app1/ifd/exif/{ushort=34855}");
+            if (!iso.HasValue || iso.Value <= 0)
+            {
+                return null;
+            }
+
+            return iso.Value.ToString(CultureInfo.InvariantCulture);
+        }
+
+        private static string? FormatFocalLength(BitmapMetadata metadata)
+        {
+            var focalLength = GetMetadataRational(metadata, "/app1/ifd/exif/{ushort=37386}");
+            if (!focalLength.HasValue || focalLength.Value <= 0)
+            {
+                return null;
+            }
+
+            return $"{focalLength.Value:0.#} mm";
+        }
+
+        private static string? FormatGpsLocation(BitmapMetadata metadata)
+        {
+            var latitudeRef = GetMetadataString(metadata, "/app1/ifd/gps/{ushort=1}");
+            var latitude = ConvertGpsCoordinate(SafeGetMetadataQuery(metadata, "/app1/ifd/gps/{ushort=2}"));
+            var longitudeRef = GetMetadataString(metadata, "/app1/ifd/gps/{ushort=3}");
+            var longitude = ConvertGpsCoordinate(SafeGetMetadataQuery(metadata, "/app1/ifd/gps/{ushort=4}"));
+
+            if (!latitude.HasValue || !longitude.HasValue)
+            {
+                return null;
+            }
+
+            var latValue = ApplyGpsRef(latitude.Value, latitudeRef);
+            var lonValue = ApplyGpsRef(longitude.Value, longitudeRef);
+
+            var latLabel = latValue >= 0 ? "N" : "S";
+            var lonLabel = lonValue >= 0 ? "E" : "W";
+
+            return $"{Math.Abs(latValue):F6} {latLabel}, {Math.Abs(lonValue):F6} {lonLabel}";
+        }
+
+        private static string? GetMetadataString(BitmapMetadata metadata, string query)
+        {
+            var value = SafeGetMetadataQuery(metadata, query);
+            return NormalizeString(value as string);
+        }
+
+        private static int? GetMetadataInt(BitmapMetadata metadata, string query)
+        {
+            var value = SafeGetMetadataQuery(metadata, query);
+            return value switch
+            {
+                byte b => b,
+                sbyte sb => sb,
+                short s => s,
+                ushort us => us,
+                int i => i,
+                uint ui => ui <= int.MaxValue ? (int)ui : null,
+                long l => l is <= int.MaxValue and >= int.MinValue ? (int)l : null,
+                ulong ul => ul <= int.MaxValue ? (int)ul : null,
+                byte[] bytes when bytes.Length > 0 => bytes[0],
+                ushort[] ushorts when ushorts.Length > 0 => ushorts[0],
+                uint[] uints when uints.Length > 0 => uints[0] <= int.MaxValue ? (int)uints[0] : null,
+                int[] ints when ints.Length > 0 => ints[0],
+                _ => null
+            };
+        }
+
+        private static double? GetMetadataRational(BitmapMetadata metadata, string query)
+        {
+            var value = SafeGetMetadataQuery(metadata, query);
+            return DecodeRationalValue(value);
+        }
+
+        private static string? FormatExposureTime(double? seconds)
+        {
+            if (!seconds.HasValue || seconds.Value <= 0)
+            {
+                return null;
+            }
+
+            var value = seconds.Value;
+            if (value >= 1)
+            {
+                return $"{value:0.###} s";
+            }
+
+            var denominator = (int)Math.Round(1.0 / value);
+            if (denominator > 0)
+            {
+                var approx = 1.0 / denominator;
+                if (Math.Abs(approx - value) / value <= 0.02)
+                {
+                    return $"1/{denominator} s";
+                }
+            }
+
+            return $"{value:0.###} s";
+        }
+
+        private static double? DecodeRationalValue(object? value)
+        {
+            return value switch
+            {
+                null => null,
+                double d => d,
+                float f => f,
+                int i => i,
+                uint ui => ui,
+                long l => DecodeSignedRational(l),
+                ulong ul => DecodeUnsignedRational(ul),
+                short s => s,
+                ushort us => us,
+                string s => ParseRationalString(s),
+                uint[] uiArr when uiArr.Length >= 2 => uiArr[1] == 0 ? null : (double)uiArr[0] / uiArr[1],
+                ushort[] usArr when usArr.Length >= 2 => usArr[1] == 0 ? null : (double)usArr[0] / usArr[1],
+                _ => null
+            };
+        }
+
+        private static double[]? DecodeRationalArray(object? value)
+        {
+            switch (value)
+            {
+                case ulong[] ulArr when ulArr.Length > 0:
+                    return ulArr.Select(DecodeUnsignedRational)
+                        .Where(v => v.HasValue)
+                        .Select(v => v!.Value)
+                        .ToArray();
+                case long[] lArr when lArr.Length > 0:
+                    return lArr.Select(DecodeSignedRational)
+                        .Where(v => v.HasValue)
+                        .Select(v => v!.Value)
+                        .ToArray();
+                case uint[] uiArr when uiArr.Length > 0:
+                    if (uiArr.Length % 2 == 0)
+                    {
+                        var list = new List<double>(uiArr.Length / 2);
+                        for (var i = 0; i < uiArr.Length; i += 2)
+                        {
+                            if (uiArr[i + 1] == 0)
+                            {
+                                return null;
+                            }
+                            list.Add((double)uiArr[i] / uiArr[i + 1]);
+                        }
+                        return list.ToArray();
+                    }
+                    return uiArr.Select(v => (double)v).ToArray();
+                case ushort[] usArr when usArr.Length > 0:
+                    if (usArr.Length % 2 == 0)
+                    {
+                        var list = new List<double>(usArr.Length / 2);
+                        for (var i = 0; i < usArr.Length; i += 2)
+                        {
+                            if (usArr[i + 1] == 0)
+                            {
+                                return null;
+                            }
+                            list.Add((double)usArr[i] / usArr[i + 1]);
+                        }
+                        return list.ToArray();
+                    }
+                    return usArr.Select(v => (double)v).ToArray();
+                default:
+                    return null;
+            }
+        }
+
+        private static double? ConvertGpsCoordinate(object? value)
+        {
+            var parts = DecodeRationalArray(value);
+            if (parts == null || parts.Length < 3)
+            {
+                return null;
+            }
+
+            return parts[0] + (parts[1] / 60.0) + (parts[2] / 3600.0);
+        }
+
+        private static double ApplyGpsRef(double coordinate, string? reference)
+        {
+            if (string.IsNullOrWhiteSpace(reference))
+            {
+                return coordinate;
+            }
+
+            var refValue = reference.Trim().ToUpperInvariant();
+            if (refValue == "S" || refValue == "W")
+            {
+                return -Math.Abs(coordinate);
+            }
+
+            return Math.Abs(coordinate);
+        }
+
+        private static string? NormalizeString(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return null;
+            }
+
+            var cleaned = value.Trim().Trim('\0');
+            return string.IsNullOrWhiteSpace(cleaned) ? null : cleaned;
+        }
+
+        private static object? SafeGetMetadataQuery(BitmapMetadata metadata, string query)
+        {
+            try
+            {
+                return metadata.GetQuery(query);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static double? DecodeUnsignedRational(ulong value)
+        {
+            var numerator = (uint)(value >> 32);
+            var denominator = (uint)(value & 0xFFFFFFFF);
+            if (denominator == 0)
+            {
+                return null;
+            }
+
+            return numerator / (double)denominator;
+        }
+
+        private static double? DecodeSignedRational(long value)
+        {
+            var numerator = (int)(value >> 32);
+            var denominator = (int)(value & 0xFFFFFFFF);
+            if (denominator == 0)
+            {
+                return null;
+            }
+
+            return numerator / (double)denominator;
+        }
+
+        private static double? ParseRationalString(string value)
+        {
+            var cleaned = NormalizeString(value);
+            if (string.IsNullOrWhiteSpace(cleaned))
+            {
+                return null;
+            }
+
+            if (double.TryParse(cleaned, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed))
+            {
+                return parsed;
+            }
+
+            var parts = cleaned.Split('/');
+            if (parts.Length == 2 &&
+                double.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out var numerator) &&
+                double.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out var denominator) &&
+                Math.Abs(denominator) > double.Epsilon)
+            {
+                return numerator / denominator;
+            }
+
+            return null;
         }
 
         private static ImageInfo CreateImageInfoFromFileInfo(string filePath, FileInfo fileInfo)

@@ -1203,6 +1203,48 @@
                                         <Run Text="{DynamicResource InfoPanel_DateModified}"/>
                                         <Run Text="{Binding CurrentImage.DateModified, Mode=OneWay, StringFormat={}{0:yyyy-MM-dd HH:mm}}"/>
                                     </TextBlock>
+                                    <TextBlock Foreground="{DynamicResource ForegroundBrush}"
+                           FontSize="12" Margin="0,2,0,0"
+                           Visibility="{Binding CurrentImage.ExifDateTaken, Converter={StaticResource NullToVisibilityConverter}}">
+                                        <Run Text="{DynamicResource InfoPanel_DateTaken}"/>
+                                        <Run Text="{Binding CurrentImage.ExifDateTaken, Mode=OneWay}"/>
+                                    </TextBlock>
+                                    <TextBlock Foreground="{DynamicResource ForegroundBrush}"
+                           FontSize="12" Margin="0,2,0,0"
+                           Visibility="{Binding CurrentImage.ExifCameraModel, Converter={StaticResource NullToVisibilityConverter}}">
+                                        <Run Text="{DynamicResource InfoPanel_CameraModel}"/>
+                                        <Run Text="{Binding CurrentImage.ExifCameraModel, Mode=OneWay}"/>
+                                    </TextBlock>
+                                    <TextBlock Foreground="{DynamicResource ForegroundBrush}"
+                           FontSize="12" Margin="0,2,0,0"
+                           Visibility="{Binding CurrentImage.ExifAperture, Converter={StaticResource NullToVisibilityConverter}}">
+                                        <Run Text="{DynamicResource InfoPanel_Aperture}"/>
+                                        <Run Text="{Binding CurrentImage.ExifAperture, Mode=OneWay}"/>
+                                    </TextBlock>
+                                    <TextBlock Foreground="{DynamicResource ForegroundBrush}"
+                           FontSize="12" Margin="0,2,0,0"
+                           Visibility="{Binding CurrentImage.ExifShutterSpeed, Converter={StaticResource NullToVisibilityConverter}}">
+                                        <Run Text="{DynamicResource InfoPanel_ShutterSpeed}"/>
+                                        <Run Text="{Binding CurrentImage.ExifShutterSpeed, Mode=OneWay}"/>
+                                    </TextBlock>
+                                    <TextBlock Foreground="{DynamicResource ForegroundBrush}"
+                           FontSize="12" Margin="0,2,0,0"
+                           Visibility="{Binding CurrentImage.ExifIso, Converter={StaticResource NullToVisibilityConverter}}">
+                                        <Run Text="{DynamicResource InfoPanel_ISO}"/>
+                                        <Run Text="{Binding CurrentImage.ExifIso, Mode=OneWay}"/>
+                                    </TextBlock>
+                                    <TextBlock Foreground="{DynamicResource ForegroundBrush}"
+                           FontSize="12" Margin="0,2,0,0"
+                           Visibility="{Binding CurrentImage.ExifFocalLength, Converter={StaticResource NullToVisibilityConverter}}">
+                                        <Run Text="{DynamicResource InfoPanel_FocalLength}"/>
+                                        <Run Text="{Binding CurrentImage.ExifFocalLength, Mode=OneWay}"/>
+                                    </TextBlock>
+                                    <TextBlock Foreground="{DynamicResource ForegroundBrush}"
+                           FontSize="12" Margin="0,2,0,0"
+                           Visibility="{Binding CurrentImage.ExifGpsLocation, Converter={StaticResource NullToVisibilityConverter}}">
+                                        <Run Text="{DynamicResource InfoPanel_GPS}"/>
+                                        <Run Text="{Binding CurrentImage.ExifGpsLocation, Mode=OneWay}"/>
+                                    </TextBlock>
                                     <TextBlock Text="{Binding CurrentImage.FilePath}"
                            Foreground="{DynamicResource ForegroundDimBrush}"
                            FontSize="11"
