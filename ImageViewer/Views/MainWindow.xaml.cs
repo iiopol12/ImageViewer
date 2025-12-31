@@ -534,6 +534,9 @@ namespace ImageViewer.Views
                 _hotKeyManager.RegisterHotKey(ModifierKeys.Control | ModifierKeys.Shift, Key.F,
                     () => ViewModel.ToggleFilterCommand?.Execute(null));
 
+                _hotKeyManager.RegisterHotKey(ModifierKeys.Control, Key.OemComma,
+                    () => OpenSettingsWindow(openFavorites: false));
+
                 // === 收藏文件夹切换 ===
                 _hotKeyManager.RegisterHotKey(ModifierKeys.Control, Key.Tab,
                     ShowFolderSwitchOverlay);
@@ -580,6 +583,9 @@ namespace ImageViewer.Views
                 // === 视图控制 ===
                 _hotKeyManager.RegisterHotKey(ModifierKeys.None, Key.F11,
                     () => ViewModel.ToggleFullScreenCommand?.Execute(null));
+
+                _hotKeyManager.RegisterHotKey(ModifierKeys.None, Key.I,
+                    () => ViewModel.ToggleInfoPanelCommand?.Execute(null));
 
                 _hotKeyManager.RegisterHotKey(ModifierKeys.None, Key.M,
                     () => ViewModel.ToggleViewModeCommand?.Execute(null));
@@ -923,6 +929,16 @@ namespace ImageViewer.Views
 
         private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
+            if (ViewModel.IsRenamingFileName)
+            {
+                if (e.Key == Key.Escape)
+                {
+                    ViewModel.CancelRenameFileNameCommand.Execute(null);
+                    e.Handled = true;
+                }
+                return;
+            }
+
             // Ctrl+P 打印快捷键
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.P)
             {
@@ -947,6 +963,51 @@ namespace ImageViewer.Views
                 {
                     Close();
                 }
+            }
+        }
+
+        private void InfoPanelFileNameTextBlock_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (ViewModel.BeginRenameFileNameCommand.CanExecute(null))
+            {
+                ViewModel.BeginRenameFileNameCommand.Execute(null);
+                e.Handled = true;
+            }
+        }
+
+        private void InfoPanelFileNameTextBox_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (sender is not System.Windows.Controls.TextBox textBox || !textBox.IsVisible)
+            {
+                return;
+            }
+
+            textBox.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                textBox.Focus();
+                textBox.SelectAll();
+            }), DispatcherPriority.Input);
+        }
+
+        private void InfoPanelFileNameTextBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                ViewModel.ConfirmRenameFileNameCommand.Execute(null);
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Escape)
+            {
+                ViewModel.CancelRenameFileNameCommand.Execute(null);
+                e.Handled = true;
+            }
+        }
+
+        private void InfoPanelFileNameTextBox_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+        {
+            if (ViewModel.IsRenamingFileName)
+            {
+                ViewModel.CancelRenameFileNameCommand.Execute(null);
             }
         }
 
@@ -995,6 +1056,11 @@ namespace ImageViewer.Views
 
         private async void Window_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
+            if (ViewModel.IsRenamingFileName)
+            {
+                return;
+            }
+
             if (!_isFolderSwitchOpen)
             {
                 if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control) && e.Key == Key.Tab)
@@ -1115,7 +1181,7 @@ namespace ImageViewer.Views
             _folderSwitchThumbnailCts?.Dispose();
             _folderSwitchThumbnailCts = null;
 
-            if (restoreHotKeys && IsActive)
+            if (restoreHotKeys && IsActive && !ViewModel.IsRenamingFileName)
             {
                 RegisterGlobalHotKeys();
             }
@@ -1628,7 +1694,10 @@ namespace ImageViewer.Views
         private void Window_Activated(object sender, EventArgs e)
         {
             // 窗口激活时重新注册快捷键，避免在后台抢占其它软件按键
-            RegisterGlobalHotKeys();
+            if (!ViewModel.IsRenamingFileName)
+            {
+                RegisterGlobalHotKeys();
+            }
         }
 
 
@@ -1730,22 +1799,50 @@ namespace ImageViewer.Views
             }
             else if (!ViewModel.IsMangaMode && ViewModel.Settings.ShowBottomBarInFullScreen)
             {
-                // 单图/双页模式：检测底部边缘
-                shouldShow = mousePos.Y >= ActualHeight - FullScreenBarTriggerZone;
+                var useSideLayout = ViewModel.IsSingleMode &&
+                                    ViewModel.Settings.SingleModeBarLayout == SingleDoubleBarLayout.Side ||
+                                    ViewModel.IsDoublePage &&
+                                    ViewModel.Settings.DoublePageBarLayout == SingleDoubleBarLayout.Side;
 
-                // 如果鼠标在底边栏上方，也保持显示
-                if (_isFullScreenBarVisible && mousePos.Y >= ActualHeight - ViewModel.Settings.BottomBarHeight)
+                if (useSideLayout)
                 {
-                    shouldShow = true;
-                }
+                    // 单图/双页模式侧边栏：检测左侧边缘
+                    shouldShow = mousePos.X <= FullScreenBarTriggerZone;
 
-                if (shouldShow)
-                {
-                    ShowFullScreenBottomBar();
+                    // 如果鼠标在侧边栏上方，也保持显示
+                    if (_isFullScreenBarVisible && mousePos.X <= ViewModel.Settings.SidebarWidth)
+                    {
+                        shouldShow = true;
+                    }
+
+                    if (shouldShow)
+                    {
+                        ShowFullScreenSidebar();
+                    }
+                    else if (_isFullScreenBarVisible)
+                    {
+                        StartFullScreenBarHideTimer();
+                    }
                 }
-                else if (_isFullScreenBarVisible)
+                else
                 {
-                    StartFullScreenBarHideTimer();
+                    // 单图/双页模式底边栏：检测底部边缘
+                    shouldShow = mousePos.Y >= ActualHeight - FullScreenBarTriggerZone;
+
+                    // 如果鼠标在底边栏上方，也保持显示
+                    if (_isFullScreenBarVisible && mousePos.Y >= ActualHeight - ViewModel.Settings.BottomBarHeight)
+                    {
+                        shouldShow = true;
+                    }
+
+                    if (shouldShow)
+                    {
+                        ShowFullScreenBottomBar();
+                    }
+                    else if (_isFullScreenBarVisible)
+                    {
+                        StartFullScreenBarHideTimer();
+                    }
                 }
             }
         }
@@ -1856,7 +1953,7 @@ namespace ImageViewer.Views
                     return true;
             }
 
-            // 检查漫画模式侧边栏
+            // 检查侧边栏（非全屏）
             if (MangaSidebar.Visibility == Visibility.Visible)
             {
                 if (mousePos.X <= ViewModel.Settings.SidebarWidth)
@@ -2290,6 +2387,16 @@ namespace ImageViewer.Views
                     // 适应窗口选项改变时，重新计算缩放
                     HandleSlideShowChange();
                     RequestCenterMangaCurrentImage();
+                    break;
+                case nameof(MainViewModel.IsRenamingFileName):
+                    if (ViewModel.IsRenamingFileName)
+                    {
+                        _hotKeyManager?.UnregisterAll();
+                    }
+                    else if (!_isFolderSwitchOpen && IsActive)
+                    {
+                        RegisterGlobalHotKeys();
+                    }
                     break;
             }
         }

@@ -1084,6 +1084,17 @@
                                                     <ColumnDefinition Width="*"/>
                                                 </Grid.ColumnDefinitions>
                                                 <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="I" Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                                <TextBlock Grid.Column="2" Text="{DynamicResource Shortcut_ToggleInfoPanel}" Style="{StaticResource DescTextStyle}"/>
+                                            </Grid>
+                                            <Grid Margin="0,0,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
                                                     <TextBlock Text="Ctrl+C" Style="{StaticResource KeyTextStyle}"/>
                                                 </Border>
                                                 <TextBlock Grid.Column="2" Text="{DynamicResource Shortcut_CopyToClipboard}" Style="{StaticResource DescTextStyle}"/>
@@ -1109,6 +1120,17 @@
                                                     <TextBlock Text="Ctrl+Shift+F" Style="{StaticResource KeyTextStyle}"/>
                                                 </Border>
                                                 <TextBlock Grid.Column="2" Text="{DynamicResource Shortcut_ToggleFilter}" Style="{StaticResource DescTextStyle}"/>
+                                            </Grid>
+                                            <Grid Margin="0,0,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="Ctrl+," Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                                <TextBlock Grid.Column="2" Text="{DynamicResource Shortcut_OpenSettings}" Style="{StaticResource DescTextStyle}"/>
                                             </Grid>
                                             <Grid Margin="0,0,0,4">
                                                 <Grid.ColumnDefinitions>
@@ -1173,12 +1195,29 @@
                                 </Button>
 
                                 <StackPanel Grid.Column="0" Margin="0,4,0,0">
-                                    <TextBlock Text="{Binding CurrentImage.FileName}"
+                                    <Grid MaxWidth="320">
+                                        <TextBlock Text="{Binding CurrentImage.FileName}"
                            Foreground="{DynamicResource ForegroundBrush}"
                            FontWeight="SemiBold"
                            FontSize="14"
                            TextTrimming="CharacterEllipsis"
-                           MaxWidth="320"/>
+                           Cursor="IBeam"
+                           Visibility="{Binding IsRenamingFileName, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}"
+                           MouseLeftButtonDown="InfoPanelFileNameTextBlock_MouseLeftButtonDown"/>
+                                        <TextBox x:Name="InfoPanelFileNameTextBox"
+                           Text="{Binding RenameFileNameText, UpdateSourceTrigger=PropertyChanged}"
+                           Foreground="{DynamicResource ForegroundBrush}"
+                           CaretBrush="{DynamicResource ForegroundBrush}"
+                           Background="#33000000"
+                           BorderBrush="{DynamicResource ForegroundDimBrush}"
+                           FontWeight="SemiBold"
+                           FontSize="14"
+                           Padding="2"
+                           Visibility="{Binding IsRenamingFileName, Converter={StaticResource BoolToVisibilityConverter}}"
+                           IsVisibleChanged="InfoPanelFileNameTextBox_IsVisibleChanged"
+                           PreviewKeyDown="InfoPanelFileNameTextBox_PreviewKeyDown"
+                           LostKeyboardFocus="InfoPanelFileNameTextBox_LostKeyboardFocus"/>
+                                    </Grid>
                                     <TextBlock Text="{Binding PositionText}"
                            Foreground="{DynamicResource ForegroundDimBrush}"
                            FontSize="11" Margin="0,2,0,6"/>
@@ -1245,6 +1284,15 @@
                                         <Run Text="{DynamicResource InfoPanel_GPS}"/>
                                         <Run Text="{Binding CurrentImage.ExifGpsLocation, Mode=OneWay}"/>
                                     </TextBlock>
+                                    <Button Content="{DynamicResource InfoPanel_OpenMap}"
+                           Command="{Binding OpenMapCommand}"
+                           Style="{StaticResource ModernButtonStyle}"
+                           FontSize="11"
+                           Height="24"
+                           Padding="8,2"
+                           Margin="0,4,0,0"
+                           HorizontalAlignment="Left"
+                           Visibility="{Binding CurrentImage.HasExifGps, Converter={StaticResource BoolToVisibilityConverter}}"/>
                                     <TextBlock Text="{Binding CurrentImage.FilePath}"
                            Foreground="{DynamicResource ForegroundDimBrush}"
                            FontSize="11"
@@ -1282,7 +1330,7 @@
                     </Grid>
                 </Grid>
 
-                <!-- ========== 漫画模式侧边栏（左侧纵向）- 覆盖层设计 ========== -->
+                <!-- ========== 侧边栏（左侧纵向）- 覆盖层设计 ========== -->
                 <Border x:Name="MangaSidebar" 
                     HorizontalAlignment="Left"
                     Background="{DynamicResource BackgroundMediumBrush}"
@@ -1301,6 +1349,24 @@
                                         <Condition Binding="{Binding IsMangaMode}" Value="True"/>
                                         <Condition Binding="{Binding Settings.ShowSidebar}" Value="True"/>
                                         <Condition Binding="{Binding IsFullScreen}" Value="False"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </MultiDataTrigger>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsSingleMode}" Value="True"/>
+                                        <Condition Binding="{Binding Settings.ShowSidebar}" Value="True"/>
+                                        <Condition Binding="{Binding IsFullScreen}" Value="False"/>
+                                        <Condition Binding="{Binding Settings.SingleModeBarLayout}" Value="{x:Static models:SingleDoubleBarLayout.Side}"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </MultiDataTrigger>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsDoublePage}" Value="True"/>
+                                        <Condition Binding="{Binding Settings.ShowSidebar}" Value="True"/>
+                                        <Condition Binding="{Binding IsFullScreen}" Value="False"/>
+                                        <Condition Binding="{Binding Settings.DoublePageBarLayout}" Value="{x:Static models:SingleDoubleBarLayout.Side}"/>
                                     </MultiDataTrigger.Conditions>
                                     <Setter Property="Visibility" Value="Visible"/>
                                 </MultiDataTrigger>
@@ -1352,7 +1418,7 @@
                             </Grid>
                         </Border>
 
-                        <!-- 漫画模式纵向缩略图列表 -->
+                        <!-- 纵向缩略图列表 -->
                         <ListBox x:Name="MangaThumbnailList"
                              Grid.Row="1" 
                              ItemsSource="{Binding Images}" 
@@ -1422,9 +1488,19 @@
                                 <!-- 非漫画模式且显示侧边栏且非全屏时显示 -->
                                 <MultiDataTrigger>
                                     <MultiDataTrigger.Conditions>
-                                        <Condition Binding="{Binding IsMangaMode}" Value="False"/>
+                                        <Condition Binding="{Binding IsSingleMode}" Value="True"/>
                                         <Condition Binding="{Binding Settings.ShowSidebar}" Value="True"/>
                                         <Condition Binding="{Binding IsFullScreen}" Value="False"/>
+                                        <Condition Binding="{Binding Settings.SingleModeBarLayout}" Value="{x:Static models:SingleDoubleBarLayout.Bottom}"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </MultiDataTrigger>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsDoublePage}" Value="True"/>
+                                        <Condition Binding="{Binding Settings.ShowSidebar}" Value="True"/>
+                                        <Condition Binding="{Binding IsFullScreen}" Value="False"/>
+                                        <Condition Binding="{Binding Settings.DoublePageBarLayout}" Value="{x:Static models:SingleDoubleBarLayout.Bottom}"/>
                                     </MultiDataTrigger.Conditions>
                                     <Setter Property="Visibility" Value="Visible"/>
                                 </MultiDataTrigger>
@@ -1555,8 +1631,18 @@
                                 <MultiDataTrigger>
                                     <MultiDataTrigger.Conditions>
                                         <Condition Binding="{Binding IsFullScreen}" Value="True"/>
-                                        <Condition Binding="{Binding IsMangaMode}" Value="False"/>
+                                        <Condition Binding="{Binding IsSingleMode}" Value="True"/>
                                         <Condition Binding="{Binding Settings.ShowBottomBarInFullScreen}" Value="True"/>
+                                        <Condition Binding="{Binding Settings.SingleModeBarLayout}" Value="{x:Static models:SingleDoubleBarLayout.Bottom}"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </MultiDataTrigger>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsFullScreen}" Value="True"/>
+                                        <Condition Binding="{Binding IsDoublePage}" Value="True"/>
+                                        <Condition Binding="{Binding Settings.ShowBottomBarInFullScreen}" Value="True"/>
+                                        <Condition Binding="{Binding Settings.DoublePageBarLayout}" Value="{x:Static models:SingleDoubleBarLayout.Bottom}"/>
                                     </MultiDataTrigger.Conditions>
                                     <Setter Property="Visibility" Value="Visible"/>
                                 </MultiDataTrigger>
@@ -1633,6 +1719,24 @@
                                         <Condition Binding="{Binding IsFullScreen}" Value="True"/>
                                         <Condition Binding="{Binding IsMangaMode}" Value="True"/>
                                         <Condition Binding="{Binding Settings.ShowSidebarInMangaFullScreen}" Value="True"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </MultiDataTrigger>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsFullScreen}" Value="True"/>
+                                        <Condition Binding="{Binding IsSingleMode}" Value="True"/>
+                                        <Condition Binding="{Binding Settings.ShowBottomBarInFullScreen}" Value="True"/>
+                                        <Condition Binding="{Binding Settings.SingleModeBarLayout}" Value="{x:Static models:SingleDoubleBarLayout.Side}"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </MultiDataTrigger>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsFullScreen}" Value="True"/>
+                                        <Condition Binding="{Binding IsDoublePage}" Value="True"/>
+                                        <Condition Binding="{Binding Settings.ShowBottomBarInFullScreen}" Value="True"/>
+                                        <Condition Binding="{Binding Settings.DoublePageBarLayout}" Value="{x:Static models:SingleDoubleBarLayout.Side}"/>
                                     </MultiDataTrigger.Conditions>
                                     <Setter Property="Visibility" Value="Visible"/>
                                 </MultiDataTrigger>

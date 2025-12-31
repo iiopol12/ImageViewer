@@ -236,6 +236,33 @@ namespace ImageViewer.Views
                 }
             }
 
+            foreach (ComboBoxItem item in MapProviderComboBox.Items)
+            {
+                if (item.Tag is MapProvider provider && provider == _settings.MapProvider)
+                {
+                    MapProviderComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+
+            foreach (ComboBoxItem item in SingleBarLayoutComboBox.Items)
+            {
+                if (item.Tag is SingleDoubleBarLayout layout && layout == _settings.SingleModeBarLayout)
+                {
+                    SingleBarLayoutComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+
+            foreach (ComboBoxItem item in DoubleBarLayoutComboBox.Items)
+            {
+                if (item.Tag is SingleDoubleBarLayout layout && layout == _settings.DoublePageBarLayout)
+                {
+                    DoubleBarLayoutComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+
             IntervalSlider.Value = _settings.SlideshowInterval;
             IntervalText.Text = _settings.SlideshowInterval.ToString();
             ShuffleSlideshowCheckBox.IsChecked = _settings.SlideshowShuffle;
@@ -315,6 +342,23 @@ namespace ImageViewer.Views
             if (ScrollWheelComboBox.SelectedItem is ComboBoxItem swItem && swItem.Tag is ScrollWheelBehavior behavior)
             {
                 _settings.ScrollWheelBehavior = behavior;
+            }
+
+            if (MapProviderComboBox.SelectedItem is ComboBoxItem mapItem && mapItem.Tag is MapProvider provider)
+            {
+                _settings.MapProvider = provider;
+            }
+
+            if (SingleBarLayoutComboBox.SelectedItem is ComboBoxItem singleLayoutItem &&
+                singleLayoutItem.Tag is SingleDoubleBarLayout singleLayout)
+            {
+                _settings.SingleModeBarLayout = singleLayout;
+            }
+
+            if (DoubleBarLayoutComboBox.SelectedItem is ComboBoxItem doubleLayoutItem &&
+                doubleLayoutItem.Tag is SingleDoubleBarLayout doubleLayout)
+            {
+                _settings.DoublePageBarLayout = doubleLayout;
             }
 
             _settings.SlideshowInterval = (int)IntervalSlider.Value;

@@ -145,6 +145,9 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
                                 <TextBlock Grid.Row="0" Grid.Column="0" Text="{DynamicResource Settings_DefaultViewMode}"
@@ -181,9 +184,30 @@
                                     <ComboBoxItem Content="{DynamicResource ScrollWheel_Navigate}" Tag="{x:Static models:ScrollWheelBehavior.Navigate}"/>
                                 </ComboBox>
 
-                                <TextBlock Grid.Row="4" Grid.Column="0" Text="{DynamicResource Settings_MangaGap}"
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="{DynamicResource Settings_MapProvider}"
+                                        Foreground="{DynamicResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                <ComboBox Grid.Row="4" Grid.Column="1" x:Name="MapProviderComboBox" Margin="0,12,0,4">
+                                    <ComboBoxItem Content="{DynamicResource MapProvider_Amap}" Tag="{x:Static models:MapProvider.Amap}"/>
+                                    <ComboBoxItem Content="{DynamicResource MapProvider_Google}" Tag="{x:Static models:MapProvider.Google}"/>
+                                </ComboBox>
+
+                                <TextBlock Grid.Row="5" Grid.Column="0" Text="{DynamicResource Settings_SingleBarLayout}"
+                                        Foreground="{DynamicResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                <ComboBox Grid.Row="5" Grid.Column="1" x:Name="SingleBarLayoutComboBox" Margin="0,12,0,4">
+                                    <ComboBoxItem Content="{DynamicResource SingleDoubleBarLayout_Bottom}" Tag="{x:Static models:SingleDoubleBarLayout.Bottom}"/>
+                                    <ComboBoxItem Content="{DynamicResource SingleDoubleBarLayout_Side}" Tag="{x:Static models:SingleDoubleBarLayout.Side}"/>
+                                </ComboBox>
+
+                                <TextBlock Grid.Row="6" Grid.Column="0" Text="{DynamicResource Settings_DoubleBarLayout}"
+                                        Foreground="{DynamicResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                <ComboBox Grid.Row="6" Grid.Column="1" x:Name="DoubleBarLayoutComboBox" Margin="0,12,0,4">
+                                    <ComboBoxItem Content="{DynamicResource SingleDoubleBarLayout_Bottom}" Tag="{x:Static models:SingleDoubleBarLayout.Bottom}"/>
+                                    <ComboBoxItem Content="{DynamicResource SingleDoubleBarLayout_Side}" Tag="{x:Static models:SingleDoubleBarLayout.Side}"/>
+                                </ComboBox>
+
+                                <TextBlock Grid.Row="7" Grid.Column="0" Text="{DynamicResource Settings_MangaGap}"
                               Foreground="{DynamicResource ForegroundDimBrush}" VerticalAlignment="Center" Margin="0,12,0,0"/>
-                                <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
+                                <StackPanel Grid.Row="7" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
                                     <Slider x:Name="MangaGapSlider" Width="150" Minimum="0" Maximum="30"
                          Value="4" TickFrequency="1" IsSnapToTickEnabled="True"/>
                                     <TextBlock x:Name="MangaGapText" Text="4" Foreground="{DynamicResource ForegroundBrush}"

@@ -150,16 +150,16 @@ namespace ImageViewer.Services
         private readonly LinkedList<string> _imageLru = new();
         private readonly Dictionary<string, LinkedListNode<string>> _imageLruIndex = new(StringComparer.Ordinal);
 
- 
+
         private readonly LinkedList<string> _thumbLru = new();
-        private readonly Dictionary<string, LinkedListNode<string>> _thumbLruIndex =new(StringComparer.Ordinal);
+        private readonly Dictionary<string, LinkedListNode<string>> _thumbLruIndex = new(StringComparer.Ordinal);
 
         // 统一锁
         private readonly object _cacheLock = new();
         private readonly object _imageCacheLock = new();
         private readonly object _thumbCacheLock = new();
 
-     
+
 
         /// <summary>
         /// 判断文件是否为支持的图片格式
@@ -236,14 +236,14 @@ namespace ImageViewer.Services
             return _archivePasswordCancelled.ContainsKey(archivePath);
         }
 
- 
+
 
         private static bool IsSupportedImageExtension(string extension)
         {
             return !string.IsNullOrWhiteSpace(extension) && SupportedExtensionSet.Contains(extension);
         }
 
-  
+
 
 
         private static bool PreferBitmapImage(string filePath)
@@ -516,7 +516,7 @@ namespace ImageViewer.Services
             var shutterSpeed = FormatShutterSpeed(metadata);
             var iso = FormatIso(metadata);
             var focalLength = FormatFocalLength(metadata);
-            var gpsLocation = FormatGpsLocation(metadata);
+            var gpsLocation = FormatGpsLocation(metadata, out var gpsLatitude, out var gpsLongitude);
 
             if (dateTaken == null &&
                 cameraModel == null &&
@@ -536,7 +536,9 @@ namespace ImageViewer.Services
                 shutterSpeed,
                 iso,
                 focalLength,
-                gpsLocation);
+                gpsLocation,
+                gpsLatitude,
+                gpsLongitude);
         }
 
         private static string? FormatDateTaken(BitmapMetadata metadata)
@@ -663,31 +665,56 @@ namespace ImageViewer.Services
             return $"{focalLength.Value:0.#} mm";
         }
 
-        private static string? FormatGpsLocation(BitmapMetadata metadata)
+        private static string? FormatGpsLocation(BitmapMetadata metadata, out double? latitude, out double? longitude)
         {
-            var latitudeRef = GetMetadataString(metadata, "/app1/ifd/gps/{ushort=1}");
-            var latitude = ConvertGpsCoordinate(SafeGetMetadataQuery(metadata, "/app1/ifd/gps/{ushort=2}"));
-            var longitudeRef = GetMetadataString(metadata, "/app1/ifd/gps/{ushort=3}");
-            var longitude = ConvertGpsCoordinate(SafeGetMetadataQuery(metadata, "/app1/ifd/gps/{ushort=4}"));
+            latitude = null;
+            longitude = null;
 
-            if (!latitude.HasValue || !longitude.HasValue)
+            var latitudeRef = GetMetadataString(metadata, "/app1/ifd/gps/{ushort=1}");
+            var latitudeValue = ConvertGpsCoordinate(SafeGetMetadataQuery(metadata, "/app1/ifd/gps/{ushort=2}"));
+            var longitudeRef = GetMetadataString(metadata, "/app1/ifd/gps/{ushort=3}");
+            var longitudeValue = ConvertGpsCoordinate(SafeGetMetadataQuery(metadata, "/app1/ifd/gps/{ushort=4}"));
+
+            if (!latitudeValue.HasValue || !longitudeValue.HasValue)
             {
                 return null;
             }
 
-            var latValue = ApplyGpsRef(latitude.Value, latitudeRef);
-            var lonValue = ApplyGpsRef(longitude.Value, longitudeRef);
+            var latValue = ApplyGpsRef(latitudeValue.Value, latitudeRef);
+            var lonValue = ApplyGpsRef(longitudeValue.Value, longitudeRef);
 
-            var latLabel = latValue >= 0 ? "N" : "S";
-            var lonLabel = lonValue >= 0 ? "E" : "W";
+            latitude = latValue;
+            longitude = lonValue;
 
-            return $"{Math.Abs(latValue):F6} {latLabel}, {Math.Abs(lonValue):F6} {lonLabel}";
+            var latLabel = GetGpsRef(latitudeRef, latValue, 'N', 'S');
+            var lonLabel = GetGpsRef(longitudeRef, lonValue, 'E', 'W');
+
+            return FormatGpsDms(latLabel, latValue, lonLabel, lonValue);
         }
 
         private static string? GetMetadataString(BitmapMetadata metadata, string query)
         {
             var value = SafeGetMetadataQuery(metadata, query);
-            return NormalizeString(value as string);
+            return NormalizeMetadataString(value);
+        }
+
+        private static string? NormalizeMetadataString(object? value)
+        {
+            switch (value)
+            {
+                case null:
+                    return null;
+                case string s:
+                    return NormalizeString(s);
+                case byte[] bytes:
+                    return NormalizeString(Encoding.ASCII.GetString(bytes));
+                case ushort[] ushorts:
+                    return NormalizeString(new string(ushorts.Select(u => (char)u).ToArray()));
+                case char[] chars:
+                    return NormalizeString(new string(chars));
+                default:
+                    return null;
+            }
         }
 
         private static int? GetMetadataInt(BitmapMetadata metadata, string query)
@@ -815,12 +842,16 @@ namespace ImageViewer.Services
         private static double? ConvertGpsCoordinate(object? value)
         {
             var parts = DecodeRationalArray(value);
+
+
             if (parts == null || parts.Length < 3)
             {
+
                 return null;
             }
+            double result = parts[0] + (parts[1] / 60.0) + (parts[2] / 3600.0);
 
-            return parts[0] + (parts[1] / 60.0) + (parts[2] / 3600.0);
+            return result;
         }
 
         private static double ApplyGpsRef(double coordinate, string? reference)
@@ -838,6 +869,62 @@ namespace ImageViewer.Services
 
             return Math.Abs(coordinate);
         }
+
+        private static char GetGpsRef(string? reference, double coordinate, char positive, char negative)
+        {
+            if (!string.IsNullOrWhiteSpace(reference))
+            {
+                var upper = reference.Trim().ToUpperInvariant();
+                if (upper.Length > 0)
+                {
+                    if (upper[0] == negative)
+                    {
+                        return negative;
+                    }
+
+                    if (upper[0] == positive)
+                    {
+                        return positive;
+                    }
+                }
+            }
+
+            return coordinate < 0 ? negative : positive;
+        }
+
+        private static string FormatGpsDms(char latRef, double latValue, char lonRef, double lonValue)
+        {
+            ToDms(latValue, out var latDeg, out var latMin, out var latSec);
+            ToDms(lonValue, out var lonDeg, out var lonMin, out var lonSec);
+
+            var latSecText = latSec.ToString("0.00", CultureInfo.InvariantCulture);
+            var lonSecText = lonSec.ToString("0.00", CultureInfo.InvariantCulture);
+
+            return $"{latRef} {latDeg}\u00B0{latMin}'{latSecText}\" ,{lonRef} {lonDeg}\u00B0{lonMin}'{lonSecText}\"";
+        }
+
+        private static void ToDms(double value, out int degrees, out int minutes, out double seconds)
+        {
+            var abs = Math.Abs(value);
+            degrees = (int)Math.Floor(abs);
+            var minutesFull = (abs - degrees) * 60.0;
+            minutes = (int)Math.Floor(minutesFull);
+            seconds = (minutesFull - minutes) * 60.0;
+
+            seconds = Math.Round(seconds, 2, MidpointRounding.AwayFromZero);
+            if (seconds >= 60.0)
+            {
+                seconds = 0.0;
+                minutes += 1;
+            }
+
+            if (minutes >= 60)
+            {
+                minutes = 0;
+                degrees += 1;
+            }
+        }
+
 
         private static string? NormalizeString(string? value)
         {
@@ -866,12 +953,15 @@ namespace ImageViewer.Services
         {
             var numerator = (uint)(value >> 32);
             var denominator = (uint)(value & 0xFFFFFFFF);
+
             if (denominator == 0)
             {
                 return null;
             }
 
-            return numerator / (double)denominator;
+            double result = (double)denominator / numerator;
+
+            return result;
         }
 
         private static double? DecodeSignedRational(long value)
@@ -1400,9 +1490,9 @@ namespace ImageViewer.Services
                 {
                 }
 
-               
+
                 TouchExtractCache(cacheKey, extractedPath, actualSize);
-            
+
                 EvictExtractCacheIfNeeded();
                 return extractedPath;
             }
@@ -1421,7 +1511,7 @@ namespace ImageViewer.Services
                     _archiveExtractLru.Remove(existing);
                     _archiveExtractLru.AddFirst(existing);
 
-           
+
                     return;
                 }
 
@@ -1619,9 +1709,9 @@ namespace ImageViewer.Services
 
             return LoadWithMagickNet(extractedPath, decodePixelWidth);
         }
-        
 
-    
+
+
         public IEnumerable<ImageInfo> ScanFolder(string folderPath)
         {
             return ScanFolder(folderPath, includeSubfolders: false, maxSubfolderDepth: 0, filterOptions: null);
@@ -1867,8 +1957,7 @@ namespace ImageViewer.Services
         }
 
 
-        /// <summary>
-        /// </summary>
+
         private bool TryGetAndTouchThumbnail(string cacheKey, out BitmapSource? value)
         {
             lock (_thumbCacheLock)
@@ -1954,12 +2043,12 @@ namespace ImageViewer.Services
                 {
                     return null;
                 }
-                
+
                 if (thumbnail != null)
                 {
                     AddThumbnailToCache(cacheKey, thumbnail);
                 }
-                
+
                 return thumbnail;
             }
             finally
@@ -1970,8 +2059,7 @@ namespace ImageViewer.Services
 
 
 
-        /// <summary>
-        /// </summary>
+   
         private bool TryGetAndTouch(string cacheKey, out BitmapSource? value)
         {
             lock (_imageCacheLock)
@@ -2005,9 +2093,9 @@ namespace ImageViewer.Services
 
             var cts = new CancellationTokenSource();
             _loadingTasks.TryAdd(baseKey, cts);
-            
+
             using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cts.Token);
-            
+
             bool semaphoreAcquired = false;
             try
             {
@@ -2022,7 +2110,7 @@ namespace ImageViewer.Services
 
 
                 imageInfo.IsLoading = true;
-                
+
                 BitmapSource? image;
                 try
                 {
@@ -2057,12 +2145,12 @@ namespace ImageViewer.Services
                 {
                     return null;
                 }
-                
+
                 if (image != null)
                 {
                     AddToCache(cacheKey, image);
                 }
-                
+
                 return image;
             }
             catch (OperationCanceledException)
@@ -2083,7 +2171,7 @@ namespace ImageViewer.Services
                 }
             }
         }
-        
+
         public void CancelLoading(string filePath)
         {
             if (_loadingTasks.TryRemove(filePath, out var cts))
@@ -2092,7 +2180,7 @@ namespace ImageViewer.Services
                 cts.Dispose();
             }
         }
-        
+
         public void PreloadImages(IEnumerable<ImageInfo> images, CancellationToken cancellationToken = default)
         {
             foreach (var image in images)
@@ -2142,7 +2230,7 @@ namespace ImageViewer.Services
         {
             if (_thumbnailCache.TryGetValue(filePath, out var cached))
             {
-                lock (_cacheLock) 
+                lock (_cacheLock)
                 {
                     TouchThumbnailCache_NoLock(filePath);
                 }
@@ -2186,8 +2274,7 @@ namespace ImageViewer.Services
 
         #region LRU缓存管理 - 图片缓存
 
-        /// <summary>
-        /// </summary>
+  
         private void TouchImageCache_NoLock(string key)
         {
             if (_imageLruIndex.TryGetValue(key, out var node))
@@ -2199,8 +2286,7 @@ namespace ImageViewer.Services
 
 
 
-        /// <summary>
-        /// </summary>
+  
         private void EvictImageCacheIfNeeded_NoLock()
         {
             while (_imageLruIndex.Count > _maxCacheSize)
@@ -2215,10 +2301,10 @@ namespace ImageViewer.Services
                 _imageLru.RemoveLast();            // 1. 从链表移除
                 _imageLruIndex.Remove(oldestKey);  // 2. 从索引移除
                 _imageCache.TryRemove(oldestKey, out _); // 3. 从数据缓存移除
-            } 
+            }
         }
 
-      
+
 
 
 
@@ -2247,8 +2333,7 @@ namespace ImageViewer.Services
         #endregion
 
         #region LRU缓存管理 - 缩略图缓存
-        /// <summary>
-        /// </summary>
+
         private void TouchThumbnailCache_NoLock(string key)
         {
             if (_thumbLruIndex.TryGetValue(key, out var node))
@@ -2259,8 +2344,7 @@ namespace ImageViewer.Services
         }
 
 
-        /// <summary>
-        /// </summary>
+  
         private void EvictThumbnailCacheIfNeeded_NoLock()
         {
             while (_thumbLruIndex.Count > _maxThumbnailCacheSize)
@@ -2382,13 +2466,130 @@ namespace ImageViewer.Services
         /// </summary>
         private sealed record ExtractCacheItem(string CacheKey, string FilePath, long SizeBytes);
 
+        public void RenameCacheKey(string oldBaseKey, string newBaseKey)
+        {
+            if (string.IsNullOrWhiteSpace(oldBaseKey) || string.IsNullOrWhiteSpace(newBaseKey))
+            {
+                return;
+            }
+
+            if (string.Equals(oldBaseKey, newBaseKey, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            lock (_cacheLock)
+            {
+                RenameThumbnailCacheKey_NoLock(oldBaseKey, newBaseKey);
+                RenameImageCacheKeys_NoLock(oldBaseKey, newBaseKey);
+            }
+        }
+
+        private void RenameThumbnailCacheKey_NoLock(string oldKey, string newKey)
+        {
+            if (_thumbnailCache.TryRemove(oldKey, out var thumbnail))
+            {
+                _thumbnailCache[newKey] = thumbnail;
+            }
+
+            if (_thumbLruIndex.TryGetValue(oldKey, out var node))
+            {
+                _thumbLruIndex.Remove(oldKey);
+
+                if (_thumbLruIndex.TryGetValue(newKey, out var existing))
+                {
+                    _thumbLru.Remove(existing);
+                    _thumbLruIndex.Remove(newKey);
+                }
+
+                node.Value = newKey;
+                _thumbLruIndex[newKey] = node;
+            }
+        }
+
+        private void RenameImageCacheKeys_NoLock(string oldBaseKey, string newBaseKey)
+        {
+            var keys = _imageCache.Keys
+                .Where(key => TryGetImageCacheSuffix(key, oldBaseKey, out _))
+                .ToList();
+
+            foreach (var key in keys)
+            {
+                if (!TryGetImageCacheSuffix(key, oldBaseKey, out var suffix))
+                {
+                    continue;
+                }
+
+                var newKey = newBaseKey + suffix;
+                RenameImageCacheKey_NoLock(key, newKey);
+            }
+        }
+
+        private void RenameImageCacheKey_NoLock(string oldKey, string newKey)
+        {
+            if (_imageCache.TryRemove(oldKey, out var image))
+            {
+                _imageCache[newKey] = image;
+            }
+
+            if (_imageLruIndex.TryGetValue(oldKey, out var node))
+            {
+                _imageLruIndex.Remove(oldKey);
+
+                if (_imageLruIndex.TryGetValue(newKey, out var existing))
+                {
+                    _imageLru.Remove(existing);
+                    _imageLruIndex.Remove(newKey);
+                }
+
+                node.Value = newKey;
+                _imageLruIndex[newKey] = node;
+            }
+        }
+
+        private static bool TryGetImageCacheSuffix(string cacheKey, string baseKey, out string suffix)
+        {
+            suffix = string.Empty;
+            if (string.Equals(cacheKey, baseKey, StringComparison.Ordinal))
+            {
+                return true;
+            }
+
+            if (!cacheKey.StartsWith(baseKey, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            if (cacheKey.Length <= baseKey.Length + 1 || cacheKey[baseKey.Length] != '_')
+            {
+                return false;
+            }
+
+            var sizePart = cacheKey[(baseKey.Length + 1)..];
+            if (string.IsNullOrWhiteSpace(sizePart))
+            {
+                return false;
+            }
+
+            foreach (var ch in sizePart)
+            {
+                if (!char.IsDigit(ch))
+                {
+                    return false;
+                }
+            }
+
+            suffix = cacheKey[baseKey.Length..];
+            return true;
+        }
+
         public void ClearCache()
         {
             lock (_cacheLock)
             {
                 _imageCache.Clear();
                 _thumbnailCache.Clear();
-    
+
                 _thumbLru.Clear();
                 _thumbLruIndex.Clear();
                 _imageLru.Clear();
@@ -2402,7 +2603,7 @@ namespace ImageViewer.Services
 
             ClearExtractCache();
         }
-        
+
         public void Dispose()
         {
             foreach (var cts in _loadingTasks.Values)
@@ -2561,7 +2762,7 @@ namespace ImageViewer.Services
                 // 创建96 DPI的新位图
                 var result = BitmapSource.Create(
                     width, height,
-                    96, 96, 
+                    96, 96,
                     PixelFormats.Bgra32,
                     null,
                     pixels,
@@ -2594,16 +2795,16 @@ namespace ImageViewer.Services
             if (x == null && y == null) return 0;
             if (x == null) return -1;
             if (y == null) return 1;
-            
+
             int ix = 0, iy = 0;
-            
+
             while (ix < x.Length && iy < y.Length)
             {
                 if (char.IsDigit(x[ix]) && char.IsDigit(y[iy]))
                 {
                     var numX = ExtractNumber(x, ref ix);
                     var numY = ExtractNumber(y, ref iy);
-                    
+
                     if (numX != numY)
                         return numX.CompareTo(numY);
                 }
@@ -2612,12 +2813,12 @@ namespace ImageViewer.Services
                     var charCompare = char.ToLowerInvariant(x[ix]).CompareTo(char.ToLowerInvariant(y[iy]));
                     if (charCompare != 0)
                         return charCompare;
-                    
+
                     ix++;
                     iy++;
                 }
             }
-            
+
             return x.Length.CompareTo(y.Length);
         }
         /// <summary>
@@ -2628,10 +2829,10 @@ namespace ImageViewer.Services
             var start = index;
             while (index < s.Length && char.IsDigit(s[index]))
                 index++;
-            
+
             if (long.TryParse(s.Substring(start, index - start), out var result))
                 return result;
-            
+
             return 0;
         }
 

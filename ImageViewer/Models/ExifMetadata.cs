@@ -7,5 +7,7 @@ namespace ImageViewer.Models
         string? ShutterSpeed,
         string? Iso,
         string? FocalLength,
-        string? GpsLocation);
+        string? GpsLocation,
+        double? GpsLatitude,
+        double? GpsLongitude);
 }

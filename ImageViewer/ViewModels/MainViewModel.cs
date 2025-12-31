@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -47,6 +48,9 @@ namespace ImageViewer.ViewModels
         private bool _hasSavedViewStateBeforeAnimatedGif;
         private bool _fitToWindowBeforeAnimatedGif;
         private double _zoomLevelBeforeAnimatedGif = 1.0;
+
+        private const double GcjA = 6378245.0;
+        private const double GcjEe = 0.00669342162296594323;
         public MainViewModel()
         {
             // 加载应用设置
@@ -193,7 +197,13 @@ namespace ImageViewer.ViewModels
         // === 是否显示图片信息面板 ===
         [ObservableProperty]
         private bool _isInfoPanelVisible;
-      
+
+        [ObservableProperty]
+        private bool _isRenamingFileName;
+
+        [ObservableProperty]
+        private string _renameFileNameText = string.Empty;
+
         // === 漫画模式缩略图总览是否可见 ===
         [ObservableProperty]
         private bool _isMangaOverviewVisible;
@@ -281,6 +291,14 @@ namespace ImageViewer.ViewModels
 
             // 异步加载当前图片
             _ = LoadCurrentImage();
+        }
+
+        partial void OnCurrentImageChanged(ImageInfo? value)
+        {
+            if (IsRenamingFileName)
+            {
+                IsRenamingFileName = false;
+            }
         }
 
         /// <summary>全屏状态变化时触发</summary>
@@ -733,8 +751,7 @@ namespace ImageViewer.ViewModels
             await ShareFilesAsync(files);
         }
 
-        /// <summary>
-        /// </summary>
+
         private async Task ShareFilesAsync(IEnumerable<string> filePaths)
         {
             try
@@ -779,6 +796,95 @@ namespace ImageViewer.ViewModels
             {
                 Process.Start("explorer.exe", $"/select,\"{CurrentImage.FilePath}\"");
             }
+        }
+
+        [RelayCommand]
+        private void OpenMap()
+        {
+            if (CurrentImage?.ExifGpsLatitude is not double latitude ||
+                CurrentImage.ExifGpsLongitude is not double longitude)
+            {
+                return;
+            }
+
+            try
+            {
+                var name = Uri.EscapeDataString(CurrentImage.FileName ?? "Photo");
+                string url;
+                switch (Settings.MapProvider)
+                {
+                    case MapProvider.Google:
+                        url = BuildGoogleUrl(latitude, longitude);
+                        break;
+                    default:
+                        var converted = ToGcj02(latitude, longitude);
+                        url = BuildAmapUrl(converted.Latitude, converted.Longitude, name);
+                        break;
+                }
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"打开地图失败: {ex.Message}";
+            }
+        }
+
+        private static string BuildAmapUrl(double latitude, double longitude, string name)
+        {
+            var latText = latitude.ToString("F6", CultureInfo.InvariantCulture);
+            var lonText = longitude.ToString("F6", CultureInfo.InvariantCulture);
+            return $"https://uri.amap.com/marker?position={lonText},{latText}&name={name}";
+        }
+
+        private static string BuildGoogleUrl(double latitude, double longitude)
+        {
+            var latText = latitude.ToString("F6", CultureInfo.InvariantCulture);
+            var lonText = longitude.ToString("F6", CultureInfo.InvariantCulture);
+            return $"https://www.google.com/maps/search/?api=1&query={latText},{lonText}";
+        }
+
+        private static (double Latitude, double Longitude) ToGcj02(double latitude, double longitude)
+        {
+            if (IsOutOfChina(latitude, longitude))
+            {
+                return (latitude, longitude);
+            }
+
+            var dLat = TransformLat(longitude - 105.0, latitude - 35.0);
+            var dLon = TransformLon(longitude - 105.0, latitude - 35.0);
+            var radLat = latitude / 180.0 * Math.PI;
+            var magic = Math.Sin(radLat);
+            magic = 1 - GcjEe * magic * magic;
+            var sqrtMagic = Math.Sqrt(magic);
+            dLat = (dLat * 180.0) / ((GcjA * (1 - GcjEe)) / (magic * sqrtMagic) * Math.PI);
+            dLon = (dLon * 180.0) / (GcjA / sqrtMagic * Math.Cos(radLat) * Math.PI);
+            var mgLat = latitude + dLat;
+            var mgLon = longitude + dLon;
+            return (mgLat, mgLon);
+        }
+
+        private static bool IsOutOfChina(double latitude, double longitude)
+        {
+            return longitude < 72.004 || longitude > 137.8347 ||
+                   latitude < 0.8293 || latitude > 55.8271;
+        }
+
+        private static double TransformLat(double x, double y)
+        {
+            var ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.Sqrt(Math.Abs(x));
+            ret += (20.0 * Math.Sin(6.0 * x * Math.PI) + 20.0 * Math.Sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+            ret += (20.0 * Math.Sin(y * Math.PI) + 40.0 * Math.Sin(y / 3.0 * Math.PI)) * 2.0 / 3.0;
+            ret += (160.0 * Math.Sin(y / 12.0 * Math.PI) + 320.0 * Math.Sin(y * Math.PI / 30.0)) * 2.0 / 3.0;
+            return ret;
+        }
+
+        private static double TransformLon(double x, double y)
+        {
+            var ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.Sqrt(Math.Abs(x));
+            ret += (20.0 * Math.Sin(6.0 * x * Math.PI) + 20.0 * Math.Sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+            ret += (20.0 * Math.Sin(x * Math.PI) + 40.0 * Math.Sin(x / 3.0 * Math.PI)) * 2.0 / 3.0;
+            ret += (150.0 * Math.Sin(x / 12.0 * Math.PI) + 300.0 * Math.Sin(x / 30.0 * Math.PI)) * 2.0 / 3.0;
+            return ret;
         }
 
         [RelayCommand]
@@ -869,7 +975,7 @@ namespace ImageViewer.ViewModels
                             Name = displayName,
                             Type = BookmarkType.Image,
                             SortKey = displayName,
-                            PageIndex = CurrentImage.PdfPageIndex // 新增：保存页码
+                            PageIndex = CurrentImage.PdfPageIndex // 保存页码
                         });
                     }
                     AutoAddFavoriteFoldersForImages(new[] { CurrentImage });
@@ -1195,6 +1301,116 @@ namespace ImageViewer.ViewModels
             IsInfoPanelVisible = !IsInfoPanelVisible;
         }
 
+        [RelayCommand]
+        private void BeginRenameFileName()
+        {
+            if (!TryGetRenamableCurrentImage(out var image, out var message))
+            {
+                if (!string.IsNullOrWhiteSpace(message))
+                {
+                    StatusMessage = message;
+                }
+                return;
+            }
+
+            RenameFileNameText = Path.GetFileNameWithoutExtension(image.FilePath);
+            IsRenamingFileName = true;
+        }
+
+        [RelayCommand]
+        private void ConfirmRenameFileName()
+        {
+            if (!IsRenamingFileName)
+            {
+                return;
+            }
+
+            if (!TryGetRenamableCurrentImage(out var image, out var message))
+            {
+                if (!string.IsNullOrWhiteSpace(message))
+                {
+                    StatusMessage = message;
+                }
+                IsRenamingFileName = false;
+                return;
+            }
+
+            var oldPath = image.FilePath;
+            var directory = Path.GetDirectoryName(oldPath);
+            if (string.IsNullOrWhiteSpace(directory))
+            {
+                StatusMessage = "文件路径无效";
+                return;
+            }
+
+            var extension = Path.GetExtension(oldPath);
+            var baseName = NormalizeRenameFileName(RenameFileNameText, extension);
+            if (string.IsNullOrWhiteSpace(baseName))
+            {
+                StatusMessage = "文件名不能为空";
+                return;
+            }
+
+            if (ContainsInvalidFileNameChars(baseName))
+            {
+                StatusMessage = "文件名包含非法字符";
+                return;
+            }
+
+            if (string.Equals(baseName, ".", StringComparison.Ordinal) ||
+                string.Equals(baseName, "..", StringComparison.Ordinal))
+            {
+                StatusMessage = "文件名无效";
+                return;
+            }
+
+            if (baseName.EndsWith(".", StringComparison.Ordinal))
+            {
+                StatusMessage = "文件名不能以点结尾";
+                return;
+            }
+
+            var newPath = Path.Combine(directory, baseName + extension);
+            if (string.Equals(newPath, oldPath, StringComparison.OrdinalIgnoreCase))
+            {
+                IsRenamingFileName = false;
+                return;
+            }
+
+            if (File.Exists(newPath))
+            {
+                StatusMessage = "已存在同名文件";
+                return;
+            }
+
+            try
+            {
+                File.Move(oldPath, newPath);
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"重命名失败: {ex.Message}";
+                return;
+            }
+
+            if (ApplyFileRename(image, oldPath, newPath))
+            {
+                StatusMessage = $"已重命名: {image.FileName}";
+            }
+            else
+            {
+                StatusMessage = $"文件已重命名并被过滤: {Path.GetFileName(newPath)}";
+            }
+
+            IsRenamingFileName = false;
+        }
+
+        [RelayCommand]
+        private void CancelRenameFileName()
+        {
+            IsRenamingFileName = false;
+        }
+
         /// <summary>
         /// 从瀑布流选择图片并切换到单图模式
         /// </summary>
@@ -1305,6 +1521,190 @@ namespace ImageViewer.ViewModels
                 }
                 return;
             }
+        }
+
+        private bool TryGetRenamableCurrentImage(out ImageInfo image, out string? message)
+        {
+            image = CurrentImage!;
+            message = null;
+
+            if (image == null)
+            {
+                message = "没有可重命名的图片";
+                return false;
+            }
+
+            if (image.SourceKind != ImageSourceKind.File)
+            {
+                message = "压缩包内图片、PDF 页面不可重命名";
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(image.FilePath))
+            {
+                message = "文件路径无效";
+                return false;
+            }
+
+            if (!File.Exists(image.FilePath))
+            {
+                message = "文件不存在";
+                return false;
+            }
+
+            return true;
+        }
+
+        private static string NormalizeRenameFileName(string input, string extension)
+        {
+            var name = (input ?? string.Empty).Trim();
+            name = Path.GetFileName(name);
+
+            if (!string.IsNullOrEmpty(extension) &&
+                name.EndsWith(extension, StringComparison.OrdinalIgnoreCase))
+            {
+                name = name.Substring(0, name.Length - extension.Length);
+            }
+
+            return name;
+        }
+
+        private static bool ContainsInvalidFileNameChars(string name)
+        {
+            return name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0;
+        }
+
+        private bool ApplyFileRename(ImageInfo image, string oldPath, string newPath)
+        {
+            var filterOptions = GetFilterOptions();
+            if (!_imageService.PassesFolderFilters(newPath, filterOptions, out _))
+            {
+                RemoveImageFromCollection(image);
+                return false;
+            }
+
+            var relativePath = GetFolderScanRelativePath(newPath);
+            FileInfo? fileInfo = null;
+            try
+            {
+                fileInfo = new FileInfo(newPath);
+            }
+            catch
+            {
+            }
+
+            image.UpdateFilePath(newPath, relativePath, fileInfo);
+
+            _imageService.RenameCacheKey(oldPath, newPath);
+            UpdateBookmarksForRename(oldPath, newPath, image.FileName);
+            UpdateRecentFilesForRename(oldPath, newPath);
+            Settings.Save();
+            RefreshBookmarkStates();
+            return true;
+        }
+
+        private void UpdateBookmarksForRename(string oldPath, string newPath, string displayName)
+        {
+            if (Settings.Bookmarks == null || Settings.Bookmarks.Count == 0)
+            {
+                return;
+            }
+
+            var updated = false;
+            foreach (var bookmark in Settings.Bookmarks)
+            {
+                if (bookmark.Type != BookmarkType.Image)
+                {
+                    continue;
+                }
+
+                if (!string.Equals(bookmark.FilePath, oldPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                bookmark.FilePath = newPath;
+                bookmark.Name = displayName;
+                bookmark.SortKey = displayName;
+                updated = true;
+            }
+
+            if (!updated)
+            {
+                return;
+            }
+
+            var deduped = new List<Bookmark>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var bookmark in Settings.Bookmarks)
+            {
+                if (bookmark.Type == BookmarkType.Image)
+                {
+                    if (!seen.Add(bookmark.FilePath))
+                    {
+                        continue;
+                    }
+                }
+
+                deduped.Add(bookmark);
+            }
+
+            Settings.Bookmarks = deduped;
+        }
+
+        private void UpdateRecentFilesForRename(string oldPath, string newPath)
+        {
+            if (Settings.RecentFiles == null || Settings.RecentFiles.Count == 0)
+            {
+                return;
+            }
+
+            var updated = new List<string>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var entry in Settings.RecentFiles)
+            {
+                var candidate = string.Equals(entry, oldPath, StringComparison.OrdinalIgnoreCase)
+                    ? newPath
+                    : entry;
+
+                if (seen.Add(candidate))
+                {
+                    updated.Add(candidate);
+                }
+            }
+
+            Settings.RecentFiles = updated;
+        }
+
+        private void RemoveImageFromCollection(ImageInfo image)
+        {
+            var wasCurrentIndex = Images.IndexOf(image);
+            Images.Remove(image);
+
+            if (wasCurrentIndex == CurrentIndex && Images.Count > 0)
+            {
+                try
+                {
+                    _suppressIndexChangeHandling = true;
+                    CurrentIndex = Math.Min(wasCurrentIndex, Images.Count - 1);
+                }
+                finally
+                {
+                    _suppressIndexChangeHandling = false;
+                }
+
+                _ = LoadCurrentImage();
+            }
+            else if (Images.Count == 0)
+            {
+                CurrentImage = null;
+                DisplayImage = null;
+                CurrentIndex = -1;
+            }
+
+            OnPropertyChanged(nameof(HasImages));
+            OnPropertyChanged(nameof(PositionText));
+            UpdateEmptyState();
         }
 
         #endregion
@@ -2414,60 +2814,20 @@ namespace ImageViewer.ViewModels
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                var image = Images.FirstOrDefault(i => i.FilePath == e.OldFullPath);
-                if (image != null)
+                var image = Images.FirstOrDefault(i =>
+                    string.Equals(i.FilePath, e.OldFullPath, StringComparison.OrdinalIgnoreCase));
+                if (image == null)
                 {
-                    var filterOptions = GetFilterOptions();
-                    if (!_imageService.PassesFolderFilters(e.FullPath, filterOptions, out _))
-                    {
-                        var wasCurrentIndex = Images.IndexOf(image);
-                        Images.Remove(image);
+                    return;
+                }
 
-                        if (wasCurrentIndex == CurrentIndex && Images.Count > 0)
-                        {
-                            try
-                            {
-                                _suppressIndexChangeHandling = true;
-                                CurrentIndex = Math.Min(wasCurrentIndex, Images.Count - 1);
-                            }
-                            finally
-                            {
-                                _suppressIndexChangeHandling = false;
-                            }
-
-                            _ = LoadCurrentImage();
-                        }
-                        else if (Images.Count == 0)
-                        {
-                            CurrentImage = null;
-                            DisplayImage = null;
-                            CurrentIndex = -1;
-                        }
-
-                        OnPropertyChanged(nameof(HasImages));
-                        OnPropertyChanged(nameof(PositionText));
-                        UpdateEmptyState();
-                        StatusMessage = $"文件已重命名并被过滤: {Path.GetFileName(e.FullPath)}";
-                        return;
-                    }
-
-                    // 创建新的图片信息
-                    var newImage = ImageInfo.FromFile(e.FullPath);
-                    newImage.Thumbnail = image.Thumbnail;
-                    newImage.IsBookmarked = image.IsBookmarked;
-                    newImage.IsCurrent = image.IsCurrent;
-                    // 替换旧的
-                    var index = Images.IndexOf(image);
-                    Images[index] = newImage;
-
-
-                    // 更新当前图片引用
-                    if (CurrentIndex == index)
-                    {
-                        CurrentImage = newImage;
-                    }
-
-                    StatusMessage = $"文件已重命名: {newImage.FileName}";
+                if (ApplyFileRename(image, e.OldFullPath, e.FullPath))
+                {
+                    StatusMessage = $"文件已重命名: {image.FileName}";
+                }
+                else
+                {
+                    StatusMessage = $"文件已重命名并被过滤: {Path.GetFileName(e.FullPath)}";
                 }
             });
         }

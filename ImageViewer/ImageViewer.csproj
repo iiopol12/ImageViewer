@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-	  <Version>1.1.6</Version>
+	  <Version>1.1.7</Version>
 	  <ApplicationIcon>Image.ico</ApplicationIcon>
   </PropertyGroup>
 
@@ -16,13 +16,13 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.10.0" />
-    <PackageReference Include="Magick.NET.SystemWindowsMedia" Version="8.0.13" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.10.1" />
+    <PackageReference Include="Magick.NET.SystemWindowsMedia" Version="8.0.14" />
     <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
     <PackageReference Include="PdfiumViewer" Version="2.13.0" />
     <PackageReference Include="PdfiumViewer.Native.x86.v8-xfa" Version="2018.4.8.256" />
     <PackageReference Include="PdfiumViewer.Native.x86_64.v8-xfa" Version="2018.4.8.256" />
-    <PackageReference Include="SharpCompress" Version="0.36.0" />
+    <PackageReference Include="SharpCompress" Version="0.42.1" />
   </ItemGroup>
 
   <ItemGroup>

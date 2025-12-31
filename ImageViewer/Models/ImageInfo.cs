@@ -20,8 +20,6 @@ namespace ImageViewer.Models
         public string? ArchivePath { get; set; }
         public string? ArchiveEntryPath { get; set; }
 
-        /// <summary>
-        /// </summary>
         public int PdfPageIndex { get; set; }
 
 
@@ -116,6 +114,22 @@ namespace ImageViewer.Models
             get => _exifGpsLocation;
             private set => SetProperty(ref _exifGpsLocation, value);
         }
+
+        private double? _exifGpsLatitude;
+        public double? ExifGpsLatitude
+        {
+            get => _exifGpsLatitude;
+            private set => SetProperty(ref _exifGpsLatitude, value);
+        }
+
+        private double? _exifGpsLongitude;
+        public double? ExifGpsLongitude
+        {
+            get => _exifGpsLongitude;
+            private set => SetProperty(ref _exifGpsLongitude, value);
+        }
+
+        public bool HasExifGps => ExifGpsLatitude.HasValue && ExifGpsLongitude.HasValue;
         
         [ObservableProperty]
         private BitmapSource? _thumbnail;
@@ -147,18 +161,15 @@ namespace ImageViewer.Models
         [ObservableProperty]
         private double _rotationAngle = 0;
 
-        /// <summary>
-        /// </summary>
+
         [ObservableProperty]
         private int _gifFrameCount;
 
-        /// <summary>
-        /// </summary>
+
         [ObservableProperty]
         private byte[]? _gifData;
 
-        /// <summary>
-        /// </summary>
+
         public bool IsAnimatedGif => FileExtension == ".gif" && GifFrameCount > 1;
 
         public string FileSizeFormatted
@@ -201,8 +212,7 @@ namespace ImageViewer.Models
             };
         }
 
-        /// <summary>
-        /// </summary>
+
         public void UpdateMetadata(BitmapSource source)
         {
             Width = source.PixelWidth;
@@ -224,11 +234,13 @@ namespace ImageViewer.Models
             ExifIso = metadata?.Iso;
             ExifFocalLength = metadata?.FocalLength;
             ExifGpsLocation = metadata?.GpsLocation;
+            ExifGpsLatitude = metadata?.GpsLatitude;
+            ExifGpsLongitude = metadata?.GpsLongitude;
+            OnPropertyChanged(nameof(HasExifGps));
         }
 
 
-        /// <summary>
-        /// </summary>
+  
         public void UpdateGifMetadata(int frameCount, byte[]? gifData = null)
         {
             GifFrameCount = frameCount;
@@ -252,6 +264,37 @@ namespace ImageViewer.Models
                 DateModified = dateModified,
                 RelativePath = $"Page {pageIndex + 1}"
             };
+        }
+
+        public void UpdateFilePath(string newFilePath, string? relativePath = null, FileInfo? fileInfo = null)
+        {
+            if (string.IsNullOrWhiteSpace(newFilePath))
+            {
+                return;
+            }
+
+            FilePath = newFilePath;
+            OnPropertyChanged(nameof(FilePath));
+            OnPropertyChanged(nameof(FileName));
+            OnPropertyChanged(nameof(FileExtension));
+            OnPropertyChanged(nameof(CacheKey));
+            OnPropertyChanged(nameof(DisplayPath));
+            OnPropertyChanged(nameof(IsAnimatedGif));
+
+            if (relativePath != null)
+            {
+                RelativePath = relativePath;
+                OnPropertyChanged(nameof(RelativePath));
+            }
+
+            if (fileInfo != null)
+            {
+                FileSize = fileInfo.Exists ? fileInfo.Length : 0;
+                DateModified = fileInfo.Exists ? fileInfo.LastWriteTime : DateTime.MinValue;
+                OnPropertyChanged(nameof(FileSize));
+                OnPropertyChanged(nameof(FileSizeFormatted));
+                OnPropertyChanged(nameof(DateModified));
+            }
         }
 
 

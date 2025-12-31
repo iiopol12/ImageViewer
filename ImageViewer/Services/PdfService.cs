@@ -10,8 +10,7 @@ using System.Windows.Media.Imaging;
 
 namespace ImageViewer.Services
 {
-    /// <summary>
-    /// </summary>
+
     public class PdfService : IDisposable
     {
         private readonly Dictionary<string, PdfDocument> _documentCache = new(StringComparer.OrdinalIgnoreCase);
@@ -20,16 +19,14 @@ namespace ImageViewer.Services
         private const float DefaultDpi = 150f;
         private const float ThumbnailDpi = 72f;
 
-        /// <summary>
-        /// </summary>
+
         public static bool IsPdf(string filePath)
         {
             var ext = Path.GetExtension(filePath);
             return string.Equals(ext, ".pdf", StringComparison.OrdinalIgnoreCase);
         }
 
-        /// <summary>
-        /// </summary>
+     
         public IReadOnlyList<ImageInfo> ScanPdf(string pdfPath)
         {
             if (!File.Exists(pdfPath))
@@ -64,8 +61,7 @@ namespace ImageViewer.Services
             return result;
         }
 
-        /// <summary>
-        /// </summary>
+
         public int GetPageCount(string pdfPath)
         {
             try
@@ -79,9 +75,7 @@ namespace ImageViewer.Services
             }
         }
 
-        /// <summary>
-        /// </summary>
-        /// <param name="pageIndex">页码（从 0 开始）</param>
+
         public BitmapSource? RenderPage(string pdfPath, int pageIndex, int? targetWidth = null)
         {
             try
@@ -119,8 +113,7 @@ namespace ImageViewer.Services
             }
         }
 
-        /// <summary>
-        /// </summary>
+   
         public BitmapSource? RenderThumbnail(string pdfPath, int pageIndex, int thumbnailSize = 120)
         {
             try
@@ -150,8 +143,7 @@ namespace ImageViewer.Services
             }
         }
 
-        /// <summary>
-        /// </summary>
+  
         public BitmapSource? RenderPage(ImageInfo imageInfo, int? targetWidth = null)
         {
             if (imageInfo.SourceKind != ImageSourceKind.PdfPage)
@@ -160,8 +152,6 @@ namespace ImageViewer.Services
             return RenderPage(imageInfo.FilePath, imageInfo.PdfPageIndex, targetWidth);
         }
 
-        /// <summary>
-        /// </summary>
         public BitmapSource? RenderThumbnail(ImageInfo imageInfo, int thumbnailSize = 120)
         {
             if (imageInfo.SourceKind != ImageSourceKind.PdfPage)
@@ -170,8 +160,7 @@ namespace ImageViewer.Services
             return RenderThumbnail(imageInfo.FilePath, imageInfo.PdfPageIndex, thumbnailSize);
         }
 
-        /// <summary>
-        /// </summary>
+    
         private PdfDocument GetOrOpenDocument(string pdfPath)
         {
             lock (_cacheLock)
@@ -229,8 +218,7 @@ namespace ImageViewer.Services
             }
         }
 
-        /// <summary>
-        /// </summary>
+    
         private static BitmapSource ConvertToBitmapSource(System.Drawing.Image image)
         {
             using var bitmap = new Bitmap(image);

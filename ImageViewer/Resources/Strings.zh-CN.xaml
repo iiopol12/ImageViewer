@@ -44,6 +44,15 @@
     <s:String x:Key="ScrollWheel_Zoom">缩放</s:String>
     <s:String x:Key="ScrollWheel_Navigate">翻页</s:String>
 
+    <s:String x:Key="Settings_MapProvider">地图提供商</s:String>
+    <s:String x:Key="MapProvider_Amap">高德</s:String>
+    <s:String x:Key="MapProvider_Google">谷歌地图</s:String>
+
+    <s:String x:Key="Settings_SingleBarLayout">单图缩略图栏位置</s:String>
+    <s:String x:Key="Settings_DoubleBarLayout">双页缩略图栏位置</s:String>
+    <s:String x:Key="SingleDoubleBarLayout_Bottom">底部（横向）</s:String>
+    <s:String x:Key="SingleDoubleBarLayout_Side">侧边（纵向）</s:String>
+
     <s:String x:Key="Settings_MangaGap">漫画模式间隔(px)</s:String>
 
     <!-- ==================== 幻灯片设置 ==================== -->
@@ -194,7 +203,7 @@
     <s:String x:Key="ToolTip_Print">打印 (Ctrl+P)</s:String>
     <s:String x:Key="ToolTip_SlideShow">幻灯片 (S)</s:String>
     <s:String x:Key="ToolTip_FullScreen">全屏 (F11)</s:String>
-    <s:String x:Key="ToolTip_ToggleSidebar">切换侧边栏</s:String>
+    <s:String x:Key="ToolTip_ToggleSidebar">切换缩略图栏</s:String>
     <s:String x:Key="ToolTip_ToggleWaterfallView">切换瀑布流视图</s:String>
     <s:String x:Key="ToolTip_BookmarkCurrentFolder">收藏/取消收藏当前路径</s:String>
     <s:String x:Key="ToolTip_ViewImageInfo">查看图片信息</s:String>
@@ -229,9 +238,11 @@
     <s:String x:Key="Shortcut_SwitchViewMode">切换浏览模式</s:String>
     <s:String x:Key="Shortcut_StartStopSlideshow">开始/停止幻灯片</s:String>
     <s:String x:Key="Shortcut_ToggleBookmark">收藏/取消收藏</s:String>
+    <s:String x:Key="Shortcut_ToggleInfoPanel">切换信息面板</s:String>
     <s:String x:Key="Shortcut_CopyToClipboard">复制到剪贴板</s:String>
     <s:String x:Key="Shortcut_DeleteImage">删除当前图片</s:String>
     <s:String x:Key="Shortcut_ToggleFilter">启用/关闭过滤</s:String>
+    <s:String x:Key="Shortcut_OpenSettings">打开设置</s:String>
     <s:String x:Key="Shortcut_Print">打印</s:String>
 
     
@@ -248,6 +259,7 @@
     <s:String x:Key="InfoPanel_ISO">ISO：</s:String>
     <s:String x:Key="InfoPanel_FocalLength">焦距：</s:String>
     <s:String x:Key="InfoPanel_GPS">GPS：</s:String>
+    <s:String x:Key="InfoPanel_OpenMap">查看地图</s:String>
 
 
     <!-- ==================== 侧边栏标题 ==================== -->

@@ -44,6 +44,15 @@
     <s:String x:Key="ScrollWheel_Zoom">Zoom</s:String>
     <s:String x:Key="ScrollWheel_Navigate">Navigate</s:String>
 
+    <s:String x:Key="Settings_MapProvider">Map Provider</s:String>
+    <s:String x:Key="MapProvider_Amap">Amap</s:String>
+    <s:String x:Key="MapProvider_Google">Google Maps</s:String>
+
+    <s:String x:Key="Settings_SingleBarLayout">Single thumbnail bar position</s:String>
+    <s:String x:Key="Settings_DoubleBarLayout">Double-page thumbnail bar position</s:String>
+    <s:String x:Key="SingleDoubleBarLayout_Bottom">Bottom (Horizontal)</s:String>
+    <s:String x:Key="SingleDoubleBarLayout_Side">Side (Vertical)</s:String>
+
     <s:String x:Key="Settings_MangaGap">Manga Gap (px)</s:String>
 
     <!-- ==================== Slideshow Settings ==================== -->
@@ -194,7 +203,7 @@ Try running as administrator or set defaults manually.</s:String>
     <s:String x:Key="ToolTip_Print">Print (Ctrl+P)</s:String>
     <s:String x:Key="ToolTip_SlideShow">Slide Show (S)</s:String>
     <s:String x:Key="ToolTip_FullScreen">Full Screen (F11)</s:String>
-    <s:String x:Key="ToolTip_ToggleSidebar">Toggle Sidebar</s:String>
+    <s:String x:Key="ToolTip_ToggleSidebar">Toggle Thumbnail Bar</s:String>
     <s:String x:Key="ToolTip_ToggleWaterfallView">Toggle Waterfall View</s:String>
     <s:String x:Key="ToolTip_BookmarkCurrentFolder">Bookmark/Unbookmark current path</s:String>
     <s:String x:Key="ToolTip_ViewImageInfo">View image information</s:String>
@@ -233,9 +242,11 @@ Try running as administrator or set defaults manually.</s:String>
     <s:String x:Key="Shortcut_SwitchViewMode">Switch view mode</s:String>
     <s:String x:Key="Shortcut_StartStopSlideshow">Start/Stop slideshow</s:String>
     <s:String x:Key="Shortcut_ToggleBookmark">Bookmark/Unbookmark</s:String>
+    <s:String x:Key="Shortcut_ToggleInfoPanel">Toggle info panel</s:String>
     <s:String x:Key="Shortcut_CopyToClipboard">Copy to clipboard</s:String>
     <s:String x:Key="Shortcut_DeleteImage">Delete current image</s:String>
     <s:String x:Key="Shortcut_ToggleFilter">Enable/Disable filter</s:String>
+    <s:String x:Key="Shortcut_OpenSettings">Open settings</s:String>
     <s:String x:Key="Shortcut_Print">Print</s:String>
 
     <!-- ==================== Print Window ==================== -->
@@ -285,6 +296,7 @@ Try running as administrator or set defaults manually.</s:String>
     <s:String x:Key="InfoPanel_ISO">ISO: </s:String>
     <s:String x:Key="InfoPanel_FocalLength">Focal length: </s:String>
     <s:String x:Key="InfoPanel_GPS">GPS: </s:String>
+    <s:String x:Key="InfoPanel_OpenMap">View map</s:String>
 
     <!-- ==================== Sidebar ==================== -->
     <s:String x:Key="Sidebar_Title">Image List</s:String>

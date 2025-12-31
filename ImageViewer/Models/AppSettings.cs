@@ -14,6 +14,12 @@ namespace ImageViewer.Models
         DoublePage
     }
 
+    public enum SingleDoubleBarLayout
+    {
+        Bottom,
+        Side
+    }
+
     public enum ArchiveLoadStrategy
     {
         /// <summary>
@@ -21,8 +27,6 @@ namespace ImageViewer.Models
         /// </summary>
         Stream = 0,
 
-        /// <summary>
-        /// </summary>
         TempExtractLru = 1
     }
 
@@ -40,6 +44,12 @@ namespace ImageViewer.Models
     {
         Zoom,
         Navigate
+    }
+
+    public enum MapProvider
+    {
+        Amap,
+        Google
     }
 
     public enum AppTheme
@@ -79,6 +89,9 @@ namespace ImageViewer.Models
 
         [ObservableProperty]
         private ScrollWheelBehavior _scrollWheelBehavior = ScrollWheelBehavior.Zoom;
+
+        [ObservableProperty]
+        private MapProvider _mapProvider = MapProvider.Amap;
 
         [ObservableProperty]
         private int _slideshowInterval = 5;
@@ -130,6 +143,12 @@ namespace ImageViewer.Models
 
         [ObservableProperty]
         private bool _showSidebar = true;
+
+        [ObservableProperty]
+        private SingleDoubleBarLayout _singleModeBarLayout = SingleDoubleBarLayout.Bottom;
+
+        [ObservableProperty]
+        private SingleDoubleBarLayout _doublePageBarLayout = SingleDoubleBarLayout.Bottom;
 
         [ObservableProperty]
         private double _sidebarWidth = 200;
@@ -210,11 +229,60 @@ namespace ImageViewer.Models
                 if (File.Exists(SettingsPath))
                 {
                     var json = File.ReadAllText(SettingsPath);
-                    return JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
+                    var settings = JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
+                    if (TryGetLegacySingleDoubleBarLayout(json, out var legacyLayout))
+                    {
+                        if (settings.SingleModeBarLayout == SingleDoubleBarLayout.Bottom &&
+                            settings.DoublePageBarLayout == SingleDoubleBarLayout.Bottom)
+                        {
+                            settings.SingleModeBarLayout = legacyLayout;
+                            settings.DoublePageBarLayout = legacyLayout;
+                        }
+                    }
+                    return settings;
                 }
             }
             catch { }
             return new AppSettings();
+        }
+
+        private static bool TryGetLegacySingleDoubleBarLayout(string json, out SingleDoubleBarLayout layout)
+        {
+            layout = SingleDoubleBarLayout.Bottom;
+            try
+            {
+                using var doc = JsonDocument.Parse(json);
+                if (!doc.RootElement.TryGetProperty("SingleDoubleBarLayout", out var element))
+                {
+                    return false;
+                }
+
+                if (element.ValueKind == JsonValueKind.Number && element.TryGetInt32(out var value))
+                {
+                    if (Enum.IsDefined(typeof(SingleDoubleBarLayout), value))
+                    {
+                        layout = (SingleDoubleBarLayout)value;
+                        return true;
+                    }
+                    return false;
+                }
+
+                if (element.ValueKind == JsonValueKind.String)
+                {
+                    var text = element.GetString();
+                    if (!string.IsNullOrWhiteSpace(text) &&
+                        Enum.TryParse(text, ignoreCase: true, out SingleDoubleBarLayout parsed))
+                    {
+                        layout = parsed;
+                        return true;
+                    }
+                }
+            }
+            catch
+            {
+            }
+
+            return false;
         }
 
         public void Save()
@@ -268,8 +336,7 @@ namespace ImageViewer.Models
         /// </summary>
         public string SortKey { get; set; } = string.Empty;
 
-        /// <summary>
-        /// </summary>
+ 
         [JsonIgnore]
         public string Path
         {
@@ -277,8 +344,7 @@ namespace ImageViewer.Models
             set => FilePath = value;
         }
 
-        /// <summary>
-        /// </summary>
+    
         [JsonIgnore]
         public string DisplayName
         {
@@ -286,8 +352,7 @@ namespace ImageViewer.Models
             set => Name = value;
         }
 
-        /// <summary>
-        /// </summary>
+ 
         [JsonIgnore]
         public DateTime AddedAt
         {
@@ -295,8 +360,7 @@ namespace ImageViewer.Models
             set => CreatedAt = value;
         }
 
-        /// <summary>
-        /// </summary>
+ 
         public int PageIndex { get; set; } = -1;
 
 
