@@ -685,67 +685,70 @@
                         </ScrollViewer>
 
                         <!-- Waterfall View (瀑布流视图) -->
-                        <ScrollViewer x:Name="WaterfallScrollViewer"
+                        <Grid x:Name="WaterfallViewHost"
+                              Visibility="{Binding ShowWaterfallView, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <ScrollViewer x:Name="WaterfallScrollViewer"
                   VerticalScrollBarVisibility="Auto"
                   HorizontalScrollBarVisibility="Disabled"
                   PreviewMouseLeftButtonDown="WaterfallScrollViewer_PreviewMouseLeftButtonDown"
-                  Background="{DynamicResource ImageBackgroundBrush}"
-                  Visibility="{Binding ShowWaterfallView, Converter={StaticResource BoolToVisibilityConverter}}">
-                            <ItemsControl ItemsSource="{Binding Images}">
-                                <ItemsControl.LayoutTransform>
-                                    <ScaleTransform ScaleX="{Binding WaterfallZoomLevel}" ScaleY="{Binding WaterfallZoomLevel}"/>
-                                </ItemsControl.LayoutTransform>
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Margin="4" Background="{DynamicResource BackgroundDarkBrush}" 
+                  PreviewMouseMove="WaterfallScrollViewer_PreviewMouseMove"
+                  PreviewMouseLeftButtonUp="WaterfallScrollViewer_PreviewMouseLeftButtonUp"
+                  Background="{DynamicResource ImageBackgroundBrush}">
+                                <ItemsControl x:Name="WaterfallItemsControl" ItemsSource="{Binding Images}">
+                                    <ItemsControl.LayoutTransform>
+                                        <ScaleTransform ScaleX="{Binding WaterfallZoomLevel}" ScaleY="{Binding WaterfallZoomLevel}"/>
+                                    </ItemsControl.LayoutTransform>
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Margin="4" Background="{DynamicResource BackgroundDarkBrush}" 
                             CornerRadius="4" Cursor="Hand"
                             MouseLeftButtonUp="WaterfallItem_Click"
                             Tag="{Binding}">
-                                            <Border.Style>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="BorderThickness" Value="2"/>
-                                                    <Setter Property="BorderBrush" Value="Transparent"/>
-                                                    <Style.Triggers>
-                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                            <Setter Property="BorderBrush" Value="{DynamicResource BackgroundLightBrush}"/>
-                                                        </Trigger>
-                                                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                                            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Border.Style>
-                                            <Grid Width="180" Height="140">
-                                                <Image Source="{Binding Thumbnail}" Stretch="Uniform" 
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="BorderThickness" Value="2"/>
+                                                        <Setter Property="BorderBrush" Value="Transparent"/>
+                                                        <Style.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="BorderBrush" Value="{DynamicResource BackgroundLightBrush}"/>
+                                                            </Trigger>
+                                                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <Grid Width="180" Height="140">
+                                                    <Image Source="{Binding Thumbnail}" Stretch="Uniform" 
                                    RenderOptions.BitmapScalingMode="HighQuality"
                                    Margin="4"/>
 
-                                                <!-- Loading indicator -->
-                                                <Border Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                    <!-- Loading indicator -->
+                                                    <Border Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"
                                     Background="#80000000">
-                                                    <TextBlock Text="..." Foreground="White" FontSize="20"
+                                                        <TextBlock Text="..." Foreground="White" FontSize="20"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                </Border>
+                                                    </Border>
 
-                                                <!-- Error indicator -->
-                                                <Border Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                    <!-- Error indicator -->
+                                                    <Border Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}"
                                     Background="#80000000">
-                                                    <Path Width="24" Height="24"
+                                                        <Path Width="24" Height="24"
                                       Stretch="Uniform"
      
                                       StrokeThickness="2"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center"
                                       Data="M3,3 L21,21 M21,3 L3,21"/>
-                                                </Border>
+                                                    </Border>
 
-                                                <!-- Bookmark indicator -->
-                                                <Path Width="16" Height="16"
+                                                    <!-- Bookmark indicator -->
+                                                    <Path Width="16" Height="16"
                               Stretch="Uniform"
                               Fill="#FFD700"
                               HorizontalAlignment="Right"
@@ -756,19 +759,31 @@
                                     L12.24,14.36 L8,11.4 L3.76,14.36 
                                     L5.2,9.02 L0.7,5.64 L6.24,5.17 Z"/>
 
-                                                <!-- File name overlay -->
-                                                <Border VerticalAlignment="Bottom" Background="#AA000000" Padding="4,2">
-                                                    <TextBlock Text="{Binding FileName}" 
+                                                    <!-- File name overlay -->
+                                                    <Border VerticalAlignment="Bottom" Background="#AA000000" Padding="4,2">
+                                                        <TextBlock Text="{Binding FileName}" 
                                            Foreground="White"
                                            FontSize="10" TextTrimming="CharacterEllipsis"
                                            TextAlignment="Center"/>
-                                                </Border>
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
+                                                    </Border>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                            <Canvas x:Name="WaterfallSelectionCanvas"
+                                    Panel.ZIndex="1"
+                                    IsHitTestVisible="False"
+                                    ClipToBounds="True">
+                                <Border x:Name="WaterfallSelectionBorder"
+                                        BorderBrush="{DynamicResource PrimaryBrush}"
+                                        BorderThickness="1"
+                                        Background="{DynamicResource PrimaryBrush}"
+                                        Opacity="0.2"
+                                        Visibility="Collapsed"/>
+                            </Canvas>
+                        </Grid>
 
                         <!-- Empty State -->
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -1095,6 +1110,17 @@
                                                     <ColumnDefinition Width="*"/>
                                                 </Grid.ColumnDefinitions>
                                                 <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
+                                                    <TextBlock Text="F2" Style="{StaticResource KeyTextStyle}"/>
+                                                </Border>
+                                                <TextBlock Grid.Column="2" Text="{DynamicResource Shortcut_RenameFileName}" Style="{StaticResource DescTextStyle}"/>
+                                            </Grid>
+                                            <Grid Margin="0,0,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Border Grid.Column="0" Style="{StaticResource KeyStyle}">
                                                     <TextBlock Text="Ctrl+C" Style="{StaticResource KeyTextStyle}"/>
                                                 </Border>
                                                 <TextBlock Grid.Column="2" Text="{DynamicResource Shortcut_CopyToClipboard}" Style="{StaticResource DescTextStyle}"/>
@@ -1153,11 +1179,11 @@
 
                         <!-- Image Info Panel -->
                         <Border x:Name="ImageInfoPanel"
-            Padding="12"
-            Background="#CC000000"
-            CornerRadius="8"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Top"
+              Padding="12"
+              Background="{DynamicResource BackgroundDarkBrush}"
+              CornerRadius="8"
+              HorizontalAlignment="Right"
+              VerticalAlignment="Top"
             Margin="12"
             MaxWidth="360">
                             <Border.Effect>
@@ -1208,7 +1234,7 @@
                            Text="{Binding RenameFileNameText, UpdateSourceTrigger=PropertyChanged}"
                            Foreground="{DynamicResource ForegroundBrush}"
                            CaretBrush="{DynamicResource ForegroundBrush}"
-                           Background="#33000000"
+                           Background="{DynamicResource CardBackgroundBrush}"
                            BorderBrush="{DynamicResource ForegroundDimBrush}"
                            FontWeight="SemiBold"
                            FontSize="14"

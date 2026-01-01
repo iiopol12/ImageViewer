@@ -75,6 +75,12 @@ namespace ImageViewer.Views
 
         private bool _mangaCenterPending;
 
+        // 瀑布流框选相关
+        private const double WaterfallSelectionDragThreshold = 4;
+        private bool _isWaterfallSelecting;
+        private bool _waterfallSelectionHasDragged;
+        private Point _waterfallSelectionStart;
+
         // 非客户区命中测试常量
         private const int WM_NCHITTEST = 0x0084;
         private const int WM_SIZING = 0x0214;
@@ -586,6 +592,9 @@ namespace ImageViewer.Views
 
                 _hotKeyManager.RegisterHotKey(ModifierKeys.None, Key.I,
                     () => ViewModel.ToggleInfoPanelCommand?.Execute(null));
+
+                _hotKeyManager.RegisterHotKey(ModifierKeys.None, Key.F2,
+                    () => ViewModel.OpenInfoPanelAndRenameFileNameCommand?.Execute(null));
 
                 _hotKeyManager.RegisterHotKey(ModifierKeys.None, Key.M,
                     () => ViewModel.ToggleViewModeCommand?.Execute(null));
@@ -2274,18 +2283,18 @@ namespace ImageViewer.Views
         }
 
         /// <summary>
-        /// 瀑布流视图空白处点击：取消所有选择
+        /// 瀑布流视图空白处按下：开始框选或准备清空选择
         /// </summary>
         private void WaterfallScrollViewer_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (!ViewModel.ShowWaterfallView)
+            if (!ViewModel.ShowWaterfallView || WaterfallSelectionCanvas == null)
                 return;
 
             var source = e.OriginalSource as DependencyObject;
             if (source == null)
                 return;
 
-            // 点击在滚动条/滑块上，不清除选择
+            // 点击在滚动条/滑块上，不处理框选
             if (FindVisualAncestor<System.Windows.Controls.Primitives.ScrollBar>(source) != null ||
                 FindVisualAncestor<Thumb>(source) != null ||
                 FindVisualAncestor<RepeatButton>(source) != null)
@@ -2293,15 +2302,152 @@ namespace ImageViewer.Views
                 return;
             }
 
-            // 点击在图片项上，不清除选择
+            // 点击在图片项上，不启动框选
             var itemContainer = FindVisualAncestor<FrameworkElement>(source, fe => fe.Tag is ImageInfo);
             if (itemContainer != null)
                 return;
 
+            _isWaterfallSelecting = true;
+            _waterfallSelectionHasDragged = false;
+            _waterfallSelectionStart = e.GetPosition(WaterfallSelectionCanvas);
+
+            HideWaterfallSelectionVisual();
+            WaterfallScrollViewer.CaptureMouse();
+            e.Handled = true;
+        }
+
+        private void WaterfallScrollViewer_PreviewMouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (!_isWaterfallSelecting || WaterfallSelectionCanvas == null || WaterfallSelectionBorder == null)
+                return;
+
+            var currentPoint = e.GetPosition(WaterfallSelectionCanvas);
+            var delta = currentPoint - _waterfallSelectionStart;
+            if (!_waterfallSelectionHasDragged)
+            {
+                if (Math.Abs(delta.X) < WaterfallSelectionDragThreshold &&
+                    Math.Abs(delta.Y) < WaterfallSelectionDragThreshold)
+                {
+                    return;
+                }
+
+                _waterfallSelectionHasDragged = true;
+                WaterfallSelectionBorder.Visibility = Visibility.Visible;
+            }
+
+            var selectionRect = GetWaterfallSelectionRect(_waterfallSelectionStart, currentPoint);
+            UpdateWaterfallSelectionVisual(selectionRect);
+            e.Handled = true;
+        }
+
+        private void WaterfallScrollViewer_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (!_isWaterfallSelecting || WaterfallSelectionCanvas == null)
+                return;
+
+            if (WaterfallScrollViewer.IsMouseCaptured)
+            {
+                WaterfallScrollViewer.ReleaseMouseCapture();
+            }
+
+            var endPoint = e.GetPosition(WaterfallSelectionCanvas);
+            var selectionRect = GetWaterfallSelectionRect(_waterfallSelectionStart, endPoint);
+
+            HideWaterfallSelectionVisual();
+
+            if (_waterfallSelectionHasDragged)
+            {
+                ToggleWaterfallSelection(selectionRect);
+            }
+            else
+            {
+                ClearWaterfallSelections();
+            }
+
+            _isWaterfallSelecting = false;
+            _waterfallSelectionHasDragged = false;
+            e.Handled = true;
+        }
+
+        private void ClearWaterfallSelections()
+        {
             foreach (var img in ViewModel.Images)
             {
                 if (img.IsSelected)
+                {
                     img.IsSelected = false;
+                }
+            }
+        }
+
+        private Rect GetWaterfallSelectionRect(Point start, Point end)
+        {
+            double x1 = Math.Min(start.X, end.X);
+            double y1 = Math.Min(start.Y, end.Y);
+            double x2 = Math.Max(start.X, end.X);
+            double y2 = Math.Max(start.Y, end.Y);
+
+            if (WaterfallSelectionCanvas != null &&
+                WaterfallSelectionCanvas.ActualWidth > 0 &&
+                WaterfallSelectionCanvas.ActualHeight > 0)
+            {
+                double maxX = WaterfallSelectionCanvas.ActualWidth;
+                double maxY = WaterfallSelectionCanvas.ActualHeight;
+                x1 = Math.Max(0, Math.Min(x1, maxX));
+                y1 = Math.Max(0, Math.Min(y1, maxY));
+                x2 = Math.Max(0, Math.Min(x2, maxX));
+                y2 = Math.Max(0, Math.Min(y2, maxY));
+            }
+
+            return new Rect(new Point(x1, y1), new Point(x2, y2));
+        }
+
+        private void UpdateWaterfallSelectionVisual(Rect rect)
+        {
+            if (WaterfallSelectionBorder == null)
+                return;
+
+            Canvas.SetLeft(WaterfallSelectionBorder, rect.X);
+            Canvas.SetTop(WaterfallSelectionBorder, rect.Y);
+            WaterfallSelectionBorder.Width = rect.Width;
+            WaterfallSelectionBorder.Height = rect.Height;
+        }
+
+        private void HideWaterfallSelectionVisual()
+        {
+            if (WaterfallSelectionBorder == null)
+                return;
+
+            WaterfallSelectionBorder.Visibility = Visibility.Collapsed;
+            WaterfallSelectionBorder.Width = 0;
+            WaterfallSelectionBorder.Height = 0;
+        }
+
+        private void ToggleWaterfallSelection(Rect selectionRect)
+        {
+            if (selectionRect.Width <= 0 || selectionRect.Height <= 0 || WaterfallItemsControl == null ||
+                WaterfallSelectionCanvas == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < ViewModel.Images.Count; i++)
+            {
+                if (WaterfallItemsControl.ItemContainerGenerator.ContainerFromIndex(i) is not FrameworkElement container ||
+                    !container.IsVisible ||
+                    container.RenderSize.Width <= 0 ||
+                    container.RenderSize.Height <= 0)
+                {
+                    continue;
+                }
+
+                var itemRect = container.TransformToVisual(WaterfallSelectionCanvas)
+                    .TransformBounds(new Rect(new Point(0, 0), container.RenderSize));
+
+                if (selectionRect.IntersectsWith(itemRect))
+                {
+                    ViewModel.Images[i].IsSelected = !ViewModel.Images[i].IsSelected;
+                }
             }
         }
 

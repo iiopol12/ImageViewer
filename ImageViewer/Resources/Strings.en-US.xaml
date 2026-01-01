@@ -243,6 +243,7 @@ Try running as administrator or set defaults manually.</s:String>
     <s:String x:Key="Shortcut_StartStopSlideshow">Start/Stop slideshow</s:String>
     <s:String x:Key="Shortcut_ToggleBookmark">Bookmark/Unbookmark</s:String>
     <s:String x:Key="Shortcut_ToggleInfoPanel">Toggle info panel</s:String>
+    <s:String x:Key="Shortcut_RenameFileName">Open info panel and rename</s:String>
     <s:String x:Key="Shortcut_CopyToClipboard">Copy to clipboard</s:String>
     <s:String x:Key="Shortcut_DeleteImage">Delete current image</s:String>
     <s:String x:Key="Shortcut_ToggleFilter">Enable/Disable filter</s:String>

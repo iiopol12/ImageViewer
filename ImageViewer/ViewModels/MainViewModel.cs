@@ -1304,6 +1304,22 @@ namespace ImageViewer.ViewModels
         [RelayCommand]
         private void BeginRenameFileName()
         {
+            TryStartRenameFileName(ensureInfoPanelVisible: false);
+        }
+
+        [RelayCommand]
+        private void OpenInfoPanelAndRenameFileName()
+        {
+            TryStartRenameFileName(ensureInfoPanelVisible: true);
+        }
+
+        private void TryStartRenameFileName(bool ensureInfoPanelVisible)
+        {
+            if (ensureInfoPanelVisible && CurrentImage != null)
+            {
+                IsInfoPanelVisible = true;
+            }
+
             if (!TryGetRenamableCurrentImage(out var image, out var message))
             {
                 if (!string.IsNullOrWhiteSpace(message))

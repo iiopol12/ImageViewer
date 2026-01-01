@@ -129,8 +129,8 @@
     <s:String x:Key="Favorites_NoFoldersHint">点击"添加文件夹"或"收藏当前目录"开始整理</s:String>
     <s:String x:Key="Favorites_NoImages">该文件夹暂无收藏图片</s:String>
     <s:String x:Key="Favorites_FavoriteCount">收藏</s:String>
-    <s:String x:Key="Favorites_ItemCountPrefix">共 </s:String>
-    <s:String x:Key="Favorites_ItemCountSuffix"> 项</s:String>
+    <s:String x:Key="Favorites_ItemCountPrefix">共</s:String>
+    <s:String x:Key="Favorites_ItemCountSuffix">项</s:String>
     <s:String x:Key="Favorites_InvalidPath">路径无效</s:String>
     <s:String x:Key="Button_Open">打开</s:String>
     <s:String x:Key="Button_Locate">定位</s:String>
@@ -148,12 +148,12 @@
     <s:String x:Key="Associations_Title">关联设置</s:String>
     <s:String x:Key="Associations_Subtitle">选择要关联的图片格式，系统将默认用 ImageViewer 打开</s:String>
     <s:String x:Key="Associations_Normal">普通</s:String>
-  
+
     <s:String x:Key="Associations_NoteTitle">说明</s:String>
     <s:String x:Key="Associations_Note1">PDF RAR/CAR ZIP/CAZ可在应用内打开，但不提供文件关联。</s:String>
     <s:String x:Key="Associations_Note2">RAW 格式优先使用系统 WIC 解码（建议从微软商店安装 Raw Image Extension）；若系统不支持则自动回退到 Magick.NET。</s:String>
     <s:String x:Key="Associations_FormatSelect">格式选择</s:String>
-    <s:String x:Key="Associations_TotalPrefix">总计 </s:String>
+    <s:String x:Key="Associations_TotalPrefix">总计</s:String>
     <x:Static x:Key="Associations_TotalSuffix" Member="s:String.Empty"/>
     <s:String x:Key="Button_SelectAll">全选</s:String>
     <s:String x:Key="Button_DeselectAll">取消全选</s:String>
@@ -210,7 +210,7 @@
     <s:String x:Key="ToolTip_BookmarkCurrentImage">收藏当前图片（仅单图模式）</s:String>
     <s:String x:Key="ToolTip_CloseInfoPanel">关闭信息面板</s:String>
     <s:String x:Key="ToolTip_OpenWebsite">在默认浏览器中打开网站</s:String>
-    
+
     <!-- ==================== 空状态文本 ==================== -->
     <s:String x:Key="MainWindow_DragDropHint">拖拽图片或文件夹到此处</s:String>
     <s:String x:Key="MainWindow_ClickToolbarHint">或点击工具栏打开文件/文件夹</s:String>
@@ -239,17 +239,18 @@
     <s:String x:Key="Shortcut_StartStopSlideshow">开始/停止幻灯片</s:String>
     <s:String x:Key="Shortcut_ToggleBookmark">收藏/取消收藏</s:String>
     <s:String x:Key="Shortcut_ToggleInfoPanel">切换信息面板</s:String>
+    <s:String x:Key="Shortcut_RenameFileName">打开信息面板并重命名</s:String>
     <s:String x:Key="Shortcut_CopyToClipboard">复制到剪贴板</s:String>
     <s:String x:Key="Shortcut_DeleteImage">删除当前图片</s:String>
     <s:String x:Key="Shortcut_ToggleFilter">启用/关闭过滤</s:String>
     <s:String x:Key="Shortcut_OpenSettings">打开设置</s:String>
     <s:String x:Key="Shortcut_Print">打印</s:String>
 
-    
+
     <!-- ==================== 信息面板文本 ==================== -->
     <s:String x:Key="InfoPanel_Dimensions">分辨率：</s:String>
     <s:String x:Key="InfoPanel_BitDepth">位深：</s:String>
-    <s:String x:Key="InfoPanel_BitDepthSuffix"> bpp</s:String>
+    <s:String x:Key="InfoPanel_BitDepthSuffix">bpp</s:String>
     <s:String x:Key="InfoPanel_FileSize">大小：</s:String>
     <s:String x:Key="InfoPanel_DateModified">修改：</s:String>
     <s:String x:Key="InfoPanel_DateTaken">拍摄时间：</s:String>
@@ -302,8 +303,8 @@
     <s:String x:Key="FolderNav_Empty">没有子文件夹</s:String>
     <s:String x:Key="FolderNav_HintDefault">方向键移动选择  •  Enter进入  •  Esc取消</s:String>
     <s:String x:Key="FolderNav_HintCtrlTab">方向键移动选择  •  Enter进入  •  Esc取消  •  松开Ctrl确认</s:String>
-    
-    
+
+
     <!-- ==================== 菜单 ==================== -->
     <s:String x:Key="ContextMenu_OpenFile">打开文件 (Ctrl+O)</s:String>
     <s:String x:Key="ContextMenu_OpenFolder">打开文件夹 (Ctrl+F)</s:String>
