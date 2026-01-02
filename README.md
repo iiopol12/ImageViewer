@@ -62,7 +62,3 @@ PDF rendering relies on `pdfium.dll`. If missing or architecture mismatched, pla
 ## 多种主题
 <img width="960" height="780" alt="PixPin_2026-01-02_20-29-37" src="https://github.com/user-attachments/assets/82714fdd-1e07-4cce-9e72-d725c7baeb17" />
 <img width="800" height="600" alt="PixPin_2026-01-02_20-29-45" src="https://github.com/user-attachments/assets/3d5f827a-5e59-46cb-9d93-1345b08b9544" />
-<img width="960" height="780" alt="PixPin_2025-12-22_19-57-39" src="https://github.com/user-attachments/assets/dd95349e-f9b1-4cb2-bf7b-52bd51fafc24" />
-<img width="960" height="780" alt="PixPin_2025-12-22_19-57-31" src="https://github.com/user-attachments/assets/ab38fee6-1f41-4978-919a-c15a956e8cae" />
-<img width="960" height="780" alt="PixPin_2025-12-22_19-57-25" src="https://github.com/user-attachments/assets/c888b1e5-8cfc-4f4c-9241-71bc225384db" />
-<img width="960" height="780" alt="PixPin_2025-12-22_19-57-17" src="https://github.com/user-attachments/assets/ebd2b06f-53b3-47bf-8f6c-fbdd137c2599" />
