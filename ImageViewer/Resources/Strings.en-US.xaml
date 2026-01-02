@@ -250,6 +250,39 @@ Try running as administrator or set defaults manually.</s:String>
     <s:String x:Key="Shortcut_OpenSettings">Open settings</s:String>
     <s:String x:Key="Shortcut_Print">Print</s:String>
 
+    <!-- ==================== Batch Actions ==================== -->
+    <s:String x:Key="BatchAction_Title">Batch actions</s:String>
+    <s:String x:Key="BatchAction_SelectedCountPrefix">Selected </s:String>
+    <x:Static x:Key="BatchAction_SelectedCountSuffix" Member="s:String.Empty"/>
+    <s:String x:Key="BatchAction_Rotate90">Rotate 90°</s:String>
+    <s:String x:Key="BatchAction_Bookmark">Toggle favorite</s:String>
+    <s:String x:Key="BatchAction_Share">Share</s:String>
+    <s:String x:Key="BatchAction_Delete">Delete</s:String>
+    <s:String x:Key="BatchAction_Print">Print</s:String>
+    <s:String x:Key="BatchAction_Rename">Batch rename</s:String>
+    <s:String x:Key="BatchAction_Zip">Batch zip</s:String>
+    <s:String x:Key="BatchPrint_Title">Batch print</s:String>
+    <s:String x:Key="BatchPrint_CountPrefix">Selected </s:String>
+    <s:String x:Key="BatchPrint_CountSuffix"> items</s:String>
+    <s:String x:Key="BatchPrint_SelectAll">Select all</s:String>
+    <s:String x:Key="BatchPrint_ClearAll">Clear all</s:String>
+    <s:String x:Key="BatchPrint_MoveUp">Move up</s:String>
+    <s:String x:Key="BatchPrint_MoveDown">Move down</s:String>
+    <s:String x:Key="BatchPrint_EmptySelection">Select at least one image</s:String>
+    <s:String x:Key="BatchRename_Title">Batch rename</s:String>
+    <s:String x:Key="BatchRename_CountPrefix">Rename </s:String>
+    <s:String x:Key="BatchRename_CountSuffix"> images</s:String>
+    <s:String x:Key="BatchRename_PrefixLabel">Prefix</s:String>
+    <s:String x:Key="BatchRename_StartNumberLabel">Start number</s:String>
+    <s:String x:Key="BatchRename_NumberDigitsLabel">Number digits</s:String>
+    <s:String x:Key="BatchRename_PreviewLabel">Preview</s:String>
+    <s:String x:Key="BatchRename_Note">Keep original extension</s:String>
+    <s:String x:Key="BatchRename_Error_InvalidStartNumber">Enter a valid start number</s:String>
+    <s:String x:Key="BatchRename_Error_InvalidDigits">Enter a valid digit count</s:String>
+    <s:String x:Key="BatchRename_Error_InvalidPrefix">Prefix contains invalid characters</s:String>
+    <s:String x:Key="BatchZip_SaveTitle">Save archive</s:String>
+    <s:String x:Key="BatchZip_SaveFilter">Zip archive (*.zip)|*.zip</s:String>
+
     <!-- ==================== Print Window ==================== -->
     <s:String x:Key="PrintWindow_Title">Print Image</s:String>
     <s:String x:Key="PrintWindow_Preview">Print Preview</s:String>

@@ -1,0 +1,142 @@
+<Window x:Class="ImageViewer.Views.BatchPrintDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{DynamicResource BatchPrint_Title}"
+        Width="520"
+        Height="420"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Background="{StaticResource BackgroundMediumBrush}">
+
+    <Border Background="{StaticResource BackgroundMediumBrush}"
+            BorderBrush="{StaticResource BackgroundLightBrush}"
+            BorderThickness="1"
+            Padding="16">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0"
+                       Text="{DynamicResource BatchPrint_Title}"
+                       Foreground="{StaticResource ForegroundBrush}"
+                       FontSize="15"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,6"/>
+
+            <TextBlock Grid.Row="1"
+                       Foreground="{StaticResource ForegroundDimBrush}"
+                       FontSize="12"
+                       Margin="0,0,0,10">
+                <Run Text="{DynamicResource BatchPrint_CountPrefix}"/>
+                <Run Text="{Binding SelectedCount, Mode=OneWay}"/>
+                <Run Text="{DynamicResource BatchPrint_CountSuffix}"/>
+            </TextBlock>
+
+            <ListBox Grid.Row="2"
+                     x:Name="ItemsList"
+                     ItemsSource="{Binding Items}"
+                     SelectionMode="Single"
+                     Background="{StaticResource BackgroundLightBrush}"
+                     BorderBrush="{StaticResource BackgroundLightBrush}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <DockPanel Margin="6,4">
+                            <CheckBox IsChecked="{Binding IsSelected}"
+                                      VerticalAlignment="Top"
+                                      Margin="0,2,8,0"/>
+                            <StackPanel>
+                                <TextBlock Text="{Binding DisplayName}"
+                                           Foreground="{StaticResource ForegroundBrush}"
+                                           FontSize="12"
+                                           TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="{Binding FilePath}"
+                                           Foreground="{StaticResource ForegroundDimBrush}"
+                                           FontSize="11"
+                                           TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <Grid Grid.Row="3" Margin="0,10,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0"
+                        Content="{DynamicResource BatchPrint_SelectAll}"
+                        Style="{StaticResource ModernButtonStyle}"
+                        Padding="10,6"
+                        Margin="0,0,6,0"
+                        Click="SelectAll_Click"/>
+                <Button Grid.Column="1"
+                        Content="{DynamicResource BatchPrint_ClearAll}"
+                        Style="{StaticResource ModernButtonStyle}"
+                        Padding="10,6"
+                        Margin="0,0,12,0"
+                        Click="ClearAll_Click"/>
+                <Button Grid.Column="2"
+                        Content="{DynamicResource BatchPrint_MoveUp}"
+                        Style="{StaticResource ModernButtonStyle}"
+                        Padding="10,6"
+                        Margin="0,0,6,0"
+                        Click="MoveUp_Click"/>
+                <Button Grid.Column="3"
+                        Content="{DynamicResource BatchPrint_MoveDown}"
+                        Style="{StaticResource ModernButtonStyle}"
+                        Padding="10,6"
+                        Margin="0,0,12,0"
+                        Click="MoveDown_Click"/>
+
+                <TextBlock Grid.Column="5"
+                           Text="{DynamicResource PrintWindow_Copies}"
+                           Foreground="{StaticResource ForegroundDimBrush}"
+                           VerticalAlignment="Center"
+                           Margin="0,0,6,0"/>
+                <TextBox Grid.Column="6"
+                         x:Name="CopiesTextBox"
+                         Width="60"
+                         Height="28"
+                         Padding="6,0"
+                         VerticalContentAlignment="Center"
+                         Text="1"/>
+            </Grid>
+
+            <TextBlock Grid.Row="4"
+                       x:Name="ErrorText"
+                       Visibility="Collapsed"
+                       Foreground="{StaticResource AccentBrush}"
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,8"/>
+
+            <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="{DynamicResource Button_Cancel}"
+                        Width="90"
+                        Height="32"
+                        Margin="0,0,8,0"
+                        IsCancel="True"
+                        Style="{StaticResource ModernButtonStyle}"/>
+                <Button Content="{DynamicResource Button_Print}"
+                        Width="90"
+                        Height="32"
+                        IsDefault="True"
+                        Style="{StaticResource ModernButtonStyle}"
+                        Click="Print_Click"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

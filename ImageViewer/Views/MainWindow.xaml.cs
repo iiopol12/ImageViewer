@@ -39,6 +39,7 @@ namespace ImageViewer.Views
         private bool _isFolderSwitchOpen;
         private bool _isFolderSwitchCommitInProgress;
         private readonly ImageService _folderSwitchImageService = new();
+        private readonly ImageService _batchPrintImageService = new();
         private CancellationTokenSource? _folderSwitchThumbnailCts;
 
         // 鼠标拖拽相关字段
@@ -74,12 +75,6 @@ namespace ImageViewer.Views
         private readonly TimeSpan _cursorHideDelay = TimeSpan.FromSeconds(3);
 
         private bool _mangaCenterPending;
-
-        // 瀑布流框选相关
-        private const double WaterfallSelectionDragThreshold = 4;
-        private bool _isWaterfallSelecting;
-        private bool _waterfallSelectionHasDragged;
-        private Point _waterfallSelectionStart;
 
         // 非客户区命中测试常量
         private const int WM_NCHITTEST = 0x0084;
@@ -119,6 +114,9 @@ namespace ImageViewer.Views
             FolderSwitchListBox.ItemsSource = _folderSwitchVisibleEntries;
 
             ViewModel.PropertyChanged += ViewModel_PropertyChanged;
+            ViewModel.BatchPrintRequested += ViewModel_BatchPrintRequested;
+            ViewModel.BatchRenameRequested += ViewModel_BatchRenameRequested;
+            ViewModel.BatchZipRequested += ViewModel_BatchZipRequested;
             // 初始化全局快捷键管理器
             _hotKeyManager = new HotKeyManager(this);
             // 初始化光标自动隐藏计时器
@@ -871,6 +869,232 @@ namespace ImageViewer.Views
             }
         }
 
+        private void ViewModel_BatchPrintRequested(object? sender, IReadOnlyList<ImageInfo> images)
+        {
+            if (images == null || images.Count == 0)
+            {
+                ViewModel.StatusMessage = "没有可打印的图片";
+                return;
+            }
+
+            var printable = images
+                .Where(img => img.SourceKind == ImageSourceKind.File &&
+                              !string.IsNullOrWhiteSpace(img.FilePath) &&
+                              File.Exists(img.FilePath))
+                .ToList();
+
+            if (printable.Count == 0)
+            {
+                ViewModel.StatusMessage = "没有可打印的图片";
+                return;
+            }
+
+            var skipped = images.Count - printable.Count;
+            BatchPrintDialog dialog;
+            try
+            {
+                dialog = new BatchPrintDialog(printable)
+                {
+                    Owner = this
+                };
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"打开批量打印失败: {ex.Message}", "错误",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                ViewModel.StatusMessage = $"打开批量打印失败: {ex.Message}";
+                return;
+            }
+
+            try
+            {
+                if (dialog.ShowDialog() != true)
+                {
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"打开批量打印失败: {ex.Message}", "错误",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                ViewModel.StatusMessage = $"打开批量打印失败: {ex.Message}";
+                return;
+            }
+
+            var selected = dialog.GetSelectedImages();
+            if (selected.Count == 0)
+            {
+                ViewModel.StatusMessage = "没有可打印的图片";
+                return;
+            }
+
+            var printDialog = new System.Windows.Controls.PrintDialog();
+            if (printDialog.ShowDialog() != true)
+            {
+                return;
+            }
+
+            var copies = Math.Max(1, Math.Min(99, dialog.Copies));
+            printDialog.PrintTicket.CopyCount = copies;
+
+            int printed = 0;
+            int failed = 0;
+            foreach (var image in selected)
+            {
+                var bitmap = _batchPrintImageService.LoadImage(image.FilePath);
+                if (bitmap == null)
+                {
+                    failed++;
+                    continue;
+                }
+
+                try
+                {
+                    printDialog.PrintTicket.CopyCount = copies;
+                    var visual = CreateBatchPrintVisual(bitmap, printDialog);
+                    var documentName = Path.GetFileName(image.FilePath);
+                    printDialog.PrintVisual(visual, documentName);
+                    printed++;
+                }
+                catch
+                {
+                    failed++;
+                }
+            }
+
+            var totalSkipped = skipped + failed;
+            if (printed == 0)
+            {
+                ViewModel.StatusMessage = "没有可打印的图片";
+            }
+            else if (totalSkipped > 0)
+            {
+                ViewModel.StatusMessage = $"已发送打印任务: {printed} 张，跳过 {totalSkipped} 张";
+            }
+            else
+            {
+                ViewModel.StatusMessage = $"已发送打印任务: {printed} 张";
+            }
+        }
+
+        private static DrawingVisual CreateBatchPrintVisual(BitmapSource image, System.Windows.Controls.PrintDialog printDialog)
+        {
+            var visual = new DrawingVisual();
+
+            using (var dc = visual.RenderOpen())
+            {
+                var printableWidth = printDialog.PrintableAreaWidth;
+                var printableHeight = printDialog.PrintableAreaHeight;
+
+                if (printableWidth <= 0 || printableHeight <= 0)
+                {
+                    printableWidth = image.PixelWidth;
+                    printableHeight = image.PixelHeight;
+                }
+
+                var scale = Math.Min(printableWidth / image.PixelWidth, printableHeight / image.PixelHeight);
+                var finalWidth = image.PixelWidth * scale;
+                var finalHeight = image.PixelHeight * scale;
+                var x = (printableWidth - finalWidth) / 2;
+                var y = (printableHeight - finalHeight) / 2;
+
+                dc.DrawImage(image, new Rect(x, y, finalWidth, finalHeight));
+            }
+
+            return visual;
+        }
+
+        private void ViewModel_BatchRenameRequested(object? sender, IReadOnlyList<ImageInfo> images)
+        {
+            if (images == null || images.Count == 0)
+            {
+                ViewModel.StatusMessage = "没有可重命名的图片";
+                return;
+            }
+
+            var dialog = new BatchRenameDialog(images)
+            {
+                Owner = this
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                ViewModel.ApplyBatchRename(images, dialog.Prefix, dialog.StartNumber, dialog.NumberPadding);
+            }
+        }
+
+        private void ViewModel_BatchZipRequested(object? sender, MainViewModel.BatchZipRequest request)
+        {
+            if (request == null || request.Images.Count == 0)
+            {
+                ViewModel.StatusMessage = "没有可压缩的图片";
+                return;
+            }
+
+            var dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Title = LanguageManager.GetString("BatchZip_SaveTitle"),
+                Filter = LanguageManager.GetString("BatchZip_SaveFilter"),
+                DefaultExt = ".zip",
+                AddExtension = true,
+                OverwritePrompt = true,
+                FileName = GetDefaultBatchZipName(request.Images)
+            };
+
+            var initialDirectory = GetBatchZipInitialDirectory(request.Images);
+            if (!string.IsNullOrWhiteSpace(initialDirectory))
+            {
+                dialog.InitialDirectory = initialDirectory;
+            }
+
+            if (dialog.ShowDialog() == true)
+            {
+                ViewModel.ApplyBatchZip(request.Images, dialog.FileName, request.SkippedCount);
+            }
+        }
+
+        private string GetBatchZipInitialDirectory(IReadOnlyList<ImageInfo> images)
+        {
+            if (!string.IsNullOrWhiteSpace(ViewModel.CurrentFolderPath) &&
+                Directory.Exists(ViewModel.CurrentFolderPath))
+            {
+                return ViewModel.CurrentFolderPath;
+            }
+
+            var first = images.FirstOrDefault();
+            if (first != null && !string.IsNullOrWhiteSpace(first.FilePath))
+            {
+                return Path.GetDirectoryName(first.FilePath) ?? string.Empty;
+            }
+
+            return string.Empty;
+        }
+
+        private string GetDefaultBatchZipName(IReadOnlyList<ImageInfo> images)
+        {
+            if (!string.IsNullOrWhiteSpace(ViewModel.CurrentFolderPath) &&
+                Directory.Exists(ViewModel.CurrentFolderPath))
+            {
+                var folderName = Path.GetFileName(
+                    ViewModel.CurrentFolderPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                if (!string.IsNullOrWhiteSpace(folderName))
+                {
+                    return $"{folderName}.zip";
+                }
+            }
+
+            if (images.Count == 1 && !string.IsNullOrWhiteSpace(images[0].FilePath))
+            {
+                var baseName = Path.GetFileNameWithoutExtension(images[0].FilePath);
+                if (!string.IsNullOrWhiteSpace(baseName))
+                {
+                    return $"{baseName}.zip";
+                }
+            }
+
+            return "images.zip";
+        }
+
         #endregion
 
         /// <summary>
@@ -878,6 +1102,9 @@ namespace ImageViewer.Views
         /// </summary>
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            ViewModel.BatchPrintRequested -= ViewModel_BatchPrintRequested;
+            ViewModel.BatchRenameRequested -= ViewModel_BatchRenameRequested;
+            ViewModel.BatchZipRequested -= ViewModel_BatchZipRequested;
 
 
             if (_isResizeFreezeActive)
@@ -1999,7 +2226,7 @@ namespace ImageViewer.Views
             {
                 if (ViewModel.ShowWaterfallView)
                 {
-                    HandleWaterfallZoomWithMouseWheel(e);
+                    WaterfallViewControl?.HandleZoomWithMouseWheel(e);
                 }
                 else if (ViewModel.IsMangaMode)
                 {
@@ -2028,7 +2255,7 @@ namespace ImageViewer.Views
                 // 缩放模式：在PreviewMouseWheel中处理全局缩放，避免被子控件拦截
                 if (ViewModel.ShowWaterfallView)
                 {
-                    HandleWaterfallZoomWithMouseWheel(e);
+                    WaterfallViewControl?.HandleZoomWithMouseWheel(e);
                 }
                 else if (ViewModel.IsMangaMode)
                 {
@@ -2097,7 +2324,7 @@ namespace ImageViewer.Views
             {
                 if (ctrlPressed)
                 {
-                    HandleWaterfallZoomWithMouseWheel(e);
+                    WaterfallViewControl?.HandleZoomWithMouseWheel(e);
                     e.Handled = true;
                 }
                 return;
@@ -2231,249 +2458,6 @@ namespace ImageViewer.Views
                     MangaScrollViewer.ScrollToVerticalOffset(newVerticalOffset);
                 }
             }), DispatcherPriority.Loaded);
-        }
-
-        /// <summary>
-        /// </summary>
-        private void HandleWaterfallZoomWithMouseWheel(MouseWheelEventArgs e)
-        {
-            const double ZOOM_FACTOR = 0.1;
-            const double MIN_ZOOM = 0.2;
-            const double MAX_ZOOM = 3.0; // 限制最大图尺寸
-
-            if (ViewModel.Images.Count == 0)
-                return;
-
-            Point mousePos = e.GetPosition(WaterfallScrollViewer);
-
-            double horizontalRatio = 0;
-            double verticalRatio = 0;
-
-            if (WaterfallScrollViewer.ViewportWidth > 0 && WaterfallScrollViewer.ViewportHeight > 0)
-            {
-                horizontalRatio = (WaterfallScrollViewer.HorizontalOffset + mousePos.X) / WaterfallScrollViewer.ExtentWidth;
-                verticalRatio = (WaterfallScrollViewer.VerticalOffset + mousePos.Y) / WaterfallScrollViewer.ExtentHeight;
-            }
-
-            double currentZoom = ViewModel.WaterfallZoomLevel;
-            double delta = e.Delta > 0 ? ZOOM_FACTOR : -ZOOM_FACTOR;
-            double newZoom = currentZoom * (1 + delta);
-
-            newZoom = Math.Max(MIN_ZOOM, Math.Min(MAX_ZOOM, newZoom));
-
-            if (Math.Abs(newZoom - currentZoom) < 0.001)
-                return;
-
-            ViewModel.WaterfallZoomLevel = newZoom;
-
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                if (WaterfallScrollViewer.ExtentWidth > 0 && WaterfallScrollViewer.ExtentHeight > 0)
-                {
-                    double newHorizontalOffset = horizontalRatio * WaterfallScrollViewer.ExtentWidth - mousePos.X;
-                    double newVerticalOffset = verticalRatio * WaterfallScrollViewer.ExtentHeight - mousePos.Y;
-
-                    newHorizontalOffset = Math.Max(0, Math.Min(newHorizontalOffset, WaterfallScrollViewer.ScrollableWidth));
-                    newVerticalOffset = Math.Max(0, Math.Min(newVerticalOffset, WaterfallScrollViewer.ScrollableHeight));
-
-                    WaterfallScrollViewer.ScrollToHorizontalOffset(newHorizontalOffset);
-                    WaterfallScrollViewer.ScrollToVerticalOffset(newVerticalOffset);
-                }
-            }), DispatcherPriority.Loaded);
-        }
-
-        /// <summary>
-        /// 瀑布流视图空白处按下：开始框选或准备清空选择
-        /// </summary>
-        private void WaterfallScrollViewer_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (!ViewModel.ShowWaterfallView || WaterfallSelectionCanvas == null)
-                return;
-
-            var source = e.OriginalSource as DependencyObject;
-            if (source == null)
-                return;
-
-            // 点击在滚动条/滑块上，不处理框选
-            if (FindVisualAncestor<System.Windows.Controls.Primitives.ScrollBar>(source) != null ||
-                FindVisualAncestor<Thumb>(source) != null ||
-                FindVisualAncestor<RepeatButton>(source) != null)
-            {
-                return;
-            }
-
-            // 点击在图片项上，不启动框选
-            var itemContainer = FindVisualAncestor<FrameworkElement>(source, fe => fe.Tag is ImageInfo);
-            if (itemContainer != null)
-                return;
-
-            _isWaterfallSelecting = true;
-            _waterfallSelectionHasDragged = false;
-            _waterfallSelectionStart = e.GetPosition(WaterfallSelectionCanvas);
-
-            HideWaterfallSelectionVisual();
-            WaterfallScrollViewer.CaptureMouse();
-            e.Handled = true;
-        }
-
-        private void WaterfallScrollViewer_PreviewMouseMove(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            if (!_isWaterfallSelecting || WaterfallSelectionCanvas == null || WaterfallSelectionBorder == null)
-                return;
-
-            var currentPoint = e.GetPosition(WaterfallSelectionCanvas);
-            var delta = currentPoint - _waterfallSelectionStart;
-            if (!_waterfallSelectionHasDragged)
-            {
-                if (Math.Abs(delta.X) < WaterfallSelectionDragThreshold &&
-                    Math.Abs(delta.Y) < WaterfallSelectionDragThreshold)
-                {
-                    return;
-                }
-
-                _waterfallSelectionHasDragged = true;
-                WaterfallSelectionBorder.Visibility = Visibility.Visible;
-            }
-
-            var selectionRect = GetWaterfallSelectionRect(_waterfallSelectionStart, currentPoint);
-            UpdateWaterfallSelectionVisual(selectionRect);
-            e.Handled = true;
-        }
-
-        private void WaterfallScrollViewer_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            if (!_isWaterfallSelecting || WaterfallSelectionCanvas == null)
-                return;
-
-            if (WaterfallScrollViewer.IsMouseCaptured)
-            {
-                WaterfallScrollViewer.ReleaseMouseCapture();
-            }
-
-            var endPoint = e.GetPosition(WaterfallSelectionCanvas);
-            var selectionRect = GetWaterfallSelectionRect(_waterfallSelectionStart, endPoint);
-
-            HideWaterfallSelectionVisual();
-
-            if (_waterfallSelectionHasDragged)
-            {
-                ToggleWaterfallSelection(selectionRect);
-            }
-            else
-            {
-                ClearWaterfallSelections();
-            }
-
-            _isWaterfallSelecting = false;
-            _waterfallSelectionHasDragged = false;
-            e.Handled = true;
-        }
-
-        private void ClearWaterfallSelections()
-        {
-            foreach (var img in ViewModel.Images)
-            {
-                if (img.IsSelected)
-                {
-                    img.IsSelected = false;
-                }
-            }
-        }
-
-        private Rect GetWaterfallSelectionRect(Point start, Point end)
-        {
-            double x1 = Math.Min(start.X, end.X);
-            double y1 = Math.Min(start.Y, end.Y);
-            double x2 = Math.Max(start.X, end.X);
-            double y2 = Math.Max(start.Y, end.Y);
-
-            if (WaterfallSelectionCanvas != null &&
-                WaterfallSelectionCanvas.ActualWidth > 0 &&
-                WaterfallSelectionCanvas.ActualHeight > 0)
-            {
-                double maxX = WaterfallSelectionCanvas.ActualWidth;
-                double maxY = WaterfallSelectionCanvas.ActualHeight;
-                x1 = Math.Max(0, Math.Min(x1, maxX));
-                y1 = Math.Max(0, Math.Min(y1, maxY));
-                x2 = Math.Max(0, Math.Min(x2, maxX));
-                y2 = Math.Max(0, Math.Min(y2, maxY));
-            }
-
-            return new Rect(new Point(x1, y1), new Point(x2, y2));
-        }
-
-        private void UpdateWaterfallSelectionVisual(Rect rect)
-        {
-            if (WaterfallSelectionBorder == null)
-                return;
-
-            Canvas.SetLeft(WaterfallSelectionBorder, rect.X);
-            Canvas.SetTop(WaterfallSelectionBorder, rect.Y);
-            WaterfallSelectionBorder.Width = rect.Width;
-            WaterfallSelectionBorder.Height = rect.Height;
-        }
-
-        private void HideWaterfallSelectionVisual()
-        {
-            if (WaterfallSelectionBorder == null)
-                return;
-
-            WaterfallSelectionBorder.Visibility = Visibility.Collapsed;
-            WaterfallSelectionBorder.Width = 0;
-            WaterfallSelectionBorder.Height = 0;
-        }
-
-        private void ToggleWaterfallSelection(Rect selectionRect)
-        {
-            if (selectionRect.Width <= 0 || selectionRect.Height <= 0 || WaterfallItemsControl == null ||
-                WaterfallSelectionCanvas == null)
-            {
-                return;
-            }
-
-            for (int i = 0; i < ViewModel.Images.Count; i++)
-            {
-                if (WaterfallItemsControl.ItemContainerGenerator.ContainerFromIndex(i) is not FrameworkElement container ||
-                    !container.IsVisible ||
-                    container.RenderSize.Width <= 0 ||
-                    container.RenderSize.Height <= 0)
-                {
-                    continue;
-                }
-
-                var itemRect = container.TransformToVisual(WaterfallSelectionCanvas)
-                    .TransformBounds(new Rect(new Point(0, 0), container.RenderSize));
-
-                if (selectionRect.IntersectsWith(itemRect))
-                {
-                    ViewModel.Images[i].IsSelected = !ViewModel.Images[i].IsSelected;
-                }
-            }
-        }
-
-        private static T? FindVisualAncestor<T>(DependencyObject source) where T : DependencyObject
-        {
-            var current = source;
-            while (current != null)
-            {
-                if (current is T typed)
-                    return typed;
-                current = VisualTreeHelper.GetParent(current);
-            }
-            return null;
-        }
-
-        private static FrameworkElement? FindVisualAncestor<FrameworkElement>(DependencyObject source, Func<FrameworkElement, bool> predicate)
-            where FrameworkElement : System.Windows.FrameworkElement
-        {
-            var current = source;
-            while (current != null)
-            {
-                if (current is System.Windows.FrameworkElement fe && predicate((FrameworkElement)fe))
-                    return (FrameworkElement)fe;
-                current = VisualTreeHelper.GetParent(current);
-            }
-            return null;
         }
 
         private async void Window_Drop(object sender, System.Windows.DragEventArgs e)

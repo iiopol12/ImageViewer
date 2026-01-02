@@ -40,6 +40,23 @@
         <vm:MainViewModel/>
     </Window.DataContext>
 
+    <Window.Resources>
+        <Style x:Key="SingleImageActionIconButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource IconButtonStyle}">
+            <Setter Property="IsEnabled" Value="False"/>
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding HasImages}" Value="True"/>
+                        <Condition Binding="{Binding ShowWaterfallView}" Value="False"/>
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="IsEnabled" Value="True"/>
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
     <WindowChrome.WindowChrome>
         <shell:WindowChrome CaptionHeight="32"
                             ResizeBorderThickness="8"
@@ -197,7 +214,7 @@
         Command="{Binding OpenFolderCommand}" 
         ToolTip="{DynamicResource ContextMenu_OpenFolder}">
                             <!-- Data说明：后背板 + 前盖板，形成开口效果 -->
-                            <Path Data="M4 4 L10 4 L12 6 L20 6 L20 10 M2 10 L22 10 L20 20 L4 20 L2 10" 
+                            <Path Data="M4 4 L10 4 L12 6 L20 6 L20 10 M2 10 L22 10 L20 20 L4 20 L2 10 z" 
           Stroke="{DynamicResource ForegroundBrush}" StrokeThickness="2" Width="18" Height="18" Stretch="Uniform"/>
                         </Button>
                         <Rectangle Width="1" Fill="{DynamicResource BackgroundLightBrush}" Margin="8,4"/>
@@ -293,17 +310,16 @@
                             IsEnabled="{Binding HasImages}"
                             Command="{Binding SetViewModeCommand}" 
                             CommandParameter="{x:Static models:ViewMode.DoublePage}">
-                            <Path Data="M2 6 H11 V18 H2 Z M13 6 H22 V18 H13 Z" 
+                            <Path Data="M3 4 H21 V20 H3 Z  M12 4 V20"
                               Stroke="{DynamicResource ForegroundBrush}" StrokeThickness="2" Width="18" Height="18" Stretch="Uniform"/>
                         </Button>
 
                         <Rectangle Width="1" Fill="{DynamicResource BackgroundLightBrush}" Margin="8,4"/>
 
-                        <Button Style="{StaticResource IconButtonStyle}"
+                        <Button Style="{StaticResource SingleImageActionIconButtonStyle}"
                         FontFamily="Segoe UI Symbol"
                         Command="{Binding Rotate90Command}"
                        ToolTip="{DynamicResource ToolTip_Rotate90}"
-                        IsEnabled="{Binding HasImages}"
                         FontSize="18">
                             <Path
                         Data="M409.6 864c32 12.8 67.2 19.2 102.4 19.2 22.4 0 38.4 19.2 38.4 41.6s-19.2 38.4-41.6 38.4c-41.6-3.2-86.4-9.6-128-22.4-22.4-6.4-32-28.8-25.6-51.2s32-35.2 54.4-25.6z m371.2-28.8c12.8 19.2 6.4 44.8-12.8 54.4-35.2 22.4-76.8 41.6-118.4 54.4-22.4 6.4-44.8-6.4-48-28.8-6.4-22.4 6.4-44.8 28.8-48 35.2-9.6 67.2-25.6 96-44.8 16-9.6 41.6-6.4 54.4 12.8zM227.2 726.4c19.2 28.8 44.8 54.4 73.6 76.8 16 12.8 19.2 38.4 6.4 57.6-12.8 16-38.4 19.2-57.6 6.4-35.2-25.6-64-57.6-89.6-92.8-12.8-19.2-9.6-41.6 9.6-54.4s44.8-9.6 57.6 6.4z m691.2-92.8c19.2 9.6 28.8 32 22.4 51.2-16 38.4-38.4 76.8-64 112-12.8 16-38.4 19.2-57.6 6.4s-19.2-38.4-6.4-57.6c22.4-28.8 41.6-57.6 54.4-89.6 6.4-22.4 32-32 51.2-22.4zM867.2 60.8c19.2 0 35.2 12.8 35.2 28.8V294.4c0 19.2-12.8 35.2-28.8 35.2h-195.2c-16 0-28.8-16-28.8-35.2 0-19.2 12.8-35.2 28.8-35.2h105.6c-67.2-67.2-160-108.8-259.2-108.8C326.4 150.4 160 313.6 160 515.2c0 44.8 9.6 92.8 25.6 134.4 9.6 19.2-3.2 44.8-22.4 51.2-19.2 9.6-44.8-3.2-51.2-22.4-19.2-51.2-32-105.6-32-163.2 0-246.4 198.4-444.8 444.8-444.8 115.2 0 224 44.8 304 121.6V89.6c3.2-16 19.2-28.8 38.4-28.8z"
@@ -312,8 +328,8 @@
                         Height="18"
                         Stretch="Uniform"/>
                         </Button>
-                        <Button Style="{StaticResource IconButtonStyle}" ToolTip="{DynamicResource ToolTip_Bookmark}" 
-                            Command="{Binding ToggleBookmarkCommand}" IsEnabled="{Binding HasImages}"
+                        <Button Style="{StaticResource SingleImageActionIconButtonStyle}" ToolTip="{DynamicResource ToolTip_Bookmark}" 
+                            Command="{Binding ToggleBookmarkCommand}"
                             FontSize="16">
                             <Path x:Name="BookmarkIcon"
                                  Data="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" 
@@ -324,14 +340,14 @@
                                  Stretch="Uniform"/>
                         </Button>
 
-                        <Button Style="{StaticResource IconButtonStyle}" ToolTip="{DynamicResource ToolTip_ShareCurrentImage}" 
-                            Command="{Binding ShareCurrentImageCommand}" IsEnabled="{Binding HasImages}">
-                            <Path Data="M3 11 L21 3 12 21 11 13 3 11 Z M11 13 L21 3" 
+                        <Button Style="{StaticResource SingleImageActionIconButtonStyle}" ToolTip="{DynamicResource ToolTip_ShareCurrentImage}" 
+                            Command="{Binding ShareCurrentImageCommand}">
+                            <Path Data="M14 3H21V10 M21 3L12 12 M12 5H7A3 3 0 0 0 4 8V17A3 3 0 0 0 7 20H17A3 3 0 0 0 20 17V14"
                               Stroke="{DynamicResource ForegroundBrush}" StrokeThickness="2" Width="18" Height="18" Stretch="Uniform"/>
                         </Button>
 
-                        <Button Style="{StaticResource IconButtonStyle}" ToolTip="{DynamicResource ToolTip_Print}" 
-                            Click="PrintButton_Click" IsEnabled="{Binding HasImages}">
+                        <Button Style="{StaticResource SingleImageActionIconButtonStyle}" ToolTip="{DynamicResource ToolTip_Print}" 
+                            Click="PrintButton_Click">
                             <!-- 打印机图标 -->
                             <Path Data="M6 9V2h12v7 M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2 M6 14h12v8H6z"
                                   Stroke="{DynamicResource ForegroundBrush}" 
@@ -344,7 +360,7 @@
                         <Button Style="{StaticResource IconButtonStyle}" FontFamily="Segoe UI Symbol"
                             Command="{Binding ToggleSlideShowCommand}" ToolTip="{DynamicResource ToolTip_SlideShow}" IsEnabled="{Binding HasImages}">
                             <Path x:Name="PlayIcon"
-                                 Data="M5 3l14 9-14 9V3" 
+                                 Data="M5 3 L19 12 L5 21 Z"
                                  Stroke="{DynamicResource ForegroundBrush}" 
                                  StrokeThickness="2"
                                  Width="18" 
@@ -685,104 +701,124 @@
                         </ScrollViewer>
 
                         <!-- Waterfall View (瀑布流视图) -->
-                        <Grid x:Name="WaterfallViewHost"
+                        <Grid x:Name="WaterfallViewContainer"
                               Visibility="{Binding ShowWaterfallView, Converter={StaticResource BoolToVisibilityConverter}}">
-                            <ScrollViewer x:Name="WaterfallScrollViewer"
-                  VerticalScrollBarVisibility="Auto"
-                  HorizontalScrollBarVisibility="Disabled"
-                  PreviewMouseLeftButtonDown="WaterfallScrollViewer_PreviewMouseLeftButtonDown"
-                  PreviewMouseMove="WaterfallScrollViewer_PreviewMouseMove"
-                  PreviewMouseLeftButtonUp="WaterfallScrollViewer_PreviewMouseLeftButtonUp"
-                  Background="{DynamicResource ImageBackgroundBrush}">
-                                <ItemsControl x:Name="WaterfallItemsControl" ItemsSource="{Binding Images}">
-                                    <ItemsControl.LayoutTransform>
-                                        <ScaleTransform ScaleX="{Binding WaterfallZoomLevel}" ScaleY="{Binding WaterfallZoomLevel}"/>
-                                    </ItemsControl.LayoutTransform>
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Margin="4" Background="{DynamicResource BackgroundDarkBrush}" 
-                            CornerRadius="4" Cursor="Hand"
-                            MouseLeftButtonUp="WaterfallItem_Click"
-                            Tag="{Binding}">
-                                                <Border.Style>
-                                                    <Style TargetType="Border">
-                                                        <Setter Property="BorderThickness" Value="2"/>
-                                                        <Setter Property="BorderBrush" Value="Transparent"/>
-                                                        <Style.Triggers>
-                                                            <Trigger Property="IsMouseOver" Value="True">
-                                                                <Setter Property="BorderBrush" Value="{DynamicResource BackgroundLightBrush}"/>
-                                                            </Trigger>
-                                                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                                                <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Border.Style>
-                                                <Grid Width="180" Height="140">
-                                                    <Image Source="{Binding Thumbnail}" Stretch="Uniform" 
-                                   RenderOptions.BitmapScalingMode="HighQuality"
-                                   Margin="4"/>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
 
-                                                    <!-- Loading indicator -->
-                                                    <Border Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"
-                                    Background="#80000000">
-                                                        <TextBlock Text="..." Foreground="White" FontSize="20"
-                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                    </Border>
+                            <Border Grid.Row="0"
+                                    Background="{DynamicResource BackgroundMediumBrush}"
+                                    Padding="8,6">
+                                <DockPanel>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="{DynamicResource BatchAction_Title}"
+                                                   Foreground="{DynamicResource ForegroundBrush}"
+                                                   FontSize="12"
+                                                   FontWeight="SemiBold"/>
+                                        <TextBlock Margin="8,0,0,0"
+                                                   Foreground="{DynamicResource ForegroundDimBrush}"
+                                                   FontSize="12">
+                                            <Run Text="{DynamicResource BatchAction_SelectedCountPrefix}"/>
+                                            <Run Text="{Binding ElementName=WaterfallViewControl, Path=SelectedCount, Mode=OneWay}"/>
+                                            <Run Text="{DynamicResource BatchAction_SelectedCountSuffix}"/>
+                                        </TextBlock>
+                                    </StackPanel>
 
-                                                    <!-- Error indicator -->
-                                                    <Border Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}"
-                                    Background="#80000000">
-                                                        <Path Width="24" Height="24"
-                                      Stretch="Uniform"
-     
-                                      StrokeThickness="2"
-                                      HorizontalAlignment="Center"
-                                      VerticalAlignment="Center"
-                                      Data="M3,3 L21,21 M21,3 L3,21"/>
-                                                    </Border>
+                                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                        <Button Style="{StaticResource IconButtonStyle}"
+                                                ToolTip="{DynamicResource BatchAction_Rotate90}"
+                                                Command="{Binding Rotate90Command}"
+                                                IsEnabled="{Binding ElementName=WaterfallViewControl, Path=HasSelection}"
+                                                Margin="0,0,8,0">
+                                            <Path Data="M409.6 864c32 12.8 67.2 19.2 102.4 19.2 22.4 0 38.4 19.2 38.4 41.6s-19.2 38.4-41.6 38.4c-41.6-3.2-86.4-9.6-128-22.4-22.4-6.4-32-28.8-25.6-51.2s32-35.2 54.4-25.6z m371.2-28.8c12.8 19.2 6.4 44.8-12.8 54.4-35.2 22.4-76.8 41.6-118.4 54.4-22.4 6.4-44.8-6.4-48-28.8-6.4-22.4 6.4-44.8 28.8-48 35.2-9.6 67.2-25.6 96-44.8 16-9.6 41.6-6.4 54.4 12.8zM227.2 726.4c19.2 28.8 44.8 54.4 73.6 76.8 16 12.8 19.2 38.4 6.4 57.6-12.8 16-38.4 19.2-57.6 6.4-35.2-25.6-64-57.6-89.6-92.8-12.8-19.2-9.6-41.6 9.6-54.4s44.8-9.6 57.6 6.4z m691.2-92.8c19.2 9.6 28.8 32 22.4 51.2-16 38.4-38.4 76.8-64 112-12.8 16-38.4 19.2-57.6 6.4s-19.2-38.4-6.4-57.6c22.4-28.8 41.6-57.6 54.4-89.6 6.4-22.4 32-32 51.2-22.4zM867.2 60.8c19.2 0 35.2 12.8 35.2 28.8V294.4c0 19.2-12.8 35.2-28.8 35.2h-195.2c-16 0-28.8-16-28.8-35.2 0-19.2 12.8-35.2 28.8-35.2h105.6c-67.2-67.2-160-108.8-259.2-108.8C326.4 150.4 160 313.6 160 515.2c0 44.8 9.6 92.8 25.6 134.4 9.6 19.2-3.2 44.8-22.4 51.2-19.2 9.6-44.8-3.2-51.2-22.4-19.2-51.2-32-105.6-32-163.2 0-246.4 198.4-444.8 444.8-444.8 115.2 0 224 44.8 304 121.6V89.6c3.2-16 19.2-28.8 38.4-28.8z"
+                                                  Fill="{DynamicResource ForegroundBrush}"
+                                                  Width="18"
+                                                  Height="18"
+                                                  Stretch="Uniform"/>
+                                        </Button>
+                                        <Button Style="{StaticResource IconButtonStyle}"
+                                                ToolTip="{DynamicResource BatchAction_Bookmark}"
+                                                Command="{Binding ToggleBookmarkCommand}"
+                                                IsEnabled="{Binding ElementName=WaterfallViewControl, Path=HasSelection}"
+                                                Margin="0,0,8,0">
+                                            <Path    Data="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" 
+                                                  Stroke="{DynamicResource ForegroundBrush}"
+                                                  StrokeThickness="1.6"
+                                                  Fill="Transparent"
+                                                  Width="18"
+                                                  Height="18"
+                                                  Stretch="Uniform"/>
+                                        </Button>
+                                        <Button Style="{StaticResource IconButtonStyle}"
+                                                ToolTip="{DynamicResource BatchAction_Share}"
+                                                Command="{Binding ShareCurrentImageCommand}"
+                                                IsEnabled="{Binding ElementName=WaterfallViewControl, Path=HasSelection}"
+                                                Margin="0,0,8,0">
+                                            <Path Data="M14 3H21V10 M21 3L12 12 M12 5H7A3 3 0 0 0 4 8V17A3 3 0 0 0 7 20H17A3 3 0 0 0 20 17V14"
+                                                  Stroke="{DynamicResource ForegroundBrush}"
+                                                  StrokeThickness="2"
+                                                  Width="18"
+                                                  Height="18"
+                                                  Stretch="Uniform"/>
+                                        </Button>
+                                        <Button Style="{StaticResource IconButtonStyle}"
+                                                ToolTip="{DynamicResource BatchAction_Delete}"
+                                                Command="{Binding DeleteImageCommand}"
+                                                IsEnabled="{Binding ElementName=WaterfallViewControl, Path=HasSelection}"
+                                                Margin="0,0,8,0">
+                                            <Path Data="M6 6 L18 18 M18 6 L6 18"
+                                                  Stroke="{DynamicResource ForegroundBrush}"
+                                                  StrokeThickness="2"
+                                                  Width="16"
+                                                  Height="16"
+                                                  Stretch="Uniform"/>
+                                        </Button>
+                                        <Button Style="{StaticResource IconButtonStyle}"
+                                                ToolTip="{DynamicResource BatchAction_Rename}"
+                                                Command="{Binding BatchRenameCommand}"
+                                                IsEnabled="{Binding ElementName=WaterfallViewControl, Path=HasSelection}"
+                                                Margin="0,0,8,0">
+                                            <Path  Data="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" Stroke="{DynamicResource ForegroundBrush}"
+                                                  StrokeThickness="2"
+                                                  Width="18"
+                                                  Height="18"
+                                                  Stretch="Uniform"/>
+                                        </Button>
+                                        <Button Style="{StaticResource IconButtonStyle}"
+                                                ToolTip="{DynamicResource BatchAction_Zip}"
+                                                Command="{Binding BatchZipCommand}"
+                                                IsEnabled="{Binding ElementName=WaterfallViewControl, Path=HasSelection}"
+                                                Margin="0,0,8,0">
+                                            <Path Data="M853.333333 938.666667H170.666667a42.666667 42.666667 0 0 1-42.666667-42.666667V128a42.666667 42.666667 0 0 1 42.666667-42.666667h682.666666a42.666667 42.666667 0 0 1 42.666667 42.666667v768a42.666667 42.666667 0 0 1-42.666667 42.666667z m-42.666666-85.333334V170.666667H213.333333v682.666666h597.333334z m-213.333334-341.333333v213.333333h-170.666666v-128h85.333333v-85.333333h85.333333z m-85.333333-341.333333h85.333333v85.333333h-85.333333V170.666667z m-85.333333 85.333333h85.333333v85.333333h-85.333333V256z m85.333333 85.333333h85.333333v85.333334h-85.333333V341.333333z m-85.333333 85.333334h85.333333v85.333333h-85.333333v-85.333333z"
+                                          Fill="{DynamicResource ForegroundBrush}"
+                                       
+                                          Width="18"
+                                          Height="18"
+                                          Stretch="Uniform"/>
+                                        </Button>
+                                        <Button Style="{StaticResource IconButtonStyle}"
+                                                ToolTip="{DynamicResource BatchAction_Print}"
+                                                Command="{Binding BatchPrintCommand}"
+                                                IsEnabled="{Binding ElementName=WaterfallViewControl, Path=HasSelection}">
+                                            <Path Data="M6 9V2h12v7 M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2 M6 14h12v8H6z"
+                                                  Stroke="{DynamicResource ForegroundBrush}"
+                                                  StrokeThickness="2"
+                                                  Width="18"
+                                                  Height="18"
+                                                  Stretch="Uniform"/>
+                                        </Button>
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
 
-                                                    <!-- Bookmark indicator -->
-                                                    <Path Width="16" Height="16"
-                              Stretch="Uniform"
-                              Fill="#FFD700"
-                              HorizontalAlignment="Right"
-                              VerticalAlignment="Top"
-                              Margin="0,4,4,0"
-                              Visibility="{Binding IsBookmarked, Converter={StaticResource BoolToVisibilityConverter}}"
-                              Data="M8,0 L9.76,5.17 L15.3,5.64 L10.8,9.02 
-                                    L12.24,14.36 L8,11.4 L3.76,14.36 
-                                    L5.2,9.02 L0.7,5.64 L6.24,5.17 Z"/>
-
-                                                    <!-- File name overlay -->
-                                                    <Border VerticalAlignment="Bottom" Background="#AA000000" Padding="4,2">
-                                                        <TextBlock Text="{Binding FileName}" 
-                                           Foreground="White"
-                                           FontSize="10" TextTrimming="CharacterEllipsis"
-                                           TextAlignment="Center"/>
-                                                    </Border>
-                                                </Grid>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </ScrollViewer>
-                            <Canvas x:Name="WaterfallSelectionCanvas"
-                                    Panel.ZIndex="1"
-                                    IsHitTestVisible="False"
-                                    ClipToBounds="True">
-                                <Border x:Name="WaterfallSelectionBorder"
-                                        BorderBrush="{DynamicResource PrimaryBrush}"
-                                        BorderThickness="1"
-                                        Background="{DynamicResource PrimaryBrush}"
-                                        Opacity="0.2"
-                                        Visibility="Collapsed"/>
-                            </Canvas>
+                            <controls:WaterfallView x:Name="WaterfallViewControl"
+                                                    Grid.Row="1"
+                                                    ItemsSource="{Binding Images}"
+                                                    ZoomLevel="{Binding WaterfallZoomLevel, Mode=TwoWay}"
+                                                    IsActive="{Binding ShowWaterfallView}"
+                                                    ItemClickCommand="{Binding SelectFromWaterfallCommand}"/>
                         </Grid>
 
                         <!-- Empty State -->
@@ -1841,10 +1877,11 @@
                                 <Setter Property="IsEnabled" Value="False"/>
                                 <Style.Triggers>
                                     <MultiDataTrigger>
-                                        <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding IsSingleMode}" Value="True"/>
-                                            <Condition Binding="{Binding HasImages}" Value="True"/>
-                                        </MultiDataTrigger.Conditions>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsSingleMode}" Value="True"/>
+                                        <Condition Binding="{Binding HasImages}" Value="True"/>
+                                        <Condition Binding="{Binding ShowWaterfallView}" Value="False"/>
+                                    </MultiDataTrigger.Conditions>
                                         <Setter Property="Visibility" Value="Visible"/>
                                         <Setter Property="IsEnabled" Value="True"/>
                                     </MultiDataTrigger>
@@ -2016,7 +2053,7 @@
                                             <Grid x:Name="FolderIconGrid"
                                                   Visibility="{Binding CoverThumbnail, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=Invert}">
                                                 <Path x:Name="FolderIcon"
-                                                      Data="M4 4 L10 4 L12 6 L20 6 L20 10 M2 10 L22 10 L20 20 L4 20 L2 10"
+                                                      Data="M4 4 L10 4 L12 6 L20 6 L20 10 M2 10 L22 10 L20 20 L4 20 L2 10 z"
                                                       Stroke="{DynamicResource ForegroundBrush}"
                                                       StrokeThickness="2"
                                                       Stretch="Uniform"/>

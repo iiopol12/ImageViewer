@@ -246,6 +246,39 @@
     <s:String x:Key="Shortcut_OpenSettings">打开设置</s:String>
     <s:String x:Key="Shortcut_Print">打印</s:String>
 
+    <!-- ==================== 批量操作 ==================== -->
+    <s:String x:Key="BatchAction_Title">批量操作</s:String>
+    <s:String x:Key="BatchAction_SelectedCountPrefix">已选 </s:String>
+    <s:String x:Key="BatchAction_SelectedCountSuffix"> 张</s:String>
+    <s:String x:Key="BatchAction_Rotate90">旋转90°</s:String>
+    <s:String x:Key="BatchAction_Bookmark">收藏/取消收藏</s:String>
+    <s:String x:Key="BatchAction_Share">分享</s:String>
+    <s:String x:Key="BatchAction_Delete">删除</s:String>
+    <s:String x:Key="BatchAction_Print">打印</s:String>
+    <s:String x:Key="BatchAction_Rename">批量重命名</s:String>
+    <s:String x:Key="BatchAction_Zip">批量压缩</s:String>
+    <s:String x:Key="BatchPrint_Title">批量打印</s:String>
+    <s:String x:Key="BatchPrint_CountPrefix">已选 </s:String>
+    <s:String x:Key="BatchPrint_CountSuffix"> 张</s:String>
+    <s:String x:Key="BatchPrint_SelectAll">全选</s:String>
+    <s:String x:Key="BatchPrint_ClearAll">全不选</s:String>
+    <s:String x:Key="BatchPrint_MoveUp">上移</s:String>
+    <s:String x:Key="BatchPrint_MoveDown">下移</s:String>
+    <s:String x:Key="BatchPrint_EmptySelection">请至少选择一张图片</s:String>
+    <s:String x:Key="BatchRename_Title">批量重命名</s:String>
+    <s:String x:Key="BatchRename_CountPrefix">将重命名 </s:String>
+    <s:String x:Key="BatchRename_CountSuffix"> 张图片</s:String>
+    <s:String x:Key="BatchRename_PrefixLabel">前缀</s:String>
+    <s:String x:Key="BatchRename_StartNumberLabel">起始序号</s:String>
+    <s:String x:Key="BatchRename_NumberDigitsLabel">序号位数</s:String>
+    <s:String x:Key="BatchRename_PreviewLabel">示例</s:String>
+    <s:String x:Key="BatchRename_Note">保留原扩展名</s:String>
+    <s:String x:Key="BatchRename_Error_InvalidStartNumber">请输入有效的起始序号</s:String>
+    <s:String x:Key="BatchRename_Error_InvalidDigits">请输入有效的序号位数</s:String>
+    <s:String x:Key="BatchRename_Error_InvalidPrefix">前缀包含非法字符</s:String>
+    <s:String x:Key="BatchZip_SaveTitle">保存压缩包</s:String>
+    <s:String x:Key="BatchZip_SaveFilter">Zip 文件 (*.zip)|*.zip</s:String>
+
 
     <!-- ==================== 信息面板文本 ==================== -->
     <s:String x:Key="InfoPanel_Dimensions">分辨率：</s:String>

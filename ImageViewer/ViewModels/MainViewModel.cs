@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -226,6 +227,23 @@ namespace ImageViewer.ViewModels
             : "无图片";
         /// <summary>是否有图片</summary>
         public bool HasImages => Images.Count > 0;
+        public IReadOnlyList<ImageInfo> SelectedImages => Images.Where(i => i.IsSelected).ToList();
+
+        public event EventHandler<IReadOnlyList<ImageInfo>>? BatchPrintRequested;
+        public event EventHandler<IReadOnlyList<ImageInfo>>? BatchRenameRequested;
+        public event EventHandler<BatchZipRequest>? BatchZipRequested;
+
+        public sealed class BatchZipRequest
+        {
+            public BatchZipRequest(IReadOnlyList<ImageInfo> images, int skippedCount)
+            {
+                Images = images;
+                SkippedCount = skippedCount;
+            }
+
+            public IReadOnlyList<ImageInfo> Images { get; }
+            public int SkippedCount { get; }
+        }
         ///// <summary>是否可以前往上一张</summary>
         //public bool CanGoPrevious => CurrentIndex > 0;
         ///// <summary>是否可以前往下一张</summary>
@@ -749,6 +767,19 @@ namespace ImageViewer.ViewModels
             }
 
             await ShareFilesAsync(files);
+        }
+
+        [RelayCommand]
+        private void BatchPrint()
+        {
+            var selected = SelectedImages;
+            if (selected.Count == 0)
+            {
+                StatusMessage = "请先选择要打印的图片";
+                return;
+            }
+
+            BatchPrintRequested?.Invoke(this, selected);
         }
 
 
@@ -1302,6 +1333,53 @@ namespace ImageViewer.ViewModels
         }
 
         [RelayCommand]
+        private void BatchRename()
+        {
+            var selected = SelectedImages;
+            if (selected.Count == 0)
+            {
+                StatusMessage = "没有可重命名的图片";
+                return;
+            }
+
+            var renamable = selected.Where(IsRenamableImage).ToList();
+            if (renamable.Count == 0)
+            {
+                StatusMessage = "压缩包内图片、PDF 页面不可重命名";
+                return;
+            }
+
+            var skipped = selected.Count - renamable.Count;
+            if (skipped > 0)
+            {
+                StatusMessage = $"已跳过 {skipped} 张不可重命名的图片";
+            }
+
+            BatchRenameRequested?.Invoke(this, renamable);
+        }
+
+        [RelayCommand]
+        private void BatchZip()
+        {
+            var selected = SelectedImages;
+            if (selected.Count == 0)
+            {
+                StatusMessage = "没有可压缩的图片";
+                return;
+            }
+
+            var eligible = selected.Where(IsZipEligibleImage).ToList();
+            if (eligible.Count == 0)
+            {
+                StatusMessage = "没有可压缩的图片";
+                return;
+            }
+
+            var skipped = selected.Count - eligible.Count;
+            BatchZipRequested?.Invoke(this, new BatchZipRequest(eligible, skipped));
+        }
+
+        [RelayCommand]
         private void BeginRenameFileName()
         {
             TryStartRenameFileName(ensureInfoPanelVisible: false);
@@ -1425,6 +1503,363 @@ namespace ImageViewer.ViewModels
         private void CancelRenameFileName()
         {
             IsRenamingFileName = false;
+        }
+
+        public void ApplyBatchRename(IReadOnlyList<ImageInfo> images, string prefix, int startNumber, int numberPadding)
+        {
+            if (images == null || images.Count == 0)
+            {
+                StatusMessage = "没有可重命名的图片";
+                return;
+            }
+
+            var targets = images.Where(IsRenamableImage).ToList();
+            if (targets.Count == 0)
+            {
+                StatusMessage = "没有可重命名的图片";
+                return;
+            }
+
+            if (startNumber < 0)
+            {
+                StatusMessage = "起始序号无效";
+                return;
+            }
+
+            if (numberPadding < 0 || numberPadding > 8)
+            {
+                StatusMessage = "序号位数无效";
+                return;
+            }
+
+            var safePrefix = prefix ?? string.Empty;
+            if (ContainsInvalidFileNameChars(safePrefix))
+            {
+                StatusMessage = "前缀包含非法字符";
+                return;
+            }
+
+            var renameItems = new List<RenameItem>(targets.Count);
+            for (int i = 0; i < targets.Count; i++)
+            {
+                var image = targets[i];
+                var directory = Path.GetDirectoryName(image.FilePath);
+                if (string.IsNullOrWhiteSpace(directory))
+                {
+                    StatusMessage = "文件路径无效";
+                    return;
+                }
+
+                var extension = Path.GetExtension(image.FilePath);
+                var sequenceText = FormatSequenceNumber(startNumber + i, numberPadding);
+                var baseName = NormalizeRenameFileName(safePrefix + sequenceText, extension);
+                if (string.IsNullOrWhiteSpace(baseName))
+                {
+                    StatusMessage = "文件名不能为空";
+                    return;
+                }
+
+                if (ContainsInvalidFileNameChars(baseName))
+                {
+                    StatusMessage = "文件名包含非法字符";
+                    return;
+                }
+
+                if (string.Equals(baseName, ".", StringComparison.Ordinal) ||
+                    string.Equals(baseName, "..", StringComparison.Ordinal))
+                {
+                    StatusMessage = "文件名无效";
+                    return;
+                }
+
+                if (baseName.EndsWith(".", StringComparison.Ordinal))
+                {
+                    StatusMessage = "文件名不能以点结尾";
+                    return;
+                }
+
+                var newPath = Path.Combine(directory, baseName + extension);
+                renameItems.Add(new RenameItem(image, image.FilePath, newPath));
+            }
+
+            var comparer = StringComparer.OrdinalIgnoreCase;
+            var newPathSet = new HashSet<string>(comparer);
+            foreach (var item in renameItems)
+            {
+                if (!newPathSet.Add(item.NewPath))
+                {
+                    StatusMessage = "批量重命名失败: 目标文件名重复";
+                    return;
+                }
+            }
+
+            var pathsToBeFreed = new HashSet<string>(
+                renameItems
+                    .Where(item => !string.Equals(item.OldPath, item.NewPath, StringComparison.OrdinalIgnoreCase))
+                    .Select(item => item.OldPath),
+                comparer);
+
+            foreach (var item in renameItems)
+            {
+                if (string.Equals(item.OldPath, item.NewPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (File.Exists(item.NewPath) && !pathsToBeFreed.Contains(item.NewPath))
+                {
+                    StatusMessage = "已存在同名文件";
+                    return;
+                }
+            }
+
+            var itemsToRename = renameItems
+                .Where(item => !string.Equals(item.OldPath, item.NewPath, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (itemsToRename.Count == 0)
+            {
+                StatusMessage = "文件名无变化";
+                return;
+            }
+
+            var shouldResumeWatcher = IsFolderPath(CurrentFolderPath);
+            if (shouldResumeWatcher)
+            {
+                _fileWatcher.StopWatching();
+            }
+
+            try
+            {
+                foreach (var item in itemsToRename)
+                {
+                    item.TempPath = CreateTempRenamePath(item.OldPath);
+                    File.Move(item.OldPath, item.TempPath);
+                }
+
+                foreach (var item in itemsToRename)
+                {
+                    if (string.IsNullOrWhiteSpace(item.TempPath))
+                    {
+                        continue;
+                    }
+
+                    File.Move(item.TempPath, item.NewPath);
+                    ApplyFileRename(item.Image, item.OldPath, item.NewPath);
+                }
+
+                StatusMessage = $"已批量重命名 {itemsToRename.Count} 张";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"批量重命名失败: {ex.Message}";
+            }
+            finally
+            {
+                if (shouldResumeWatcher && IsFolderPath(CurrentFolderPath))
+                {
+                    _fileWatcher.WatchFolder(
+                        CurrentFolderPath,
+                        includeSubfolders: Settings.ScanSubfoldersEnabled,
+                        maxSubfolderDepth: Settings.ScanSubfoldersDepth);
+                }
+            }
+        }
+
+        public void ApplyBatchZip(IReadOnlyList<ImageInfo> images, string zipPath, int skippedCount)
+        {
+            if (images == null || images.Count == 0)
+            {
+                StatusMessage = "没有可压缩的图片";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(zipPath))
+            {
+                StatusMessage = "压缩包路径无效";
+                return;
+            }
+
+            var targets = images.Where(IsZipEligibleImage).ToList();
+            if (targets.Count == 0)
+            {
+                StatusMessage = "没有可压缩的图片";
+                return;
+            }
+
+            var outputDirectory = Path.GetDirectoryName(zipPath);
+            if (!string.IsNullOrWhiteSpace(outputDirectory) && !Directory.Exists(outputDirectory))
+            {
+                Directory.CreateDirectory(outputDirectory);
+            }
+
+            var addedCount = 0;
+            var skippedMissing = 0;
+            var usedEntries = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            try
+            {
+                using var stream = new FileStream(zipPath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+                using var archive = new ZipArchive(stream, ZipArchiveMode.Create);
+
+                foreach (var image in targets)
+                {
+                    if (string.IsNullOrWhiteSpace(image.FilePath) || !File.Exists(image.FilePath))
+                    {
+                        skippedMissing++;
+                        continue;
+                    }
+
+                    var entryName = GetZipEntryName(image);
+                    if (string.IsNullOrWhiteSpace(entryName))
+                    {
+                        entryName = Path.GetFileName(image.FilePath);
+                    }
+
+                    entryName = NormalizeZipEntryName(entryName);
+                    entryName = EnsureUniqueEntryName(entryName, usedEntries);
+                    archive.CreateEntryFromFile(image.FilePath, entryName, CompressionLevel.Optimal);
+                    addedCount++;
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"批量压缩失败: {ex.Message}";
+                return;
+            }
+
+            if (addedCount == 0)
+            {
+                try
+                {
+                    if (File.Exists(zipPath))
+                    {
+                        File.Delete(zipPath);
+                    }
+                }
+                catch
+                {
+                }
+
+                StatusMessage = "没有可压缩的图片";
+                return;
+            }
+
+            var totalSkipped = skippedCount + skippedMissing;
+            var archiveName = Path.GetFileName(zipPath);
+            StatusMessage = totalSkipped > 0
+                ? $"已创建压缩包: {archiveName}，已跳过 {totalSkipped} 张"
+                : $"已创建压缩包: {archiveName}";
+        }
+
+        private static bool IsRenamableImage(ImageInfo image)
+        {
+            if (image == null)
+            {
+                return false;
+            }
+
+            if (image.SourceKind != ImageSourceKind.File)
+            {
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(image.FilePath))
+            {
+                return false;
+            }
+
+            return File.Exists(image.FilePath);
+        }
+
+        private static bool IsZipEligibleImage(ImageInfo image)
+        {
+            return IsRenamableImage(image);
+        }
+
+        private static string FormatSequenceNumber(int value, int padding)
+        {
+            return padding > 0
+                ? value.ToString("D" + padding, CultureInfo.InvariantCulture)
+                : value.ToString(CultureInfo.InvariantCulture);
+        }
+
+        private static string CreateTempRenamePath(string originalPath)
+        {
+            var directory = Path.GetDirectoryName(originalPath) ?? string.Empty;
+            var extension = Path.GetExtension(originalPath);
+
+            string tempPath;
+            do
+            {
+                tempPath = Path.Combine(directory, $".__iv_tmp_{Guid.NewGuid():N}{extension}");
+            } while (File.Exists(tempPath));
+
+            return tempPath;
+        }
+
+        private sealed class RenameItem
+        {
+            public RenameItem(ImageInfo image, string oldPath, string newPath)
+            {
+                Image = image;
+                OldPath = oldPath;
+                NewPath = newPath;
+            }
+
+            public ImageInfo Image { get; }
+            public string OldPath { get; }
+            public string NewPath { get; }
+            public string? TempPath { get; set; }
+        }
+
+        private string GetZipEntryName(ImageInfo image)
+        {
+            if (!string.IsNullOrWhiteSpace(image.RelativePath) &&
+                !Path.IsPathRooted(image.RelativePath) &&
+                !image.RelativePath.StartsWith("..", StringComparison.Ordinal))
+            {
+                return NormalizeZipEntryName(image.RelativePath);
+            }
+
+            var filePath = image.FilePath ?? string.Empty;
+            return NormalizeZipEntryName(Path.GetFileName(filePath));
+        }
+
+        private static string NormalizeZipEntryName(string entryName)
+        {
+            var normalized = (entryName ?? string.Empty).Replace('\\', '/');
+            while (normalized.StartsWith("/", StringComparison.Ordinal))
+            {
+                normalized = normalized.Substring(1);
+            }
+
+            return normalized;
+        }
+
+        private static string EnsureUniqueEntryName(string entryName, HashSet<string> usedEntries)
+        {
+            if (usedEntries.Add(entryName))
+            {
+                return entryName;
+            }
+
+            var normalized = entryName.Replace('\\', '/');
+            var slashIndex = normalized.LastIndexOf('/');
+            var directory = slashIndex >= 0 ? normalized.Substring(0, slashIndex + 1) : string.Empty;
+            var fileName = slashIndex >= 0 ? normalized.Substring(slashIndex + 1) : normalized;
+            var extension = Path.GetExtension(fileName);
+            var baseName = Path.GetFileNameWithoutExtension(fileName);
+
+            var counter = 2;
+            string candidate;
+            do
+            {
+                candidate = $"{directory}{baseName} ({counter}){extension}";
+                counter++;
+            } while (!usedEntries.Add(candidate));
+
+            return candidate;
         }
 
         /// <summary>

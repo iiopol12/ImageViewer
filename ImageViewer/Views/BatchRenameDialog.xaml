@@ -1,0 +1,128 @@
+<Window x:Class="ImageViewer.Views.BatchRenameDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{DynamicResource BatchRename_Title}"
+        SizeToContent="WidthAndHeight"
+        Width="360"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Background="{StaticResource BackgroundMediumBrush}">
+
+    <Border Background="{StaticResource BackgroundMediumBrush}"
+            BorderBrush="{StaticResource BackgroundLightBrush}"
+            BorderThickness="1"
+            Padding="16">
+        <Grid Width="320">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0"
+                       Text="{DynamicResource BatchRename_Title}"
+                       Foreground="{StaticResource ForegroundBrush}"
+                       FontSize="15"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,8"/>
+
+            <StackPanel Grid.Row="1" Margin="0,0,0,12">
+                <TextBlock Foreground="{StaticResource ForegroundDimBrush}" FontSize="12">
+                    <Run Text="{DynamicResource BatchRename_CountPrefix}"/>
+                    <Run x:Name="SelectedCountRun"/>
+                    <Run Text="{DynamicResource BatchRename_CountSuffix}"/>
+                </TextBlock>
+                <TextBlock Text="{DynamicResource BatchRename_Note}"
+                           Foreground="{StaticResource ForegroundDimBrush}"
+                           FontSize="11"
+                           Margin="0,4,0,0"/>
+            </StackPanel>
+
+            <Grid Grid.Row="2" Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="90"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0"
+                           Text="{DynamicResource BatchRename_PrefixLabel}"
+                           Foreground="{StaticResource ForegroundDimBrush}"
+                           VerticalAlignment="Center"/>
+                <TextBox Grid.Row="0" Grid.Column="1"
+                         x:Name="PrefixTextBox"
+                         Height="28"
+                         Padding="6,0"
+                         VerticalContentAlignment="Center"
+                         TextChanged="Input_TextChanged"/>
+
+                <TextBlock Grid.Row="1" Grid.Column="0"
+                           Text="{DynamicResource BatchRename_StartNumberLabel}"
+                           Foreground="{StaticResource ForegroundDimBrush}"
+                           VerticalAlignment="Center"
+                           Margin="0,8,0,0"/>
+                <TextBox Grid.Row="1" Grid.Column="1"
+                         x:Name="StartNumberTextBox"
+                         Height="28"
+                         Padding="6,0"
+                         VerticalContentAlignment="Center"
+                         Margin="0,8,0,0"
+                         TextChanged="Input_TextChanged"/>
+
+                <TextBlock Grid.Row="2" Grid.Column="0"
+                           Text="{DynamicResource BatchRename_NumberDigitsLabel}"
+                           Foreground="{StaticResource ForegroundDimBrush}"
+                           VerticalAlignment="Center"
+                           Margin="0,8,0,0"/>
+                <TextBox Grid.Row="2" Grid.Column="1"
+                         x:Name="PaddingTextBox"
+                         Height="28"
+                         Padding="6,0"
+                         VerticalContentAlignment="Center"
+                         Margin="0,8,0,0"
+                         TextChanged="Input_TextChanged"/>
+
+                <TextBlock Grid.Row="3" Grid.Column="0"
+                           Text="{DynamicResource BatchRename_PreviewLabel}"
+                           Foreground="{StaticResource ForegroundDimBrush}"
+                           VerticalAlignment="Center"
+                           Margin="0,8,0,0"/>
+                <TextBlock Grid.Row="3" Grid.Column="1"
+                           x:Name="PreviewTextBlock"
+                           Foreground="{StaticResource ForegroundBrush}"
+                           TextTrimming="CharacterEllipsis"
+                           Margin="0,8,0,0"/>
+            </Grid>
+
+            <TextBlock Grid.Row="3"
+                       x:Name="ErrorText"
+                       Visibility="Collapsed"
+                       Foreground="{StaticResource AccentBrush}"
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,12"/>
+
+            <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="{DynamicResource Button_Cancel}"
+                        Width="90"
+                        Height="32"
+                        Margin="0,0,8,0"
+                        IsCancel="True"
+                        Style="{StaticResource ModernButtonStyle}"/>
+                <Button Content="{DynamicResource Button_Confirm}"
+                        Width="90"
+                        Height="32"
+                        IsDefault="True"
+                        Style="{StaticResource ModernButtonStyle}"
+                        Click="Ok_Click"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>
