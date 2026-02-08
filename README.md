@@ -2,6 +2,10 @@
 一款基于 WPF 的 Windows 图片查看器，支持图片、压缩包与 PDF 的浏览，面向漫画/图集场景优化。  
 A WPF-based Windows image viewer that supports images, archives, and PDFs, optimized for comics and galleries.
 
+
+https://pan.baidu.com/s/1t4QDHJ7j_RDUcxAz6jYKOA 提取码: 94sd
+https://wwbaz.lanzout.com/b0139dnxaj 密码:6qv8
+
 ## 主要功能 / Features
 - 多格式浏览：常见图片、RAW、PDF、压缩包（支持密码）。  
 - 多视图模式：单图、双页、漫画长条、瀑布流缩略图。  
