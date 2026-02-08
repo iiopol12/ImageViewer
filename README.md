@@ -4,6 +4,7 @@ A WPF-based Windows image viewer that supports images, archives, and PDFs, optim
 
 
 https://pan.baidu.com/s/1t4QDHJ7j_RDUcxAz6jYKOA 提取码: 94sd
+
 https://wwbaz.lanzout.com/b0139dnxaj 密码:6qv8
 
 ## 主要功能 / Features
